@@ -1,0 +1,47 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import { tools } from '../../../data/tools'
+const tool = tools.find(t => t.id === 'ip-lookup')!
+const steps = [
+  { name: 'Enter an IP Address', text: 'Type any IPv4 or IPv6 address. You can look up any public IP.' },
+  { name: 'View Location Info', text: 'Get geolocation data: country, city, region, ISP, and timezone. IP geolocation is approximate.' },
+]
+const faq = [
+  { question: 'How accurate is IP geolocation?', answer: 'Country level ~99% accurate. City level ~70-80%. Street level less accurate. Mobile IPs and VPNs can show incorrect locations.' },
+  { question: 'What info can I get from an IP?', answer: 'Approximate location (country, region, city), ISP, and timezone. You cannot get personal info like name or address from an IP alone.' },
+]
+---
+<ToolLayout tool={tool} description="Free IP address lookup tool. Look up geolocation, ISP, and network info for any IP address." {steps} {faq}>
+  <div class="mb-6"><label class="block font-medium text-gray-700 dark:text-gray-300 mb-2">IP Address</label><input type="text" id="ipInput" class="form-input w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-4 py-3 font-mono dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100" placeholder="8.8.8.8"><button id="myIpBtn" class="btn btn-sm btn-secondary mt-2">Use My IP</button></div>
+  <div class="mb-6"><button id="lookupBtn" class="btn btn-primary">Lookup</button></div>
+  <div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Results</span></div><div class="p-4" id="ipResult"><p class="text-gray-400 text-sm">Enter an IP and click Lookup.</p></div></div>
+  <section slot="tutorial" class="mb-10"><h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">About IP Geolocation</h2><div class="text-gray-500 dark:text-gray-400 leading-relaxed space-y-3"><p>IP geolocation matches IP addresses against databases from ISPs and geolocation providers. These databases map IP ranges to physical locations. Data is updated regularly but can have delays.</p><p>Common uses: fraud detection, content localization, analytics, and access control. For production, use a dedicated geolocation API for better accuracy.</p></div></section>
+  <script is:inline>
+    var lookupBtn = document.getElementById('lookupBtn');
+    var ipInput = document.getElementById('ipInput');
+    var myIpBtn = document.getElementById('myIpBtn');
+    var ipResult = document.getElementById('ipResult');
+    async function lookup() {
+      var ip = ipInput.value.trim();
+      if (!ip) { ipResult.innerHTML = '<p class="text-red-400 text-sm">Enter an IP address first.</p>'; return; }
+      ipResult.innerHTML = '<p class="text-gray-400">Looking up...</p>';
+      try {
+        var resp = await fetch('https://ipapi.co/' + ip + '/json/');
+        var data = await resp.json();
+        if (data.error) { ipResult.innerHTML = '<p class="text-red-400 text-sm">' + (data.reason || 'Lookup failed.') + '</p>'; return; }
+        ipResult.innerHTML = '<div class="space-y-2 text-sm">' +
+          ['IP:'+data.ip,'City:'+data.city,'Region:'+data.region,'Country:'+data.country_name,'ISP:'+data.org,'Timezone:'+data.timezone].filter(function(v){return v.indexOf(':')<v.length-1;}).map(function(p){var kv=p.split(':');return '<div class="flex justify-between bg-gray-50 rounded-lg p-3 dark:bg-gray-800"><span class="text-gray-500 dark:text-gray-400">'+kv[0]+'</span><span class="font-mono text-gray-900 dark:text-white">'+kv.slice(1).join(':')+'</span></div>';}).join('')+'</div>';
+      } catch(e) { ipResult.innerHTML = '<p class="text-red-400 text-sm">Lookup failed. Check your connection.</p>'; }
+    }
+    lookupBtn.addEventListener('click', lookup);
+    myIpBtn.addEventListener('click', async function() { try { var r = await fetch('https://api.ipify.org?format=json'); var d = await r.json(); ipInput.value = d.ip; } catch(e){} });
+  </script>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+      <a href="/guides/ip-addresses-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">IP Addresses & Geolocation</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">IPv4 vs IPv6, public vs private, geolocation accuracy.</p></div></div></a>
+      <a href="/guides/ip-addresses-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">IP Addresses & Geolocation</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">IPv4 vs IPv6, public vs private, geolocation accuracy.</p></div></div></a>
+    </div>
+  </section>
+</ToolLayout>

@@ -1,0 +1,51 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+const content = `
+<div class="prose prose-gray max-w-none dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-strong:text-gray-900 dark:prose-strong:text-white prose-code:text-blue-600 dark:prose-code:text-blue-400 prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-pre:bg-gray-50 dark:prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-gray-800">
+
+<h2>Why Character and Word Counts Matter</h2>
+<p>Every content platform has limits. Twitter gives you 280 characters. Meta descriptions should be 150-160 characters to avoid truncation in search results. Title tags work best under 60 characters. Blog posts that rank well on Google tend to be 1,500-2,500 words. Going over or under these numbers directly affects how your content performs.</p>
+<p>A <a href="/tools/word-counter/">word counter</a> that tracks characters, words, lines, and sentences in real-time eliminates the guesswork. You type, it counts. No switching between your editor and a separate tool. But the numbers alone don't tell the whole story — you need to know what each metric means and why it matters for your specific content type.</p>
+
+<h2>SEO Content Length Benchmarks</h2>
+<table>
+  <thead><tr><th>Content Type</th><th>Recommended Length</th><th>Why</th></tr></thead>
+  <tbody>
+    <tr><td>Title Tag</td><td>50-60 characters</td><td>Google truncates longer titles in SERPs. The cut point is measured in pixels (600px), not characters, but 50-60 characters reliably fits on both desktop and mobile.</td></tr>
+    <tr><td>Meta Description</td><td>150-160 characters</td><td>Truncated at ~920 pixels on desktop (~158 chars). Mobile truncation happens earlier. Front-load the most important information.</td></tr>
+    <tr><td>Blog Post</td><td>1,500-2,500 words</td><td>Backlinko's analysis of 11.8 million search results found the average first-page result contains 1,447 words. Longer content correlates with more backlinks.</td></tr>
+    <tr><td>Email Subject Line</td><td>30-50 characters</td><td>Campaign Monitor data shows subject lines of 30-50 characters have the highest open rates. Mobile clients truncate at ~35 characters.</td></tr>
+    <tr><td>Twitter Post</td><td>71-100 characters</td><td>Despite the 280 limit, tweets under 100 characters get 17% higher engagement according to Twitter's own data.</td></tr>
+  </tbody>
+</table>
+
+<h2>Beyond Counting: What the Numbers Mean</h2>
+<p><strong>Characters.</strong> The raw count of every character including spaces and punctuation. This is what platforms enforce. For Twitter, it's 280. For SMS, it's 160. For meta descriptions, it's a soft limit — Google can choose to display a different snippet regardless of your meta description length.</p>
+<p><strong>Words.</strong> The count of whitespace-separated tokens. The standard measure for article and document length. When someone says "write a 2,000-word article," they mean word count, not character count. Most word processors and CMS platforms report word counts, and SEO tools like Yoast set word count targets.</p>
+<p><strong>Lines.</strong> The number of newline-separated rows. Useful for checking CSV row counts, log file entries, or code file metrics. If you're processing a data export and expecting 10,000 rows, a line count verifies the file isn't truncated.</p>
+<p><strong>Sentences.</strong> Estimated by counting sentence-ending punctuation (<code>.</code>, <code>!</code>, <code>?</code>). A rough metric — abbreviations like "Dr." or "U.S." create false positives. But as a general gauge, average sentence length correlates with readability. Academic writing averages 20-25 words per sentence. Web content performs better at 12-18 words per sentence. If your average exceeds 25, your sentences are probably too long.</p>
+
+<h2>How to Use Word Counts in Your Workflow</h2>
+<p><strong>Before writing:</strong> Research the target word count for your content type and platform. A product description for e-commerce needs 150-300 words. A pillar page for SEO needs 2,000+. Knowing the target before you start prevents under-writing or overwriting.</p>
+<p><strong>While writing:</strong> Keep an eye on the count without obsessing over it. If you're 500 words into a blog post and haven't covered half your outline, you're on track. If you've hit the target word count but only covered 30% of your points, your scope is too broad.</p>
+<p><strong>After writing:</strong> Check all four metrics. Does the character count fit platform limits? Is the word count in the sweet spot for your content type? Are the sentences varied in length (some short, some longer)? Does the line count match your expected structure? A quick scan of these numbers catches content problems before publishing.</p>
+
+<h2>Readability and Sentence Length</h2>
+<p>Word and character counts are quantitative. Readability is qualitative — but it correlates with sentence length. The Flesch-Kincaid readability tests use average sentence length and average syllables per word to estimate reading difficulty. Shorter sentences improve readability. Varying sentence length keeps readers engaged — a paragraph of all 8-word sentences feels robotic; a paragraph of all 30-word sentences feels like a wall of text.</p>
+<p>A practical approach: aim for an average of 15-20 words per sentence. Include some short sentences (3-5 words) for emphasis. Limit long sentences (25+ words) to one or two per paragraph. Your word counter gives you the average — use it.</p>
+
+<h2>Platform-Specific Tips</h2>
+<p><strong>Google Search.</strong> Title tags and meta descriptions have character limits, but the page content has no hard limit. However, Google's crawlers may not index extremely long pages fully. Keep important content above the fold and within the first 1,000 words.</p>
+<p><strong>Social Media.</strong> Each platform has its own limit, but engagement data consistently shows that shorter posts perform better. Don't use all 280 characters just because you can.</p>
+<p><strong>Email.</strong> Subject lines under 50 characters get better open rates. Body copy should be scannable — short paragraphs, bullet points, clear CTAs. Most people read emails on mobile, where long paragraphs become walls of text.</p>
+<h2>Content-Length and User Intent</h2>
+<p>Not every query needs a 2,000-word answer. Someone searching "weather Tokyo" wants a number and a forecast, not an essay. Someone searching "how to file 2024 taxes" needs comprehensive, step-by-step guidance. Google understands this — its algorithms evaluate content length relative to user intent. A 300-word page that perfectly answers a simple query can outrank a 2,000-word page that buries the answer in fluff. Match your content length to the searchers need, not to an arbitrary word count goal.</p>
+<p>That said, longer content consistently attracts more backlinks, and backlinks are a top-three ranking factor. The mechanism: comprehensive content is more likely to be cited as a reference. If your article is the definitive resource on a topic, other sites link to it instead of writing their own. Word count correlates with rankings because it correlates with comprehensiveness, which correlates with backlinks. Write the most useful, complete answer to the query you are targeting. The word count will take care of itself.</p><h2>Content Metrics Beyond Word Count</h2><p>Word count is a proxy for comprehensiveness, not a goal in itself. Other metrics matter more for user engagement and SEO: time on page (how long do readers stay?), bounce rate (do they leave immediately?), scroll depth (do they read to the end?), and conversion rate (do they take the desired action?). A 3,000-word article that readers bounce from after 15 seconds is performing worse than an 800-word article they read to the end. Use word count as one signal among many, not as the sole measure of content quality.</p><p>Readability scores (Flesch-Kincaid, Gunning Fog) estimate the education level needed to understand your text. For web content, aim for a reading level of 8th-10th grade. This does not mean "dumb down" your content — it means writing clearly. Short sentences. Active voice. Concrete examples. Technical terms explained when first used. These practices improve readability and comprehension at any education level. Hemingway App and Grammarly both provide readability feedback integrated into the writing process.</p>
+</div>
+`
+---
+<GuideLayout title="Word Counts & SEO: Writing Content That Ranks | DevTools Hub" description="Understand character, word, line, and sentence counts and how they impact SEO. Includes content length benchmarks for title tags, meta descriptions, and blog posts." breadcrumb="Word Count & SEO">
+  <Fragment slot="title">Word Counts & SEO:<br class="hidden sm:block" />Writing Content That Ranks</Fragment>
+  <Fragment slot="intro">From tweet limits to SEO meta descriptions, content length directly affects performance. Learn the benchmarks for every content type and how to use word count data to write better.</Fragment>
+  <Fragment set:html={content} />
+</GuideLayout>

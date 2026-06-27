@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://toolhub.51nav.com/sitemap.xml

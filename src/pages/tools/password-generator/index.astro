@@ -1,0 +1,103 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'password-generator')!
+
+const steps = [
+  { name: 'Configure Length', text: 'Use the slider to set your desired password length (8–64 characters). Longer passwords are more secure — we recommend at least 16 characters for important accounts.' },
+  { name: 'Choose Character Sets', text: 'Select which character types to include: uppercase letters, lowercase letters, numbers, and symbols. Including all four types creates the strongest passwords.' },
+  { name: 'Generate Password', text: 'Click "Generate" to create a cryptographically secure random password. Each generation uses the Web Crypto API for true randomness.' },
+  { name: 'Copy and Use', text: 'Click "Copy" to copy the password to your clipboard. Use it immediately — we never store or transmit your password.' },
+]
+
+const faq = [
+  { question: 'How secure are the generated passwords?', answer: 'Our passwords are generated using the Web Crypto API (crypto.getRandomValues), which provides cryptographically secure random numbers. This is the same API used by password managers and security applications. The security depends on length and character set — a 16-character password with all character types has approximately 95¹⁶ possible combinations.' },
+  { question: 'What makes a strong password?', answer: 'A strong password should be at least 12 characters long and include a mix of uppercase letters, lowercase letters, numbers, and symbols. Avoid common words, personal information, and predictable patterns. The best passwords are randomly generated — human-created passwords tend to follow predictable patterns.' },
+  { question: 'Is it safe to use an online password generator?', answer: 'Yes, our tool is completely safe because all processing happens locally in your browser. Your password is never sent to any server, never stored, and never logged. You can verify this by disconnecting from the internet after loading the page — the generator will still work.' },
+  { question: 'How long should my password be?', answer: 'For most accounts, 12–16 characters is sufficient. For highly sensitive accounts (email, banking, password manager master password), use 20+ characters. Each additional character exponentially increases the time required to crack the password.' },
+]
+
+const example = 'xK9#mP2$vL7@nQ4*wR8'
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free online password generator. Create strong, cryptographically secure passwords instantly. Customize length and character types. All processing is local and private." {steps} {faq}
+>
+  <div class="grid md:grid-cols-2 gap-8 mb-6">
+    <div>
+      <label class="block font-medium text-gray-700 dark:text-gray-300 mb-2">Length: <span id="pwLenVal">16</span></label>
+      <input type="range" id="pwLength" min="8" max="64" value="16" class="w-full">
+    </div>
+    <div class="space-y-2">
+      <label class="block font-medium text-gray-700 dark:text-gray-300 mb-2">Include</label>
+      <label class="flex items-center gap-3 cursor-pointer"><input type="checkbox" id="pwUpper" checked class="w-4 h-4 rounded"><span class="text-gray-700 dark:text-gray-300">Uppercase (A-Z)</span></label>
+      <label class="flex items-center gap-3 cursor-pointer"><input type="checkbox" id="pwLower" checked class="w-4 h-4 rounded"><span class="text-gray-700 dark:text-gray-300">Lowercase (a-z)</span></label>
+      <label class="flex items-center gap-3 cursor-pointer"><input type="checkbox" id="pwNumbers" checked class="w-4 h-4 rounded"><span class="text-gray-700 dark:text-gray-300">Numbers (0-9)</span></label>
+      <label class="flex items-center gap-3 cursor-pointer"><input type="checkbox" id="pwSymbols" checked class="w-4 h-4 rounded"><span class="text-gray-700 dark:text-gray-300">Symbols (!@#$)</span></label>
+    </div>
+  </div>
+  <div class="flex gap-3 mb-6">
+    <button id="generateBtn" class="btn btn-primary">Generate Password</button>
+    <button id="copyBtn" class="btn btn-secondary">Copy</button>
+  </div>
+  <div class="code-panel">
+    <div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Generated Password</span></div>
+    <pre id="pwOutput" class="code-output text-2xl tracking-wider">Click "Generate" to get started</pre>
+  </div>
+
+  <section slot="examples" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Example Password</h2>
+    <pre class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-lg text-gray-700 font-mono text-center dark:bg-gray-900 dark:border-gray-800 dark:text-gray-300"><code>{example}</code></pre>
+    <p class="text-sm text-gray-400 mt-3 text-center">20 characters, all character types — ~95²⁰ possible combinations.</p>
+  </section>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Password Security Best Practices</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">A strong password is your first line of defense against unauthorized access. Here are key principles to follow:</p>
+      <h3 class="text-lg font-semibold text-gray-900 mt-6 mb-3 dark:text-white">Do's and Don'ts</h3>
+      <ul class="list-disc list-inside space-y-2 text-gray-500 dark:text-gray-400">
+        <li>✅ Use randomly generated passwords</li>
+        <li>✅ Use a different password for every account</li>
+        <li>✅ Use a password manager to store them</li>
+        <li>✅ Enable two-factor authentication when available</li>
+        <li>❌ Don't reuse passwords across sites</li>
+        <li>❌ Don't use personal information (birthdays, names)</li>
+        <li>❌ Don't share passwords via email or messaging</li>
+      </ul>
+    </div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+      <a href="/guides/password-hash-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">Password Security & Hash Algorithms</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">MD5 vs SHA-256, bcrypt, password best practices.</p></div></div></a>
+      <a href="/guides/password-hash-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">Password Security & Hash Algorithms</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">MD5 vs SHA-256, bcrypt, password best practices.</p></div></div></a>
+    </div>
+  </section>
+
+  <script>
+    import { copyToClipboard } from '../../../utils/copyToClipboard'
+    const generateBtn = document.getElementById('generateBtn')!
+    const copyBtn = document.getElementById('copyBtn')!
+    const pwLength = document.getElementById('pwLength')
+    const pwLenVal = document.getElementById('pwLenVal')!
+    const pwUpper = document.getElementById('pwUpper')
+    const pwLower = document.getElementById('pwLower')
+    const pwNumbers = document.getElementById('pwNumbers')
+    const pwSymbols = document.getElementById('pwSymbols')
+    const pwOutput = document.getElementById('pwOutput')!
+    function generatePassword() {
+      let chars = ''; if (pwUpper.checked) chars += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'; if (pwLower.checked) chars += 'abcdefghijklmnopqrstuvwxyz'; if (pwNumbers.checked) chars += '0123456789'; if (pwSymbols.checked) chars += '!@#$%^&*()_+-=[]{}|;:,.<>?'
+      if (!chars) return; const len = parseInt(pwLength.value, 10); let password = ''
+      if (crypto?.getRandomValues) { const arr = new Uint32Array(len); crypto.getRandomValues(arr); for (let i = 0; i < len; i++) password += chars[arr[i] % chars.length] }
+      else { for (let i = 0; i < len; i++) password += chars[Math.floor(Math.random() * chars.length)] }
+      pwOutput.textContent = password
+    }
+    pwLength.addEventListener('input', () => { pwLenVal.textContent = pwLength.value })
+    generateBtn.addEventListener('click', generatePassword)
+    copyBtn.addEventListener('click', async () => { await copyToClipboard(pwOutput.textContent || '') })
+  </script>
+</ToolLayout>

@@ -1,0 +1,202 @@
+---
+import AnimatedLogo from './AnimatedLogo.astro'
+import { tools, categories } from '../data/tools'
+
+// Group tools by category for search results
+const allTools = tools.map(t => ({
+  ...t,
+  categoryName: categories[t.category]?.name ?? 'Tools',
+}))
+---
+
+<header class="sticky top-0 z-50 bg-white/95 backdrop-blur-lg border-b border-gray-200 dark:bg-gray-900/95 dark:border-gray-800">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16">
+      <a href="/" class="flex items-center gap-3 group flex-shrink-0">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg shadow-blue-600/20 group-hover:shadow-blue-600/30 transition-shadow overflow-visible">
+          <AnimatedLogo />
+        </div>
+        <div class="hidden sm:block">
+          <span class="font-bold text-xl text-gray-900 dark:text-white">DevTools Hub</span>
+        </div>
+      </a>
+
+      <nav class="hidden md:flex items-center gap-1">
+        <a href="/" class="px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800">
+          Home
+        </a>
+        <a href="/tools/" class="px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800">
+          Tools
+        </a>
+        <a href="/guides/" class="px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800">
+          Guides
+        </a>
+      </nav>
+
+      <div class="flex items-center gap-2">
+        <!-- Search Box -->
+        <div id="headerSearch" class="relative">
+          <div class="flex items-center gap-2 px-3 py-2 bg-gray-100 border border-transparent rounded-xl cursor-text transition-all duration-200 hover:bg-gray-200 focus-within:bg-white focus-within:border-blue-500 focus-within:shadow-lg focus-within:shadow-blue-500/10 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus-within:bg-gray-900 dark:focus-within:border-blue-600">
+            <svg class="w-4 h-4 text-gray-400 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+            </svg>
+            <input
+              id="headerSearchInput"
+              type="text"
+              class="w-24 sm:w-36 bg-transparent border-0 outline-none text-sm text-gray-900 placeholder-gray-400 dark:text-white dark:placeholder-gray-500 transition-all focus:w-48 sm:focus:w-56"
+              placeholder="Search..."
+              autocomplete="off"
+            />
+            <kbd class="hidden lg:inline-flex items-center px-1.5 py-0.5 bg-gray-200 rounded text-[10px] text-gray-500 font-mono dark:bg-gray-700 dark:text-gray-400">
+              Ctrl+K
+            </kbd>
+          </div>
+
+          <!-- Search Results Dropdown -->
+          <div
+            id="headerSearchResults"
+            class="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-white border border-gray-200 rounded-2xl shadow-xl opacity-0 pointer-events-none scale-95 transition-all duration-150 origin-top-right dark:bg-gray-900 dark:border-gray-800"
+          >
+            <div id="headerSearchList" class="max-h-64 overflow-y-auto p-2">
+              <!-- Results injected by JS -->
+            </div>
+            <div id="headerSearchEmpty" class="hidden px-4 py-8 text-center text-sm text-gray-400">
+              No results found.
+            </div>
+          </div>
+        </div>
+
+        <!-- Theme Toggle -->
+        <button id="themeToggle" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex-shrink-0" title="Toggle theme" aria-label="Toggle dark/light mode">
+          <svg id="iconMoon" class="w-5 h-5 text-gray-500 dark:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+          <svg id="iconSun" class="w-5 h-5 text-gray-300 hidden dark:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"/>
+            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline>
+    // Theme toggle
+    const themeToggle = document.getElementById('themeToggle');
+    themeToggle.addEventListener('click', () => {
+      const isDark = document.documentElement.classList.contains('dark');
+      if (isDark) {
+        document.documentElement.classList.remove('dark');
+        localStorage.setItem('theme', 'light');
+      } else {
+        document.documentElement.classList.add('dark');
+        localStorage.setItem('theme', 'dark');
+      }
+    });
+  </script>
+</header>
+
+<!-- Search script -->
+<script>
+  // Tool data injected from server
+  const searchTools = [{id:"json-formatter",name:"JSON Formatter",description:"Format, validate, minify JSON",category:"Data"},
+    {id:"base64-converter",name:"Base64 Converter",description:"Encode/decode Base64",category:"Encoding"},
+    {id:"url-encode",name:"URL Encode/Decode",description:"URL encode/decode text",category:"Encoding"},
+    {id:"html-entities",name:"HTML Entities",description:"HTML entity encode/decode",category:"Encoding"},
+    {id:"uuid-generator",name:"UUID Generator",description:"Generate UUID v4",category:"Generators"},
+    {id:"qr-code",name:"QR Code Generator",description:"Generate QR codes",category:"Generators"},
+    {id:"lorem-ipsum",name:"Lorem Ipsum",description:"Generate placeholder text",category:"Generators"},
+    {id:"password-generator",name:"Password Generator",description:"Create secure passwords",category:"Generators"},
+    {id:"nano-id",name:"Nano ID Generator",description:"Generate compact unique IDs",category:"Generators"},
+    {id:"slug-generator",name:"Slug Generator",description:"Create URL-friendly slugs",category:"Generators"},
+    {id:"color-picker",name:"Color Picker",description:"HEX/RGB/HSL converter",category:"Colors"},
+    {id:"css-gradient",name:"CSS Gradient",description:"Create gradient CSS",category:"Colors"},
+    {id:"color-contrast",name:"Color Contrast Checker",description:"Check WCAG contrast ratios",category:"Colors"},
+    {id:"color-palette",name:"Color Palette Generator",description:"Generate color palettes",category:"Colors"},
+    {id:"timestamp",name:"Timestamp Converter",description:"Unix timestamp converter",category:"Data"},
+    {id:"hash-generator",name:"Hash Generator",description:"MD5, SHA-1, SHA-256",category:"Data"},
+    {id:"number-base",name:"Number Base",description:"Dec/Hex/Bin/Oct converter",category:"Data"},
+    {id:"json-yaml",name:"JSON ↔ YAML",description:"Convert JSON/YAML",category:"Data"},
+    {id:"csv-to-json",name:"CSV to JSON",description:"Convert CSV data to JSON",category:"Data"},
+    {id:"jwt-decoder",name:"JWT Decoder",description:"Decode JSON Web Tokens",category:"Dev"},
+    {id:"regex-tester",name:"Regex Tester",description:"Test regular expressions",category:"Dev"},
+    {id:"diff-checker",name:"Diff Checker",description:"Compare text differences",category:"Dev"},
+    {id:"sql-formatter",name:"SQL Formatter",description:"Format SQL queries",category:"Dev"},
+    {id:"url-parser",name:"URL Parser",description:"Parse URL components",category:"Dev"},
+    {id:"http-status",name:"HTTP Status Codes",description:"HTTP status code reference",category:"Dev"},
+    {id:"cron-parser",name:"Cron Expression Parser",description:"Parse cron schedules",category:"Dev"},
+    {id:"string-escaper",name:"String Escaper",description:"Escape/unescape strings",category:"Text"},
+    {id:"text-case",name:"Text Case",description:"UPPER/lower/CamelCase",category:"Text"},
+    {id:"word-counter",name:"Word Counter",description:"Count words, chars, lines",category:"Text"},
+    {id:"dedupe-lines",name:"Dedupe Lines",description:"Remove duplicate lines",category:"Text"},
+    {id:"markdown-preview",name:"Markdown Previewer",description:"Preview Markdown in real-time",category:"Text"},
+    {id:"ip-lookup",name:"IP Address Lookup",description:"Lookup IP geolocation & ISP",category:"Network"},
+    {id:"my-ip",name:"My IP Address",description:"Show your public IP address",category:"Network"},
+    {id:"dns-lookup",name:"DNS Lookup",description:"Query DNS records",category:"Network"},
+    {id:"user-agent",name:"User Agent Parser",description:"Parse browser user agent",category:"Network"},
+    {id:"image-to-base64",name:"Image to Base64",description:"Convert image to Base64 data URI",category:"Image"},
+    {id:"ssl-checker",name:"SSL Certificate Checker",description:"Check SSL certificate details",category:"Security"},
+    {id:"password-strength",name:"Password Strength Meter",description:"Evaluate password strength",category:"Security"},
+    {id:"css-formatter",name:"CSS Formatter",description:"Format & beautify CSS",category:"Formatters"},
+    {id:"html-formatter",name:"HTML Formatter",description:"Format & beautify HTML",category:"Formatters"},
+    {id:"js-formatter",name:"JavaScript Formatter",description:"Format & beautify JavaScript",category:"Formatters"},
+    {id:"px-to-rem",name:"PX to REM Converter",description:"Convert PX to REM/EM units",category:"Calculators"}];
+
+  const searchInput = document.getElementById('headerSearchInput')
+  const searchResults = document.getElementById('headerSearchResults')
+  const searchList = document.getElementById('headerSearchList')
+  const searchEmpty = document.getElementById('headerSearchEmpty')
+  let isOpen = false
+
+  function openResults() {
+    isOpen = true
+    searchResults.classList.remove('opacity-0', 'pointer-events-none', 'scale-95')
+    searchResults.classList.add('scale-100')
+  }
+  function closeResults() {
+    isOpen = false
+    searchResults.classList.add('opacity-0', 'pointer-events-none', 'scale-95')
+    searchResults.classList.remove('scale-100')
+  }
+
+  function renderResults(query) {
+    const q = query.toLowerCase().trim()
+    let items = searchTools
+    if (q) {
+      items = searchTools.filter(t => t.name.toLowerCase().includes(q) || t.description.toLowerCase().includes(q) || t.category.toLowerCase().includes(q))
+    } else {
+      items = searchTools.slice(0, 6)
+    }
+    if (items.length === 0) {
+      searchList.innerHTML = ''
+      searchEmpty.classList.remove('hidden')
+    } else {
+      searchList.innerHTML = items.slice(0, 8).map(t =>
+        `<a href="/tools/${t.id}/" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-100 transition-colors dark:hover:bg-gray-800">
+          <span class="text-sm font-medium text-gray-900 dark:text-white">${t.name}</span>
+          <span class="text-xs text-gray-400 truncate hidden sm:inline">${t.description}</span>
+          <span class="ml-auto text-[10px] text-gray-400 uppercase tracking-wider flex-shrink-0 hidden sm:inline">${t.category}</span>
+        </a>`
+      ).join('')
+      searchEmpty.classList.add('hidden')
+    }
+  }
+
+  searchInput.addEventListener('focus', () => { renderResults(searchInput.value); openResults() })
+  searchInput.addEventListener('input', () => { renderResults(searchInput.value); if (!isOpen) openResults() })
+  document.addEventListener('click', (e) => {
+    const sc = document.getElementById('headerSearch')
+    if (sc && !sc.contains(e.target)) closeResults()
+  })
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && isOpen) { closeResults(); searchInput.blur() }
+    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      // On tool pages, QuickSwitch handles Ctrl+K
+      if (document.getElementById('qs-trigger')) return
+      e.preventDefault(); searchInput.focus()
+    }
+  })
+  searchInput.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown') { e.preventDefault(); const a = searchList.querySelector('a'); if (a) a.focus() }
+  })
+</script>

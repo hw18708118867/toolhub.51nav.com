@@ -1,0 +1,75 @@
+---
+import '../styles/globals.css'
+
+interface Props {
+  title?: string
+  description?: string
+}
+
+const { title = 'DevTools Hub - 40+ Free Developer Tools', description = 'Free online developer tools. JSON formatter, Base64 converter, UUID generator, and 40+ more. All processing happens locally in your browser.' } = Astro.props
+
+// Read from environment variables (GitHub Actions secrets / .env file)
+// Set PUBLIC_GA4_ID and PUBLIC_GSC_CODE in your repository's CI variables
+const GA4_ID = import.meta.env.PUBLIC_GA4_ID || 'G-XXXXXXXXXX'
+const GSC_CODE = import.meta.env.PUBLIC_GSC_CODE || 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
+const canonicalURL = new URL(Astro.url.pathname, Astro.site).href
+---
+
+<!DOCTYPE html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+    <link rel="canonical" href={canonicalURL} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://toolhub.51nav.com/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:site_name" content="DevTools Hub" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://toolhub.51nav.com/og-image.png" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="google-site-verification" content={GSC_CODE} />
+    <!-- Favicon: SVG for modern browsers, PNG fallback -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <!-- Apple touch icon -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <!-- Android / PWA -->
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <style is:inline>
+      /* Prevent flash of wrong theme on page load */
+      html { visibility: hidden; }
+      html[class] { visibility: visible; }
+    </style>
+    <script is:inline>
+      (function() {
+        const saved = localStorage.getItem('theme');
+        const prefersLight = !saved && window.matchMedia('(prefers-color-scheme: light)').matches;
+        if (saved === 'light' || prefersLight) {
+          document.documentElement.classList.remove('dark');
+        }
+      })();
+    </script>
+    <!-- Google Analytics (GA4) -->
+    <script async src={`https://www.googletagmanager.com/gtag/js?id=${GA4_ID}`}></script>
+    <script define:vars={{ GA4_ID }}>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', GA4_ID);
+    </script>
+  </head>
+  <body class="min-h-screen flex flex-col">
+    <slot />
+  </body>
+</html>

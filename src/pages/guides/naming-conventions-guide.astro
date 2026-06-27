@@ -1,0 +1,52 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+const content = `
+<div class="prose prose-gray max-w-none dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-strong:text-gray-900 dark:prose-strong:text-white prose-code:text-blue-600 dark:prose-code:text-blue-400 prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-pre:bg-gray-50 dark:prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-gray-800">
+
+<h2>Why Naming Conventions Exist</h2>
+<p>Programming languages don't allow spaces in identifiers — <code>my variable name</code> is a syntax error everywhere. So every language community settled on a convention for writing multi-word identifiers. JavaScript uses camelCase. Python uses snake_case. CSS uses kebab-case. These aren't arbitrary — each convention evolved alongside the language's own syntax constraints. JavaScript adopted camelCase from Java, its syntactic inspiration. Python adopted snake_case from the C community and formalized it in PEP 8. CSS adopted kebab-case because hyphens are valid in CSS identifiers but minus signs aren't — the parser can distinguish <code>background-color</code> (one identifier) from <code>background - color</code> (subtraction).</p>
+<p>Using the wrong convention in a codebase signals to every other developer that you didn't read the style guide. In Python, <code>fetchUserData</code> stands out as foreign. In JavaScript, <code>fetch_user_data</code> does the same. The convention itself matters less than consistency — a codebase that uses one convention uniformly is readable; a codebase that mixes them is exhausting.</p>
+
+<h2>The Five Case Formats</h2>
+<pre><code class="language-text">camelCase              — JavaScript, Java, TypeScript, Go (unexported identifiers)
+snake_case             — Python, Ruby, Rust, PHP, C, PostgreSQL
+kebab-case             — CSS, HTML attributes, URLs, CLI arguments, file names
+PascalCase             — C#, .NET, React components, Java classes, TypeScript types
+UPPER_CASE             — Constants, environment variables, enum values across most languages</code></pre>
+
+<h2>Language-by-Language Reference</h2>
+<table>
+  <thead><tr><th>Language</th><th>Variables</th><th>Functions</th><th>Classes</th><th>Constants</th></tr></thead>
+  <tbody>
+    <tr><td>JavaScript</td><td>camelCase</td><td>camelCase</td><td>PascalCase</td><td>UPPER_CASE</td></tr>
+    <tr><td>Python</td><td>snake_case</td><td>snake_case</td><td>PascalCase</td><td>UPPER_CASE</td></tr>
+    <tr><td>Go</td><td>camelCase*</td><td>camelCase*</td><td>PascalCase*</td><td>PascalCase</td></tr>
+    <tr><td>Rust</td><td>snake_case</td><td>snake_case</td><td>PascalCase</td><td>UPPER_CASE</td></tr>
+    <tr><td>Ruby</td><td>snake_case</td><td>snake_case</td><td>PascalCase</td><td>UPPER_CASE</td></tr>
+    <tr><td>C#</td><td>camelCase</td><td>PascalCase</td><td>PascalCase</td><td>PascalCase</td></tr>
+    <tr><td>PHP</td><td>$camelCase</td><td>snake_case</td><td>PascalCase</td><td>UPPER_CASE</td></tr>
+    <tr><td>CSS</td><td>kebab-case</td><td>—</td><td>—</td><td>—</td></tr>
+  </tbody>
+</table>
+<p>* Go uses case for visibility: lowercase = unexported (private), uppercase = exported (public). This means Go uses BOTH camelCase and PascalCase, determined by visibility rather than the kind of identifier.</p>
+
+<h2>When to Convert Between Cases</h2>
+<p><strong>API integration.</strong> The classic full-stack friction point. Your Python backend returns <code>{"user_id": 1, "first_name": "Jane", "created_at": "2024-01-01"}</code>. Your JavaScript frontend wants <code>{"userId": 1, "firstName": "Jane", "createdAt": "2024-01-01"}</code>. Every key in every API response needs conversion. Most teams handle this in one of two ways: a recursive key-transform utility on the frontend (after JSON.parse, before the data enters the app), or a serializer configuration on the backend that outputs camelCase JSON. Either works. Doing neither leads to a codebase where half the keys are snake_case and half are camelCase — a permanent source of bugs and confusion for new team members.</p>
+<p><strong>Database to application code.</strong> SQL column names are snake_case by convention. PostgreSQL automatically lowercases unquoted identifiers. When these columns become object properties in Node.js or Python, they stay snake_case. Many teams keep database column names as-is in application code rather than mapping them — the mapping layer adds complexity without much benefit. But if you're building an ORM or API that exposes column names to external consumers, convert to the language's convention at the boundary.</p>
+<p><strong>CSS in React.</strong> CSS properties use kebab-case: <code>background-color</code>, <code>border-radius</code>, <code>font-size</code>. React's inline style API maps these to camelCase: <code>backgroundColor</code>, <code>borderRadius</code>, <code>fontSize</code>. React handles the conversion. If you write <code>background-color</code> in a React inline style, it won't work — the framework expects camelCase.</p>
+<p><strong>File naming.</strong> Use kebab-case for files and folders across all projects: <code>user-profile.tsx</code>, <code>api-client.js</code>, <code>password-reset-handler.go</code>. It's safe on all operating systems (no case-sensitivity issues between Mac, Windows, and Linux), it's readable without requiring the Shift key, and it's the convention adopted by virtually all modern web frameworks. Google specifically recommends hyphens over underscores in URLs for SEO — underscores are treated as word joiners, hyphens as word separators.</p>
+<p>Use our <a href="/tools/text-case/">Text Case converter</a> to switch between all five formats. Paste text in any case, convert to any other. It handles the edge cases — consecutive uppercase letters, numbers embedded in words, and special characters — that naive regex replacement gets wrong.</p>
+
+<h2>Edge Cases That Break Naive Conversion</h2>
+<p><code>XMLParser</code> → snake_case: Should this be <code>xml_parser</code> or <code>x_m_l_parser</code>? A good converter recognizes "XML" as a single acronym when preceded by another uppercase letter. <code>iPhone12</code> → PascalCase: Should be <code>IPhone12</code> or <code>Iphone12</code>? There's no single right answer — it depends on whether you treat the leading lowercase 'i' as part of the word "iPhone" or as a prefix. <code>userID</code> → snake_case: Should be <code>user_id</code> or <code>user_i_d</code>? "ID" is generally treated as a single word. These edge cases are why hand-rolled case conversion functions tend to accumulate bugs over time — you fix one case and break another. A dedicated tool handles the most common patterns and lets you manually adjust the edge cases.</p>
+<h2>Case Conversion in Full-Stack Projects</h2>
+<p>When your Python backend sends snake_case JSON to your JavaScript frontend expecting camelCase, every key needs conversion. Most teams handle this with a transformation layer rather than manual conversion. On the backend, Django REST Framework has a camelCase renderer; FastAPI can configure response serialization. On the frontend, libraries like camelcase-keys and humps recursively transform object keys. The transformation should happen at exactly one boundary — either the backend serializes in the clients format, or the frontend normalizes after receiving. Doing both creates double-conversion bugs where snake_case becomes camelCase becomes something unrecognizable.</p>
+<p>For database integrations, most ORMs handle naming convention mapping. SQLAlchemy can auto-map snake_case PostgreSQL columns to camelCase Python properties. Sequelize and TypeORM offer underscored options for Node.js. If your ORM lacks this, write a single utility function rather than sprinkling ad-hoc conversions through your codebase. A function named <code>snakeToCamel(str)</code> called in one place is maintainable and testable. Fifty inline regex replacements are neither.</p><h2>Enforcing Naming Conventions in a Team</h2><p>The best naming convention is the one your team actually follows. A documented convention that nobody enforces is worse than no convention at all — it creates inconsistency, which is more confusing than consistently "wrong" naming. Enforce conventions with automated tooling: ESLint rules for JavaScript (camelcase, @typescript-eslint/naming-convention), Pylint or Black for Python (snake_case is the default), Stylelint for CSS (kebab-case), and Prettier for general formatting. If your linter catches naming violations before code review, developers fix them immediately rather than debating them in PR comments.</p><p>When onboarding new team members, point them to your naming convention documentation and your linter config. Do not rely on them "picking up" the conventions by reading existing code — different parts of a legacy codebase may follow different conventions, and a new developer cannot distinguish "this is our convention" from "this file was written before we adopted conventions." Explicit documentation plus automated enforcement removes the ambiguity.</p>
+</div>
+`
+---
+<GuideLayout title="camelCase, snake_case & kebab-case: Naming Conventions Across Languages | DevTools Hub" description="A comprehensive guide to programming naming conventions. Covers all five case formats with language-specific rules, API integration patterns, and edge cases in case conversion." breadcrumb="Naming Conventions">
+  <Fragment slot="title">Naming Conventions<br class="hidden sm:block" />Across Languages</Fragment>
+  <Fragment slot="intro">Every language has its naming convention — and mixing them creates bugs. Learn the five case formats, when each is expected, and how to convert between them without breaking APIs.</Fragment>
+  <Fragment set:html={content} />
+</GuideLayout>

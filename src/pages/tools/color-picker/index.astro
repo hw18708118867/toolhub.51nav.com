@@ -1,0 +1,73 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'color-picker')!
+
+const steps = [
+  { name: 'Pick a Color', text: 'Use the color picker to choose any color from the spectrum. You can click and drag to explore, or use the eyedropper tool in supported browsers.' },
+  { name: 'View Color Values', text: 'The color is instantly converted to HEX, RGB, and HSL formats. Each format is displayed in its own panel with a Copy button.' },
+  { name: 'Copy the Format You Need', text: 'Click the Copy button next to the format you need (HEX, RGB, or HSL). Paste it directly into your CSS, design tools, or code.' },
+]
+
+const faq = [
+  { question: 'What is the difference between HEX, RGB, and HSL?', answer: 'HEX is a 6-character hexadecimal representation (e.g., #58A6FF). RGB specifies red, green, and blue values from 0-255. HSL uses hue (0-360°), saturation (0-100%), and lightness (0-100%). Each format is equivalent — choose the one that fits your workflow.' },
+  { question: 'When should I use HSL over HEX?', answer: 'HSL is often more intuitive for designers because it maps directly to how we think about color: hue (the color itself), saturation (how vivid), and lightness (how bright). HSL makes it easy to create color variations by adjusting just one parameter. HEX is more compact and widely used in CSS.' },
+  { question: 'Can I input a color value directly?', answer: 'This tool uses the browser\'s native color picker, which supports visual selection. For direct value input, simply use the picker\'s built-in text field. The color is automatically converted to all three formats.' },
+  { question: 'What is the RGB color model?', answer: 'RGB (Red, Green, Blue) is an additive color model where colors are created by combining red, green, and blue light. Each channel ranges from 0 to 255, giving 16.7 million possible colors. RGB is the native color model for digital displays.' },
+]
+
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free online color picker and converter. Pick any color and instantly get HEX, RGB, and HSL values. All processing happens locally in your browser." {steps} {faq}
+>
+  <div class="grid md:grid-cols-2 gap-8">
+    <div><div class="mb-6"><label class="block font-medium text-gray-700 dark:text-gray-300 mb-3">Pick a Color</label><input type="color" id="colorPicker" value="#58a6ff" class="w-full h-32 rounded-xl cursor-pointer border-0"></div></div>
+    <div class="space-y-4">
+      <div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">HEX</span><button class="btn btn-sm btn-secondary" data-copy="hex">Copy</button></div><div class="p-4 font-mono text-lg text-gray-900 dark:text-gray-100" id="hexValue">#58a6ff</div></div>
+      <div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">RGB</span><button class="btn btn-sm btn-secondary" data-copy="rgb">Copy</button></div><div class="p-4 font-mono text-lg text-gray-900 dark:text-gray-100" id="rgbValue">rgb(88, 166, 255)</div></div>
+      <div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">HSL</span><button class="btn btn-sm btn-secondary" data-copy="hsl">Copy</button></div><div class="p-4 font-mono text-lg text-gray-900 dark:text-gray-100" id="hslValue">hsl(212, 100%, 67%)</div></div>
+    </div>
+  </div>
+
+  <section slot="examples" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Color Format Comparison</h2>
+    <div class="overflow-x-auto"><table class="w-full text-left"><thead><tr class="border-b border-gray-200 dark:border-gray-800"><th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">Format</th><th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">Example</th><th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">Best For</th></tr></thead><tbody class="text-gray-500 dark:text-gray-400"><tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4 font-mono">HEX</td><td class="py-3 px-4 font-mono">#3B82F6</td><td class="py-3 px-4">CSS, design tools</td></tr><tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4 font-mono">RGB</td><td class="py-3 px-4 font-mono">rgb(59, 130, 246)</td><td class="py-3 px-4">JavaScript, Canvas</td></tr><tr><td class="py-3 px-4 font-mono">HSL</td><td class="py-3 px-4 font-mono">hsl(217, 91%, 60%)</td><td class="py-3 px-4">CSS theming, color variations</td></tr></tbody></table></div>
+  </section>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Understanding Color Formats</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">Modern web development uses multiple color formats, each with specific strengths. Understanding when to use each format helps you write more maintainable and flexible CSS.</p>
+      <h3 class="text-lg font-semibold text-gray-900 mt-6 mb-3 dark:text-white">Quick Reference</h3>
+      <ul class="list-disc list-inside space-y-2 text-gray-500 dark:text-gray-400">
+        <li><strong>HEX</strong> — Most compact, widely supported, ideal for static colors</li>
+        <li><strong>RGB</strong> — Easy to manipulate programmatically in JavaScript</li>
+        <li><strong>HSL</strong> — Best for creating color schemes and variations</li>
+      </ul>
+    </div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+      <a href="/guides/css-color-gradient-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">CSS Colors & Gradients Guide</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">HEX, RGB, HSL explained. Build palettes and gradients.</p></div></div></a>
+      <a href="/guides/css-color-gradient-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">CSS Colors & Gradients Guide</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">HEX, RGB, HSL explained. Build palettes and gradients.</p></div></div></a>
+    </div>
+  </section>
+
+  <script>
+    import { copyToClipboard } from '../../../utils/copyToClipboard'
+    const colorPicker = document.getElementById('colorPicker')
+    const hexValue = document.getElementById('hexValue')!
+    const rgbValue = document.getElementById('rgbValue')!
+    const hslValue = document.getElementById('hslValue')!
+    function hexToRgb(hex: string) { const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex); return result ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16) } : { r: 0, g: 0, b: 0 } }
+    function rgbToHsl(r: number, g: number, b: number) { r /= 255; g /= 255; b /= 255; const max = Math.max(r, g, b), min = Math.min(r, g, b); let h = 0, s, l = (max + min) / 2; if (max === min) { h = s = 0 } else { const d = max - min; s = l > 0.5 ? d / (2 - max - min) : d / (max + min); switch (max) { case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break; case g: h = ((b - r) / d + 2) / 6; break; case b: h = ((r - g) / d + 4) / 6; break } } return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) } }
+    function updateColor() { const hex = colorPicker.value; const rgb = hexToRgb(hex); const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b); hexValue.textContent = hex; rgbValue.textContent = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`; hslValue.textContent = `hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)` }
+    colorPicker.addEventListener('input', updateColor)
+    document.querySelectorAll('[data-copy]').forEach(btn => { btn.addEventListener('click', async () => { const type = (btn).dataset.copy!; const el = document.getElementById(type + 'Value')!; await copyToClipboard(el.textContent || '') }) })
+  </script>
+</ToolLayout>

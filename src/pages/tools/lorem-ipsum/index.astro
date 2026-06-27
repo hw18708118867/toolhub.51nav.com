@@ -1,0 +1,73 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'lorem-ipsum')!
+
+const steps = [
+  { name: 'Select Settings', text: 'Choose how many paragraphs you need (1–10) and the output format — plain text or HTML paragraphs wrapped in <p> tags.' },
+  { name: 'Generate Text', text: 'Click "Generate" to create placeholder text. Each paragraph is generated randomly from a pool of classical Latin words.' },
+  { name: 'Copy and Use', text: 'Click "Copy" to copy the generated text to your clipboard. Paste it into your design mockups, documents, or website templates.' },
+]
+
+const faq = [
+  { question: 'What is Lorem Ipsum?', answer: 'Lorem Ipsum is placeholder text commonly used in design, publishing, and web development. It\'s derived from a passage of Cicero\'s "De Finibus Bonorum et Malorum" (45 BC). The text looks like natural language but is nonsensical, allowing designers and developers to focus on layout without being distracted by readable content.' },
+  { question: 'Why use Lorem Ipsum instead of real text?', answer: 'Lorem Ipsum has a more-or-less normal distribution of letters, making it look like readable English. This helps designers and clients focus on the visual design rather than the content. Using real text can distract reviewers who might focus on reading the content instead of evaluating the layout.' },
+  { question: 'How many paragraphs should I generate?', answer: 'For website mockups, 3–5 paragraphs is typical for content sections. For testing long-form content layouts, use 5–10 paragraphs. The exact number depends on what you\'re designing — a blog post template might need more paragraphs than a landing page hero section.' },
+  { question: 'Should I use Plain Text or HTML format?', answer: 'Use Plain Text for general design mockups, presentations, and documents. Use HTML format when you\'re working on web designs and want properly wrapped paragraph tags (&lt;p&gt;...&lt;/p&gt;) that you can directly paste into your HTML code.' },
+]
+
+const example = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free online Lorem Ipsum generator. Create placeholder text for design mockups and websites. Generate up to 10 paragraphs in plain text or HTML format. All processing is local." {steps} {faq}
+>
+  <div class="grid md:grid-cols-2 gap-6 mb-6">
+    <div><label class="block font-medium text-gray-700 dark:text-gray-300 mb-2">Paragraphs</label><select id="loremCount" class="form-select w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-4 py-3 dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100"><option value="1">1</option><option value="3" selected>3</option><option value="5">5</option><option value="10">10</option></select></div>
+    <div><label class="block font-medium text-gray-700 dark:text-gray-300 mb-2">Format</label><select id="loremFormat" class="form-select w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-4 py-3 dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100"><option value="plaintext">Plain Text</option><option value="html">HTML</option></select></div>
+  </div>
+  <div class="flex gap-3 mb-6"><button id="generateBtn" class="btn btn-primary">Generate</button><button id="copyBtn" class="btn btn-secondary">Copy</button></div>
+  <div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Lorem Ipsum</span></div><pre id="loremOutput" class="code-output"></pre></div>
+
+  <section slot="examples" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Example Output</h2>
+    <div class="bg-gray-50 border border-gray-200 rounded-xl p-5 text-gray-700 leading-relaxed dark:bg-gray-900 dark:border-gray-800 dark:text-gray-300"><p>{example}</p></div>
+  </section>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Using Lorem Ipsum in Design</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">Lorem Ipsum has been the printing and typesetting industry's standard dummy text since the 1500s. It survived not only five centuries but also the leap into electronic typesetting, remaining essentially unchanged.</p>
+      <h3 class="text-lg font-semibold text-gray-900 mt-6 mb-3 dark:text-white">Best Practices</h3>
+      <ul class="list-disc list-inside space-y-2 text-gray-500 dark:text-gray-400">
+        <li>Use Lorem Ipsum for layout and typography testing</li>
+        <li>Replace with real content before launching</li>
+        <li>Match the paragraph count to your expected content length</li>
+        <li>Use HTML format when working on web projects</li>
+      </ul>
+    </div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+      <a href="/guides/lorem-ipsum-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">Lorem Ipsum in Design & Dev</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">When to use placeholder text, when to replace it.</p></div></div></a>
+      <a href="/guides/lorem-ipsum-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">Lorem Ipsum in Design & Dev</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">When to use placeholder text, when to replace it.</p></div></div></a>
+    </div>
+  </section>
+
+  <script>
+    import { copyToClipboard } from '../../../utils/copyToClipboard'
+    const words = ['lorem','ipsum','dolor','sit','amet','consectetur','adipiscing','elit','sed','do','eiusmod','tempor','incididunt','ut','labore','et','dolore','magna','aliqua','ut','enim','ad','minim','veniam','quis','nostrud','exercitation','ullamco','laboris','nisi','ut','aliquip','ex','ea','commodo','consequat']
+    const generateBtn = document.getElementById('generateBtn')!
+    const copyBtn = document.getElementById('copyBtn')!
+    const loremCount = document.getElementById('loremCount')
+    const loremFormat = document.getElementById('loremFormat')
+    const loremOutput = document.getElementById('loremOutput')!
+    function generateParagraph() { const count = 30 + Math.floor(Math.random() * 50); const ws: string[] = []; for (let i = 0; i < count; i++) ws.push(words[Math.floor(Math.random() * words.length)]); return ws[0].charAt(0).toUpperCase() + ws[0].slice(1) + ' ' + ws.slice(1).join(' ') + '.' }
+    generateBtn.addEventListener('click', () => { const count = parseInt(loremCount.value, 10); const ps: string[] = []; for (let i = 0; i < count; i++) ps.push(generateParagraph()); const out = loremFormat.value === 'html' ? ps.map(p => `<p>${p}</p>`).join('\n') : ps.join('\n\n'); loremOutput.textContent = out })
+    copyBtn.addEventListener('click', async () => { await copyToClipboard(loremOutput.textContent || '') })
+  </script>
+</ToolLayout>

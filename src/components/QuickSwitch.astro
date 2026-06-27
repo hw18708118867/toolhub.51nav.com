@@ -1,0 +1,198 @@
+---
+// QuickSwitch.astro — Command palette for switching tools
+// Floating button → click/press Ctrl+K → search & switch
+import { tools, categories } from '../data/tools'
+
+interface Props {
+  /** Current tool id (optional, to highlight active tool) */
+  currentToolId?: string
+}
+
+const { currentToolId } = Astro.props
+
+// Group tools by category for the palette
+const groupedTools = Object.entries(categories).map(([key, cat]) => ({
+  key,
+  name: cat.name,
+  tools: tools.filter(t => t.category === key),
+}))
+---
+
+<!-- Floating trigger button -->
+<button
+  id="qs-trigger"
+  class="fixed bottom-6 right-6 z-50 w-12 h-12 bg-white border border-gray-200 rounded-2xl flex items-center justify-center shadow-lg hover:shadow-xl hover:border-blue-500 transition-all duration-200 group dark:bg-gray-800 dark:border-gray-700 dark:hover:border-blue-500"
+  title="Quick Switch (Ctrl+K)"
+  aria-label="Quick switch tools"
+>
+  <svg class="w-5 h-5 text-gray-500 group-hover:text-blue-600 dark:text-gray-400 dark:group-hover:text-blue-400 transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/><path d="M11 8v6M8 11h6"/>
+  </svg>
+</button>
+
+<!-- Overlay (click to close) -->
+<div
+  id="qs-overlay"
+  class="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-200"
+></div>
+
+<!-- Command Palette Panel -->
+<div
+  id="qs-panel"
+  class="fixed inset-x-0 top-[15vh] z-[70] mx-auto w-full max-w-lg bg-white border border-gray-200 rounded-2xl shadow-2xl opacity-0 pointer-events-none scale-95 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800"
+  role="dialog"
+  aria-label="Quick switch tools"
+>
+  <!-- Search input -->
+  <div class="flex items-center gap-3 px-5 py-4 border-b border-gray-200 dark:border-gray-800">
+    <svg class="w-5 h-5 text-gray-400 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+    </svg>
+    <input
+      id="qs-search"
+      type="text"
+      class="flex-1 bg-transparent border-0 outline-none text-gray-900 placeholder-gray-400 text-base dark:text-white"
+      placeholder="Search tools..."
+      autocomplete="off"
+    />
+    <kbd class="hidden sm:inline-flex items-center gap-0.5 px-2 py-1 bg-gray-100 rounded-md text-xs text-gray-500 font-mono dark:bg-gray-800 dark:text-gray-400">
+      <span>Esc</span>
+    </kbd>
+  </div>
+
+  <!-- Tool list -->
+  <div id="qs-list" class="max-h-[50vh] overflow-y-auto p-2">
+    {groupedTools.map(group => (
+      <div class="qs-group" data-category={group.key}>
+        <div class="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+          {group.name}
+        </div>
+        {group.tools.map(t => (
+          <a
+            href={`/tools/${t.id}/`}
+            class={`qs-item flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors ${
+              t.id === currentToolId
+                ? 'bg-blue-50 text-blue-700 dark:bg-blue-600/20 dark:text-blue-400'
+                : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800'
+            }`}
+            data-id={t.id}
+            data-name={t.name.toLowerCase()}
+            data-desc={t.description.toLowerCase()}
+          >
+            <span class="text-base flex-shrink-0">{t.name}</span>
+            <span class="text-xs text-gray-400 truncate hidden sm:inline">{t.description}</span>
+            {t.id === currentToolId && (
+              <span class="ml-auto text-xs text-blue-500 font-medium flex-shrink-0">Current</span>
+            )}
+          </a>
+        ))}
+      </div>
+    ))}
+
+    <!-- No results -->
+    <div id="qs-empty" class="hidden px-3 py-8 text-center text-gray-400 text-sm">
+      No tools found matching your search.
+    </div>
+  </div>
+</div>
+
+<script>
+  const trigger = document.getElementById('qs-trigger')!
+  const overlay = document.getElementById('qs-overlay')!
+  const panel = document.getElementById('qs-panel')!
+  const search = document.getElementById('qs-search') as HTMLInputElement
+  const list = document.getElementById('qs-list')!
+  const empty = document.getElementById('qs-empty')!
+  const groups = list.querySelectorAll<HTMLElement>('.qs-group')
+  const items = list.querySelectorAll<HTMLElement>('.qs-item')
+
+  let isOpen = false
+
+  function open() {
+    isOpen = true
+    overlay.classList.remove('opacity-0', 'pointer-events-none')
+    panel.classList.remove('opacity-0', 'pointer-events-none', 'scale-95')
+    panel.classList.add('scale-100')
+    document.body.style.overflow = 'hidden'
+    search.value = ''
+    filterTools('')
+    setTimeout(() => search.focus(), 100)
+  }
+
+  function close() {
+    isOpen = false
+    overlay.classList.add('opacity-0', 'pointer-events-none')
+    panel.classList.add('opacity-0', 'pointer-events-none', 'scale-95')
+    panel.classList.remove('scale-100')
+    document.body.style.overflow = ''
+  }
+
+  function filterTools(query: string) {
+    const q = query.toLowerCase().trim()
+    let hasResults = false
+
+    groups.forEach(group => {
+      let groupHasVisible = false
+      const groupItems = group.querySelectorAll<HTMLElement>('.qs-item')
+      groupItems.forEach(item => {
+        const name = item.dataset.name || ''
+        const desc = item.dataset.desc || ''
+        const visible = !q || name.includes(q) || desc.includes(q)
+        item.style.display = visible ? '' : 'none'
+        if (visible) groupHasVisible = true
+      })
+      group.style.display = groupHasVisible ? '' : 'none'
+      if (groupHasVisible) hasResults = true
+    })
+
+    empty.classList.toggle('hidden', hasResults)
+  }
+
+  trigger.addEventListener('click', () => isOpen ? close() : open())
+  overlay.addEventListener('click', close)
+
+  search.addEventListener('input', () => filterTools(search.value))
+
+  // Keyboard navigation
+  document.addEventListener('keydown', (e) => {
+    // Cmd/Ctrl+K to open
+    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      e.preventDefault()
+      isOpen ? close() : open()
+      return
+    }
+
+    if (!isOpen) return
+
+    // Esc to close
+    if (e.key === 'Escape') {
+      e.preventDefault()
+      close()
+      return
+    }
+
+    // Arrow keys to navigate
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault()
+      const visible = Array.from(items).filter(i => i.style.display !== 'none')
+      if (visible.length === 0) return
+      const current = document.activeElement
+      const idx = visible.indexOf(current as HTMLElement)
+      const next = e.key === 'ArrowDown'
+        ? visible[Math.min(idx + 1, visible.length - 1)]
+        : visible[Math.max(idx - 1, 0)]
+      ;(next as HTMLElement).focus()
+    }
+
+    // Enter to navigate to selected
+    if (e.key === 'Enter') {
+      const active = document.activeElement
+      if (active && active.classList.contains('qs-item')) {
+        e.preventDefault()
+        ;(active as HTMLAnchorElement).click()
+      }
+    }
+  })
+
+  // Close on Escape when search is focused (handled above)
+</script>

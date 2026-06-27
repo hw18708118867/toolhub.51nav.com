@@ -1,0 +1,75 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'text-case')!
+
+const steps = [
+  { name: 'Enter Your Text', text: 'Type or paste the text you want to convert into the input panel.' },
+  { name: 'Choose a Case Format', text: 'Select from UPPERCASE, lowercase, Title Case, camelCase, snake_case, or kebab-case. Each format serves a different purpose in programming and writing.' },
+  { name: 'Copy the Result', text: 'The converted text appears in the output panel. Copy it and use it in your code, documentation, or wherever needed.' },
+]
+
+const faq = [
+  { question: 'What is camelCase?', answer: 'camelCase is a naming convention where the first word is lowercase and each subsequent word starts with an uppercase letter (e.g., myVariableName). It is commonly used for variable and function names in JavaScript, Java, and many other languages.' },
+  { question: 'What is snake_case?', answer: 'snake_case uses all lowercase letters with underscores between words (e.g., my_variable_name). It is the standard naming convention in Python, Ruby, and for database column names. It is also widely used in configuration files and APIs.' },
+  { question: 'What is kebab-case?', answer: 'kebab-case uses all lowercase letters with hyphens between words (e.g., my-variable-name). It is commonly used in CSS class names, URLs, and HTML attributes. It cannot be used directly as a variable name in most programming languages because hyphens are interpreted as minus signs.' },
+  { question: 'When should I use Title Case?', answer: 'Title Case capitalizes the first letter of each word. Use it for headings, titles, proper names, and user interface labels. It is not typically used in code but is common in content and documentation.' },
+]
+
+const before = 'hello world example'
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free online text case converter. Convert text between UPPERCASE, lowercase, Title Case, camelCase, snake_case, and kebab-case. All processing is local and private." {steps} {faq}
+>
+  <div class="code-panel mb-6"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Input Text</span><button id="sampleBtn" class="btn btn-sm btn-secondary ml-auto">Load Sample</button></div><textarea id="caseInput" class="code-input" placeholder="Enter text..."></textarea></div>
+  <div class="flex flex-wrap gap-3 mb-6">
+    <button class="btn btn-secondary" data-case="upper">UPPERCASE</button>
+    <button class="btn btn-secondary" data-case="lower">lowercase</button>
+    <button class="btn btn-secondary" data-case="title">Title Case</button>
+    <button class="btn btn-secondary" data-case="camel">camelCase</button>
+    <button class="btn btn-secondary" data-case="snake">snake_case</button>
+    <button class="btn btn-secondary" data-case="kebab">kebab-case</button>
+  </div>
+  <div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Output</span></div><pre id="caseOutput" class="code-output"></pre></div>
+
+  <section slot="examples" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Examples</h2>
+    <div class="overflow-x-auto"><table class="w-full text-left"><thead><tr class="border-b border-gray-200 dark:border-gray-800"><th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">Case</th><th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">Output for "&#123;&#125;"</th></tr></thead><tbody class="text-gray-500 dark:text-gray-400 font-mono text-sm"><tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">UPPERCASE</td><td class="py-3 px-4">HELLO WORLD EXAMPLE</td></tr><tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">lowercase</td><td class="py-3 px-4">hello world example</td></tr><tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">Title Case</td><td class="py-3 px-4">Hello World Example</td></tr><tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">camelCase</td><td class="py-3 px-4">helloWorldExample</td></tr><tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">snake_case</td><td class="py-3 px-4">hello_world_example</td></tr><tr><td class="py-3 px-4">kebab-case</td><td class="py-3 px-4">hello-world-example</td></tr></tbody></table></div>
+  </section>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Naming Conventions in Programming</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">Different programming languages and frameworks have different naming conventions. Using the correct case format for your language improves code readability and follows community standards.</p>
+      <h3 class="text-lg font-semibold text-gray-900 mt-6 mb-3 dark:text-white">Language Preferences</h3>
+      <ul class="list-disc list-inside space-y-2 text-gray-500 dark:text-gray-400">
+        <li><strong>camelCase</strong> — JavaScript, Java, TypeScript, Go</li>
+        <li><strong>snake_case</strong> — Python, Ruby, Rust, PHP</li>
+        <li><strong>kebab-case</strong> — CSS, HTML, URLs, CLI arguments</li>
+        <li><strong>PascalCase</strong> — C#, .NET, React components</li>
+      </ul>
+    </div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+      <a href="/guides/naming-conventions-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">Naming Conventions Across Languages</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">camelCase, snake_case, kebab-case explained.</p></div></div></a>
+      <a href="/guides/naming-conventions-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">Naming Conventions Across Languages</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">camelCase, snake_case, kebab-case explained.</p></div></div></a>
+    </div>
+  </section>
+
+  <script>
+    import { copyToClipboard } from '../../../utils/copyToClipboard'
+    const caseInput = document.getElementById('caseInput'); const caseOutput = document.getElementById('caseOutput')!; const sampleBtn = document.getElementById('sampleBtn')!
+    function toTitleCase(s: string) { return s.toLowerCase().replace(/\b\w/g, c => c.toUpperCase()) }
+    function toCamelCase(s: string) { return s.toLowerCase().replace(/[-_\s]+(.)?/g, (_, c) => c ? c.toUpperCase() : '') }
+    function toSnakeCase(s: string) { return s.toLowerCase().replace(/[\s-]+/g, '_') }
+    function toKebabCase(s: string) { return s.toLowerCase().replace(/[\s_]+/g, '-') }
+    sampleBtn.addEventListener('click', () => { caseInput.value = 'hello world example'; caseOutput.textContent = '' })
+    document.querySelectorAll('[data-case]').forEach(btn => { btn.addEventListener('click', () => { const type = (btn).dataset.case!; const text = caseInput.value; let out = ''; switch (type) { case 'upper': out = text.toUpperCase(); break; case 'lower': out = text.toLowerCase(); break; case 'title': out = toTitleCase(text); break; case 'camel': out = toCamelCase(text); break; case 'snake': out = toSnakeCase(text); break; case 'kebab': out = toKebabCase(text); break }; caseOutput.textContent = out }) })
+  </script>
+</ToolLayout>

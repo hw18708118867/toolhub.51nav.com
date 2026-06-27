@@ -1,0 +1,75 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'diff-checker')!
+
+const steps = [
+  { name: 'Paste Original Text', text: 'Paste the original version of your text in the left panel.' },
+  { name: 'Paste Modified Text', text: 'Paste the modified version in the right panel.' },
+  { name: 'Click Compare', text: 'Click "Compare" to see the differences. Lines that are identical appear in gray, removed lines in red, and added lines in green.' },
+]
+
+const faq = [
+  { question: 'What is a diff checker?', answer: 'A diff checker (or diff tool) compares two pieces of text and highlights the differences between them. It shows which lines were added, removed, or unchanged. This is essential for code review, version control, and document comparison.' },
+  { question: 'How does line-by-line diffing work?', answer: 'This tool compares text line by line. Lines that exist in the original but not the modified version are shown as removed (red). Lines that exist in the modified but not the original are shown as added (green). Identical lines are shown in gray.' },
+  { question: 'When should I use a diff checker?', answer: 'Use a diff checker for code review, comparing configuration files, checking document revisions, verifying changes before committing to version control, and debugging when you need to understand what changed between two versions.' },
+  { question: 'Can I compare code with this tool?', answer: 'Yes! This tool works with any text, including code in any programming language. While it doesn\'t provide syntax highlighting, the line-by-line comparison makes it easy to spot code changes between versions.' },
+]
+
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free online diff checker. Compare two texts and find differences instantly. Lines added, removed, and unchanged are highlighted. All processing is local and private." {steps} {faq}
+>
+  <div class="grid lg:grid-cols-2 gap-6 mb-6">
+    <div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Original</span></div><textarea id="diffText1" class="code-input" placeholder="Original text..."></textarea></div>
+    <div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Modified</span></div><textarea id="diffText2" class="code-input" placeholder="Modified text..."></textarea></div>
+  </div>
+  <div class="mb-6"><button id="compareBtn" class="btn btn-primary">Compare</button><button id="sampleBtn" class="btn btn-secondary ml-2">Load Sample</button></div>
+  <div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Diff Output</span></div><pre id="diffOutput" class="code-output p-4"></pre></div>
+
+  <section slot="examples" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Example</h2>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div><h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 dark:text-gray-400">Original</h3><pre class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-700 dark:bg-gray-900 dark:border-gray-800 dark:text-gray-300"><code>Hello World
+This is a test
+Goodbye</code></pre></div>
+      <div><h3 class="text-sm font-semibold text-green-600 uppercase tracking-wider mb-3">Modified</h3><pre class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-700 dark:bg-gray-900 dark:border-gray-800 dark:text-gray-300"><code>Hello World
+This is a test
+This line was added
+Goodbye</code></pre></div>
+    </div>
+  </section>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Using Diff Tools Effectively</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">Diff tools are essential for modern software development. They help you understand what changed between versions, review code before merging, and catch unintended modifications.</p>
+      <h3 class="text-lg font-semibold text-gray-900 mt-6 mb-3 dark:text-white">Common Use Cases</h3>
+      <ul class="list-disc list-inside space-y-2 text-gray-500 dark:text-gray-400">
+        <li>Code review before merging pull requests</li>
+        <li>Comparing configuration files between environments</li>
+        <li>Verifying expected changes in automated tests</li>
+        <li>Tracking document revisions</li>
+      </ul>
+    </div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+      <a href="/guides/text-diffing-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">Text Diffing for Code Review</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Read diffs, compare configs, debug changes.</p></div></div></a>
+      <a href="/guides/text-diffing-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">Text Diffing for Code Review</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Read diffs, compare configs, debug changes.</p></div></div></a>
+    </div>
+  </section>
+
+  <script>
+    const diffText1 = document.getElementById('diffText1'); const diffText2 = document.getElementById('diffText2'); const compareBtn = document.getElementById('compareBtn')!; const diffOutput = document.getElementById('diffOutput')!; const sampleBtn = document.getElementById('sampleBtn')!
+    function checkDiff() { const lines1 = diffText1.value.split('\n'); const lines2 = diffText2.value.split('\n'); const out: string[] = []; const maxLen = Math.max(lines1.length, lines2.length); for (let i = 0; i < maxLen; i++) { const l1 = lines1[i]; const l2 = lines2[i]; if (l1 === l2) { out.push('  ' + (l1 || '')) } else { if (l1 !== undefined) out.push('- ' + l1); if (l2 !== undefined) out.push('+ ' + l2) } }; diffOutput.innerHTML = out.map(line => { if (line.startsWith('- ')) return `<span class="text-red-400 bg-red-900/20 block px-2 py-0.5 rounded">${escapeHtml(line)}</span>`; if (line.startsWith('+ ')) return `<span class="text-green-400 bg-green-900/20 block px-2 py-0.5 rounded">${escapeHtml(line)}</span>`; return `<span class="text-gray-500 dark:text-gray-300 block px-2 py-0.5">${escapeHtml(line)}</span>` }).join('\n') }
+    function escapeHtml(s: string) { const div = document.createElement('div'); div.textContent = s; return div.innerHTML }
+    compareBtn.addEventListener('click', checkDiff)
+    sampleBtn.addEventListener('click', () => { diffText1.value = 'Hello World\nThis is a test\nGoodbye'; diffText2.value = 'Hello World\nThis is a test\nThis line was added\nGoodbye'; diffOutput.textContent = '' })
+  </script>
+</ToolLayout>

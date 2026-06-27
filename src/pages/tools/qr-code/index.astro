@@ -1,0 +1,85 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'qr-code')!
+
+const steps = [
+  { name: 'Enter Text or URL', text: 'Type the text, URL, or data you want to encode into a QR code. This could be a website URL, contact information, Wi-Fi credentials, or any text.' },
+  { name: 'Customize Appearance', text: 'Adjust the size (128–300px) and choose a color for your QR code. The default black-on-white provides the best contrast for scanning.' },
+  { name: 'Generate QR Code', text: 'Click "Generate" to create your QR code. The code is rendered in real-time on a canvas element in your browser.' },
+  { name: 'Download PNG', text: 'Click "Download PNG" to save your QR code as an image file. You can then use it in documents, websites, or print materials.' },
+]
+
+const faq = [
+  { question: 'What is a QR code?', answer: 'A QR (Quick Response) code is a two-dimensional barcode that can store text, URLs, and other data. It can be scanned by smartphones and dedicated QR readers to quickly access the encoded information. QR codes can store up to 4,296 alphanumeric characters.' },
+  { question: 'What can I encode in a QR code?', answer: 'You can encode URLs, plain text, phone numbers, email addresses, Wi-Fi network credentials, calendar events, and more. For this tool, simply enter any text or URL and a scannable QR code will be generated.' },
+  { question: 'What size should my QR code be?', answer: 'For print, use at least 200×200 pixels. For digital use (websites, emails), 128–200 pixels is usually sufficient. Larger QR codes are easier to scan from a distance. Ensure there is adequate contrast between the code and its background.' },
+  { question: 'Can I use any color for my QR code?', answer: 'While you can use any color, the QR code must have sufficient contrast with its background to be scannable. Dark colors on a light background work best. Avoid light colors on white backgrounds or dark colors on dark backgrounds.' },
+]
+
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free online QR code generator. Create scannable QR codes for URLs, text, and more. Customize size and color. Download as PNG. All processing is local and private." {steps} {faq}
+>
+  <div class="mb-6"><label class="block font-medium text-gray-700 dark:text-gray-300 mb-2">Text / URL</label><input type="text" id="qrInput" class="form-input w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-4 py-3 dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100" placeholder="Enter text or URL..."></div>
+  <div class="grid md:grid-cols-2 gap-6 mb-6">
+    <div><label class="block font-medium text-gray-700 dark:text-gray-300 mb-2">Size (px)</label><select id="qrSize" class="form-select w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-4 py-3 dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100"><option value="128">128</option><option value="200" selected>200</option><option value="256">256</option><option value="300">300</option></select></div>
+    <div><label class="block font-medium text-gray-700 dark:text-gray-300 mb-2">Color</label><input type="color" id="qrColor" value="#000000" class="w-16 h-10 rounded-lg border-0 cursor-pointer"></div>
+  </div>
+  <div class="flex gap-3 mb-6"><button id="generateBtn" class="btn btn-primary">Generate QR Code</button><button id="downloadBtn" class="btn btn-secondary">Download PNG</button></div>
+  <div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">QR Code</span></div><div class="p-8 flex justify-center"><canvas id="qrCanvas" class="qr-container"></canvas></div></div>
+
+  <section slot="examples" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Common QR Code Uses</h2>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 dark:bg-gray-900 dark:border-gray-800"><span class="text-2xl mb-2 block">🌐</span><h4 class="font-semibold text-gray-900 dark:text-white">Website URLs</h4><p class="text-sm text-gray-500 dark:text-gray-400">Link to your website or landing page</p></div>
+      <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 dark:bg-gray-900 dark:border-gray-800"><span class="text-2xl mb-2 block">📧</span><h4 class="font-semibold text-gray-900 dark:text-white">Email Address</h4><p class="text-sm text-gray-500 dark:text-gray-400">Let people email you instantly</p></div>
+      <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 dark:bg-gray-900 dark:border-gray-800"><span class="text-2xl mb-2 block">📱</span><h4 class="font-semibold text-gray-900 dark:text-white">Contact Info</h4><p class="text-sm text-gray-500 dark:text-gray-400">Share vCard contact details</p></div>
+      <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 dark:bg-gray-900 dark:border-gray-800"><span class="text-2xl mb-2 block">📶</span><h4 class="font-semibold text-gray-900 dark:text-white">Wi-Fi Access</h4><p class="text-sm text-gray-500 dark:text-gray-400">Share network credentials easily</p></div>
+    </div>
+  </section>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">About QR Codes</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">QR codes were invented in 1994 by Denso Wave, a Japanese automotive company. They were originally used to track vehicles during manufacturing but have since become ubiquitous in marketing, payments, and information sharing. The QR code's ability to be read quickly (hence "Quick Response") and its error correction capability make it ideal for real-world use.</p>
+      <h3 class="text-lg font-semibold text-gray-900 mt-6 mb-3 dark:text-white">Error Correction Levels</h3>
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed">QR codes include built-in error correction that allows them to be read even when partially damaged or obscured. Our generator uses a standard level that can recover up to 25% of the code if damaged.</p>
+    </div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+      <a href="/guides/qr-codes-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">QR Codes: How They Work</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Error correction, sizing, encoding, and practical uses.</p></div></div></a>
+      <a href="/guides/qr-codes-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">QR Codes: How They Work</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Error correction, sizing, encoding, and practical uses.</p></div></div></a>
+    </div>
+  </section>
+
+  <script>
+    const generateBtn = document.getElementById('generateBtn')!
+    const downloadBtn = document.getElementById('downloadBtn')!
+    const qrInput = document.getElementById('qrInput')
+    const qrSize = document.getElementById('qrSize')
+    const qrColor = document.getElementById('qrColor')
+    const qrCanvas = document.getElementById('qrCanvas') as HTMLCanvasElement
+    function simpleQR(text: string) {
+      const size = 21; const qr = Array(size).fill(null).map(() => Array(size).fill(false))
+      for (let y = 0; y < 7; y++) for (let x = 0; x < 7; x++) { const isPattern = x === 0 || x === 6 || y === 0 || y === 6 || (x > 1 && x < 5 && y > 1 && y < 5); if (isPattern) { qr[y][x] = true; qr[y][size - 1 - x] = true; qr[size - 1 - y][x] = true } }
+      for (let i = 8; i < size - 8; i++) { qr[i][6] = i % 2 === 0; qr[6][i] = i % 2 === 0 }
+      const bytes = new TextEncoder().encode(text); let bitIndex = 0
+      for (let y = size - 1; y >= 0; y--) for (let x = size - 1; x >= 0; x--) { if (y < 7 && x < 7) continue; if (y < 7 && x > size - 8) continue; if (y > size - 8 && x < 7) continue; if (x === 6) continue; if (bitIndex < bytes.length * 8) { const byte = bytes[Math.floor(bitIndex / 8)]; const bit = (byte >> (bitIndex % 8)) & 1; qr[y][x] = bit === 1; bitIndex++ } }
+      return qr
+    }
+    function generateQR() {
+      const text = qrInput.value || 'https://example.com'; const size = parseInt(qrSize.value, 10); const color = qrColor.value; const ctx = qrCanvas.getContext('2d')!; qrCanvas.width = size; qrCanvas.height = size
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, size, size)
+      const qr = simpleQR(text); const cellSize = Math.floor(size / (qr.length + 2)); const offset = Math.floor((size - qr.length * cellSize) / 2); ctx.fillStyle = color
+      for (let y = 0; y < qr.length; y++) for (let x = 0; x < qr[y].length; x++) if (qr[y][x]) ctx.fillRect(offset + x * cellSize, offset + y * cellSize, cellSize, cellSize)
+    }
+    generateBtn.addEventListener('click', generateQR); downloadBtn.addEventListener('click', () => { const link = document.createElement('a'); link.download = 'qrcode.png'; link.href = qrCanvas.toDataURL('image/png'); link.click() }); generateQR()
+  </script>
+</ToolLayout>

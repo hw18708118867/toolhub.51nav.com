@@ -1,0 +1,89 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'url-encode')!
+
+const steps = [
+  { name: 'Enter Your Text', text: 'Type or paste the text or URL you want to encode or decode into the input panel.' },
+  { name: 'Choose Action', text: 'Click "Encode" to convert special characters to percent-encoded format (e.g., space becomes %20). Click "Decode" to convert encoded URLs back to readable text.' },
+  { name: 'Get the Result', text: 'The result appears instantly in the output panel. All processing happens locally in your browser.' },
+]
+
+const faq = [
+  { question: 'What is URL encoding?', answer: 'URL encoding (also called percent-encoding) converts characters that are not allowed in URLs into a safe format. For example, spaces become %20, and special characters like &, ?, and # are encoded to prevent them from being interpreted as URL syntax. This ensures URLs are valid and can be transmitted reliably over the internet.' },
+  { question: 'When do I need to URL encode text?', answer: 'You need URL encoding whenever you include user-supplied data in a URL, such as query parameters, form data, or path segments. For example, if a search query contains spaces or special characters, they must be encoded before being added to the URL.' },
+  { question: 'What\'s the difference between encodeURI and encodeURIComponent?', answer: 'encodeURI is designed for encoding complete URLs and preserves characters that have syntactic meaning in URLs (like /, ?, &, #). encodeURIComponent encodes everything except alphanumeric characters and -_.!~*\'(), making it suitable for encoding individual query parameter values. Our tool uses encodeURIComponent for maximum safety.' },
+  { question: 'Why does decoding sometimes fail?', answer: 'Decoding fails when the input contains invalid percent sequences, such as % followed by non-hexadecimal characters or incomplete sequences like %2. This usually happens when the encoded text was truncated or manually edited incorrectly.' },
+]
+
+const before = 'Hello World & Welcome to DevTools Hub!'
+const after = 'Hello%20World%20%26%20Welcome%20to%20DevTools%20Hub!'
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free online URL encoder and decoder. Instantly encode or decode URLs and text. All processing happens locally in your browser for maximum privacy." {steps} {faq}
+>
+  <div class="flex flex-wrap gap-3 mb-6">
+    <button id="encodeBtn" class="btn btn-primary">Encode</button>
+    <button id="decodeBtn" class="btn btn-secondary">Decode</button>
+    <button id="sampleBtn" class="btn btn-secondary">Load Sample</button>
+    <button id="clearBtn" class="btn btn-secondary">Clear</button>
+  </div>
+  <div class="grid lg:grid-cols-2 gap-6">
+    <div class="code-panel">
+      <div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Input</span></div>
+      <textarea id="urlInput" class="code-input" placeholder="Enter text..."></textarea>
+    </div>
+    <div class="code-panel">
+      <div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Output</span></div>
+      <pre id="urlOutput" class="code-output"></pre>
+    </div>
+  </div>
+
+  <section slot="examples" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Examples</h2>
+    <div class="grid lg:grid-cols-2 gap-6">
+      <div><h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 dark:text-gray-400">Before (Plain Text)</h3><pre class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-700 overflow-x-auto dark:bg-gray-900 dark:border-gray-800 dark:text-gray-300"><code>{before}</code></pre></div>
+      <div><h3 class="text-sm font-semibold text-green-600 uppercase tracking-wider mb-3">After (URL Encoded)</h3><pre class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-700 overflow-x-auto dark:bg-gray-900 dark:border-gray-800 dark:text-gray-300"><code>{after}</code></pre></div>
+    </div>
+  </section>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Understanding URL Encoding</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">URLs can only contain a limited set of characters from the ASCII character set. URL encoding replaces unsafe characters with a % followed by two hexadecimal digits representing the character's ASCII code. This ensures that URLs can be transmitted reliably without misinterpretation by browsers and servers.</p>
+      <h3 class="text-lg font-semibold text-gray-900 mt-6 mb-3 dark:text-white">Common Encoded Characters</h3>
+      <ul class="list-disc list-inside space-y-2 text-gray-500 dark:text-gray-400">
+        <li>Space → %20</li>
+        <li>& (ampersand) → %26</li>
+        <li># (hash) → %23</li>
+        <li>? (question mark) → %3F</li>
+        <li>= (equals) → %3D</li>
+      </ul>
+    </div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+      <a href="/guides/web-encoding-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">Web Encoding Explained</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Base64, URL encoding, HTML entities.</p></div></div></a>
+      <a href="/guides/web-encoding-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">Web Encoding Explained</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Base64, URL encoding, HTML entities.</p></div></div></a>
+    </div>
+  </section>
+
+  <script>
+    import { copyToClipboard } from '../../../utils/copyToClipboard'
+    const encodeBtn = document.getElementById('encodeBtn')!
+    const decodeBtn = document.getElementById('decodeBtn')!
+    const clearBtn = document.getElementById('clearBtn')!
+    const sampleBtn = document.getElementById('sampleBtn')!
+    const urlInput = document.getElementById('urlInput')
+    const urlOutput = document.getElementById('urlOutput')!
+    encodeBtn.addEventListener('click', () => { urlOutput.textContent = encodeURIComponent(urlInput.value) })
+    decodeBtn.addEventListener('click', () => { try { urlOutput.textContent = decodeURIComponent(urlInput.value) } catch { urlOutput.textContent = 'Invalid URL encoding' } })
+    clearBtn.addEventListener('click', () => { urlInput.value = ''; urlOutput.textContent = '' })
+    sampleBtn.addEventListener('click', () => { urlInput.value = 'Hello World & Welcome to DevTools Hub!'; urlOutput.textContent = '' })
+  </script>
+</ToolLayout>

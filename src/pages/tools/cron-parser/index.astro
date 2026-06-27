@@ -1,0 +1,50 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import { tools } from '../../../data/tools'
+const tool = tools.find(t => t.id === 'cron-parser')!
+const steps = [
+  { name: 'Enter a Cron Expression', text: 'Type a cron expression (5 fields: minute, hour, day of month, month, day of week). Each field accepts numbers, ranges, steps, and wildcards.' },
+  { name: 'View the Schedule', text: 'The expression is parsed and the next 5 execution times are displayed. This helps you verify your cron schedule is correct.' },
+]
+const faq = [
+  { question: 'What is a cron expression?', answer: 'A cron expression is a string of 5 fields that defines a schedule for automated tasks. Each field represents: minute (0-59), hour (0-23), day of month (1-31), month (1-12), and day of week (0-6, where 0=Sunday). Special characters include * (every), / (step), - (range), and , (list).' },
+  { question: 'What does */5 * * * * mean?', answer: '*/5 in the minute field means "every 5 minutes". So this expression runs every 5 minutes, every hour, every day. The full expression: */5 * * * *.' },
+  { question: 'What does 0 9 * * 1-5 mean?', answer: '0 minute, 9th hour, every day of month, every month, Monday through Friday. This runs at 9:00 AM on weekdays.' },
+]
+---
+<ToolLayout tool={tool} description="Free online cron expression parser. Parse and validate cron schedule expressions. See the next execution times for any cron schedule." {steps} {faq}>
+  <div class="mb-6"><label class="block font-medium text-gray-700 dark:text-gray-300 mb-2">Cron Expression</label><input type="text" id="cronInput" class="form-input w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-4 py-3 font-mono dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100" placeholder="*/15 * * * *" oninput="parseCron()"></div>
+  <div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Next 5 Executions</span></div><div class="p-4 space-y-2" id="cronResult"><p class="text-gray-400 text-sm">Enter a cron expression to see the schedule.</p></div></div>
+  <section slot="examples" class="mb-10"><h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Common Cron Expressions</h2><div class="overflow-x-auto"><table class="w-full text-left"><thead><tr class="border-b border-gray-200 dark:border-gray-800"><th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">Expression</th><th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">Schedule</th></tr></thead><tbody class="text-sm text-gray-500 dark:text-gray-400 font-mono"><tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">*/5 * * * *</td><td class="py-3 px-4">Every 5 minutes</td></tr><tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">0 * * * *</td><td class="py-3 px-4">Every hour</td></tr><tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">0 9 * * 1-5</td><td class="py-3 px-4">9:00 AM on weekdays</td></tr><tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">0 0 1 * *</td><td class="py-3 px-4">Midnight on the 1st of each month</td></tr><tr><td class="py-3 px-4">30 14 * * 0</td><td class="py-3 px-4">2:30 PM on Sundays</td></tr></tbody></table></div></section>
+  <section slot="tutorial" class="mb-10"><h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Cron Expression Syntax</h2><div class="text-gray-500 dark:text-gray-400 leading-relaxed space-y-3"><p>Cron expressions use 5 space-separated fields: <code>minute hour day-of-month month day-of-week</code>. Special characters: <code>*</code> (any value), <code>,</code> (list separator), <code>-</code> (range), <code>/</code> (step values). Each field has specific valid ranges.</p><p>Cron is used for scheduling tasks on Unix-like systems, CI/CD pipelines (GitHub Actions), and cloud services (AWS CloudWatch). Getting the schedule right is critical — a misplaced character can cause a job to run every minute instead of once a day.</p></div></section>
+  <script is:inline>
+    const cronInput = document.getElementById('cronInput'); const cronResult = document.getElementById('cronResult')
+    function parseField(field, min, max) {
+      var values = [];
+      if (field === '*') { for (var i = min; i <= max; i++) values.push(i); }
+      else if (field.indexOf(',') >= 0) { field.split(',').forEach(function(f) { values = values.concat(parseField(f, min, max)); }); }
+      else if (field.indexOf('/') >= 0) { var parts = field.split('/'); var s = parseInt(parts[1]); var range = parts[0]; var r; if (range === '*') r = [min, max]; else if (range.indexOf('-') >= 0) r = range.split('-').map(Number); else r = [parseInt(range), max]; for (var i = r[0]; i <= r[1]; i += s) values.push(i); }
+      else if (field.indexOf('-') >= 0) { var se = field.split('-').map(Number); for (var i = se[0]; i <= se[1]; i++) values.push(i); }
+      else { values.push(parseInt(field)); }
+      return values.filter(function(v) { return v >= min && v <= max; });
+    }
+    function parseCron() {
+      var expr = cronInput.value.trim(); if (!expr) { cronResult.innerHTML = '<p class="text-gray-400 text-sm">Enter a cron expression to see the schedule.</p>'; return; }
+      var parts = expr.split(/\s+/); if (parts.length !== 5) { cronResult.innerHTML = '<p class="text-red-400 text-sm">Invalid cron expression. Must have exactly 5 fields.</p>'; return; }
+      try {
+        var mins = parseField(parts[0], 0, 59); var hrs = parseField(parts[1], 0, 23); var dom = parseField(parts[2], 1, 31); var mon = parseField(parts[3], 1, 12); var dow = parseField(parts[4], 0, 6);
+        var next = []; var now = new Date(); var t = new Date(now); t.setSeconds(0, 0); var found = 0; var safety = 0;
+        while (found < 5 && safety < 10000) { t = new Date(t.getTime() + 60000); safety++; if (mins.indexOf(t.getMinutes()) >= 0 && hrs.indexOf(t.getHours()) >= 0 && dom.indexOf(t.getDate()) >= 0 && mon.indexOf(t.getMonth() + 1) >= 0 && dow.indexOf(t.getDay()) >= 0) { next.push(new Date(t)); found++; } }
+        cronResult.innerHTML = next.map(function(d, i) { return '<div class="flex justify-between bg-gray-50 rounded-lg p-3 dark:bg-gray-800"><span class="text-gray-500 dark:text-gray-400">#' + (i + 1) + '</span><span class="font-mono text-gray-900 dark:text-white">' + d.toLocaleString() + '</span></div>'; }).join('');
+      } catch(e) { cronResult.innerHTML = '<p class="text-red-400 text-sm">Invalid cron expression. Check the syntax.</p>'; }
+    }
+  </script>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+      <a href="/guides/cron-expressions-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">Cron Expressions Guide</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Five-field syntax, special chars, common schedules.</p></div></div></a>
+      <a href="/guides/cron-expressions-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">Cron Expressions Guide</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Five-field syntax, special chars, common schedules.</p></div></div></a>
+    </div>
+  </section>
+</ToolLayout>

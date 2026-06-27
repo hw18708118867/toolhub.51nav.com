@@ -1,0 +1,79 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+const content = `
+<div class="prose prose-gray max-w-none dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-strong:text-gray-900 dark:prose-strong:text-white prose-code:text-blue-600 dark:prose-code:text-blue-400 prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-pre:bg-gray-50 dark:prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-gray-800">
+
+<h2>Why HTTPS Matters</h2>
+<p>A site served over plain HTTP sends everything — passwords, credit card numbers, session cookies, personal messages — as readable text. Anyone on the same WiFi network, any compromised router along the path, any ISP between you and the server can read the entire conversation. HTTPS encrypts the connection end to end using TLS (Transport Layer Security), the successor to SSL (Secure Sockets Layer). The mechanism that makes this encryption possible is a small file installed on the web server called an SSL certificate. Despite the name, almost no one uses actual SSL anymore — the protocol has been TLS since 1999 — but "SSL certificate" stuck as the common term.</p>
+<p>Modern browsers mark HTTP sites as "Not Secure" in the address bar. Chrome goes further, showing a full-page warning before loading HTTP sites with password fields. Google uses HTTPS as a ranking signal — all else equal, HTTPS sites outrank HTTP sites. For any website that handles user data, HTTPS is not optional.</p>
+
+<h2>What's Inside an SSL Certificate</h2>
+<ul>
+  <li><strong>Subject (Common Name).</strong> The primary domain the certificate covers. For single-domain certificates, this is www.example.com. For wildcard certificates, this is *.example.com — it covers blog.example.com, api.example.com, and any other subdomain, but not example.com itself (a separate certificate or a SAN entry is needed for the bare domain).</li>
+  <li><strong>Issuer.</strong> The Certificate Authority (CA) that signed and issued the certificate. Common CAs: Let's Encrypt (free, automated, 90-day validity), DigiCert (enterprise, up to 398-day validity), Sectigo (formerly Comodo), Google Trust Services, Amazon Trust Services, Cloudflare. Browsers trust certificates signed by any CA in their root store — a list of roughly 150 organizations worldwide.</li>
+  <li><strong>Valid From / Valid To.</strong> The validity window. Modern certificates are valid for 90 days (Let's Encrypt standard) to a maximum of 398 days (industry limit set by Apple's 2020 policy followed by Chrome and Firefox). Shorter windows limit the damage if a private key is compromised.</li>
+  <li><strong>Public Key.</strong> The cryptographic key used during the TLS handshake to establish a shared session key. Common algorithms: RSA (2048+ bits, universally supported), ECDSA (256 bits, faster, smaller, increasingly preferred). The corresponding private key is stored on the server and must never be exposed.</li>
+  <li><strong>Serial Number.</strong> A unique identifier assigned by the CA. Used to reference the certificate in revocation checks via CRL (Certificate Revocation List) or OCSP (Online Certificate Status Protocol).</li>
+  <li><strong>Subject Alternative Names (SANs).</strong> Additional domains the certificate covers. A single certificate might secure example.com, www.example.com, api.example.com, and mail.example.com. Multi-domain (SAN) certificates are more cost-effective than buying separate certificates for each subdomain.</li>
+</ul>
+
+<h2>The Certificate Chain of Trust</h2>
+<p>SSL certificates work through a hierarchical chain, not a single file:</p>
+<ol>
+  <li><strong>Root Certificate.</strong> Self-signed by a Certificate Authority. These are physically embedded in operating systems and browsers through root programs managed by Mozilla, Microsoft, Apple, Google, and Oracle (Java). There are roughly 150 trusted roots worldwide. Getting into a root program requires passing stringent audits (WebTrust, ETSI) and takes years.</li>
+  <li><strong>Intermediate Certificate.</strong> Signed by a root or another intermediate. CAs use intermediates so they can keep root keys in offline hardware security modules (HSMs). If an intermediate is compromised, it can be revoked without affecting the root — a crucial security design. Most certificates you encounter are signed by intermediates, not directly by roots.</li>
+  <li><strong>Server (Leaf) Certificate.</strong> Signed by an intermediate. This is the certificate installed on the web server. It's the end of the chain — the leaf — and the one browsers actually validate against.</li>
+</ol>
+<p>During the TLS handshake, the server sends its certificate along with any intermediate certificates needed to complete the chain to a trusted root. The browser verifies the entire chain: each certificate's signature is validated using the parent's public key, validity dates are checked, the domain name is matched against the Subject or SANs, and revocation status is checked (optionally, via OCSP stapling). If any verification fails, the browser shows a security warning.</p>
+
+<h2>How to Inspect a Certificate</h2>
+<p>Click the padlock icon in the browser's address bar, then click "Certificate" or "Connection is secure" → "Certificate is valid." Browsers show the issuer, validity period, subject, and fingerprint. For programmatic access or when debugging server configurations, OpenSSL from the command line gives complete details:</p>
+<pre><code class="language-bash"># View the full certificate chain presented by the server
+openssl s_client -connect example.com:443 -servername example.com -showcerts
+
+# Get just the expiration date (for monitoring scripts)
+echo | openssl s_client -connect example.com:443 -servername example.com 2>/dev/null \\
+  | openssl x509 -noout -enddate
+
+# Check subject, issuer, and validity dates
+echo | openssl s_client -connect example.com:443 -servername example.com 2>/dev/null \\
+  | openssl x509 -noout -subject -issuer -dates
+
+# Verify the chain (0 = success)
+openssl s_client -connect example.com:443 -servername example.com -verify 5 \\
+  -verify_return_error</code></pre>
+<p>The <code>-servername</code> flag is critical for servers hosting multiple domains via SNI (Server Name Indication). Without it, you get the server's default certificate, which may not be the one for the domain you're checking. If you don't have a terminal handy, our <a href="/tools/ssl-checker/">SSL Certificate Checker</a> shows basic certificate information for any domain directly in the browser.</p>
+
+<h2>Certificate Expiration: The Silent Outage</h2>
+<p>Expired certificates are a leading cause of production outages. When a certificate expires, browsers show a full-page security warning that most users cannot bypass. The "Advanced" → "Proceed anyway" link exists, but most users won't click it — they'll leave. For e-commerce, revenue drops to zero until the certificate is renewed. For SaaS, support tickets flood in from users who can't access the service.</p>
+<p>Production monitoring of certificate expiration is essential. Set up alerts at 30, 14, and 7 days before expiry. Most monitoring services (Datadog, New Relic, UptimeRobot, Pingdom) support SSL certificate expiry checks. Let's Encrypt certificates can be auto-renewed via Certbot or any ACME client — configure it as a cron job or systemd timer running daily. Even with auto-renewal in place, set up monitoring as a safety net: renewal scripts can fail silently when firewall rules change, validation endpoints move, or the ACME account key expires.</p>
+
+<h2>Types of SSL Certificates</h2>
+<p><strong>Domain Validation (DV).</strong> The CA verifies only that you control the domain — usually by checking that you can place a specific file on the web server or create a DNS TXT record. Issued in minutes, costs from free (Let's Encrypt) to ~$10/year. Most websites use DV certificates.</p>
+<p><strong>Organization Validation (OV).</strong> The CA additionally verifies your organization's legal existence. Shows the organization name in the certificate details. Takes days to issue, costs ~$50-100/year. Provides slightly more trust than DV but indistinguishable to most users.</p>
+<p><strong>Extended Validation (EV).</strong> The CA performs extensive verification of the organization's legal, physical, and operational existence. Used to show the organization name in green in the browser's address bar (a feature browsers have largely removed). Costs ~$100-300/year. The visual distinction in browsers has diminished, making EV certificates less valuable than they once were. Most sites today use DV certificates.</p>
+
+<h2>Self-Signed Certificates</h2>
+<p>You can generate a certificate without any CA using OpenSSL. These self-signed certificates encrypt traffic identically to CA-signed ones — the math is the same. The difference: browsers don't trust them because no third party vouches for your identity. Anyone can create a self-signed cert claiming to be google.com. Self-signed certificates are appropriate for local development (localhost), internal services on private networks, and staging environments. For public-facing production, they trigger security warnings that drive users away. For internal infrastructure with multiple services, consider running a private CA — it centralizes trust management and avoids the "accept risk and continue" reflex that trains developers to click through security warnings.</p><h2>Quick Reference</h2>
+<table>
+<thead><tr><th>Type</th><th>Validation</th><th>Cost</th></tr></thead>
+<tbody>
+<tr><td>DV</td><td>Domain control only</td><td>Free-$10/yr</td></tr>
+<tr><td>OV</td><td>DV + org verification</td><td>~$50-100/yr</td></tr>
+<tr><td>EV</td><td>Extensive verification</td><td>~$100-300/yr</td></tr>
+</tbody>
+</table>
+
+<h2>Automating Certificate Management</h2>
+<p>Manual renewal does not scale. Let us Encrypt and the ACME protocol have made automated issuance standard. Tools like Certbot, acme.sh, and Caddy handle the entire lifecycle. For Kubernetes, cert-manager automates certificate management. If you are still manually generating CSRs, downloading files, uploading to servers, and setting calendar reminders — you are spending time on something a cron job should handle.</p>
+<h2>TLS Versions and Cipher Suites</h2>
+<p>SSL and early TLS versions (SSL 2.0, SSL 3.0, TLS 1.0, TLS 1.1) are deprecated due to known vulnerabilities. Modern servers should support only TLS 1.2 and TLS 1.3. TLS 1.3 (2018) simplified the handshake, removed obsolete cryptographic algorithms, and made forward secrecy mandatory. Most major websites and CDNs default to TLS 1.3. If your server still accepts TLS 1.0 connections, it is vulnerable to downgrade attacks like POODLE and BEAST.</p>
+<p>Cipher suites determine the specific encryption algorithms used during a TLS session. A server configured to accept weak cipher suites (RC4, 3DES, EXPORT-grade ciphers) is vulnerable even with a valid certificate and modern TLS version. Tools like SSL Labs Server Test and testssl.sh audit your servers TLS configuration and grade it. An A+ grade means the server supports only TLS 1.2+, uses strong cipher suites, enables HSTS, and has a valid certificate chain. Achieving this is a few configuration changes in Nginx or Apache — well worth the effort.</p>
+</div>
+`
+---
+<GuideLayout title="SSL Certificates Explained: Chain, Expiry & Verification | DevTools Hub" description="A comprehensive guide to SSL/TLS certificates. Learn the chain of trust, certificate contents, how to inspect certs with OpenSSL, expiration monitoring, and certificate types." breadcrumb="SSL Certificates">
+  <Fragment slot="title">SSL Certificates Explained:<br class="hidden sm:block" />Chain, Expiry & Verification</Fragment>
+  <Fragment slot="intro">SSL certificates are the foundation of HTTPS — and expired certificates are a leading cause of outages. Understand the chain of trust, how to inspect certificates, and how to monitor expiration before users notice.</Fragment>
+  <Fragment set:html={content} />
+</GuideLayout>

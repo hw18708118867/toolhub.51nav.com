@@ -1,0 +1,48 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+const content = `
+<div class="prose prose-gray max-w-none dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-strong:text-gray-900 dark:prose-strong:text-white prose-code:text-blue-600 dark:prose-code:text-blue-400 prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-pre:bg-gray-50 dark:prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-gray-800">
+
+<h2>What an IP Address Actually Is</h2>
+<p>An IP address is a unique numerical identifier assigned to every device connected to the internet. It serves two fundamental purposes: identifying the host (or more precisely, its network interface) and providing the destination address that routers use to forward packets across the internet. Every request your browser makes, every email your client sends, every video your streaming app buffers — all of it moves through the internet as packets labeled with source and destination IP addresses. Without IP, there's no routing. Without routing, there's no internet.</p>
+<p>Two versions coexist today. IPv4 addresses look like <code>192.168.1.1</code> — four numbers from 0 to 255 separated by dots, providing about 4.3 billion (2³²) possible addresses. Designed in 1981 when the internet was a research project, IPv4's address space was exhausted at the global level by 2011. IPv6 addresses look like <code>2001:0db8:85a3:0000:0000:8a2e:0370:7334</code> — eight groups of four hexadecimal digits, providing roughly 340 undecillion (2¹²⁸) addresses. IPv6 adoption has been gradual — about 40-45% of global internet traffic uses IPv6 as of 2024 — but it's the future, and every modern network stack supports it.</p>
+
+<h2>Public vs. Private IPs and NAT</h2>
+<p>Your home router has a single public IP assigned by your ISP. Every device on your home WiFi — laptop, phone, smart TV, game console — gets a private IP from the router's DHCP server. These private IPs come from reserved ranges defined in RFC 1918: <code>192.168.0.0/16</code> (most home routers use 192.168.0.x or 192.168.1.x), <code>10.0.0.0/8</code> (common in corporate networks), and <code>172.16.0.0/12</code> (used by Docker by default). These addresses are not routable on the public internet.</p>
+<p>When your laptop makes a request to a website, your router translates your private IP (192.168.1.5) to its public IP (203.0.113.42) using Network Address Translation (NAT). The router tracks the connection in a NAT table — source IP, source port, destination IP, destination port — so when the response comes back, it knows which internal device to forward it to. This is why every device on your home network appears to the outside world as the same IP: websites see your router's public IP, not your individual device IPs. Check your public IP with our <a href="/tools/my-ip/">My IP Address tool</a>.</p>
+
+<h2>Static vs. Dynamic IPs</h2>
+<p>Most residential internet connections use dynamic IPs — your ISP can change your public IP at any time, typically when your modem reboots or the DHCP lease expires (usually every 24 hours to a few weeks). Business-grade connections often provide static IPs that never change, for an additional monthly fee. For hosting servers at home, you need either a static IP, or a dynamic DNS (DDNS) service that automatically updates your domain's A record whenever your IP changes. Services like DuckDNS, No-IP, and Dynu provide this for free or cheap.</p>
+
+<h2>IPv4 vs. IPv6</h2>
+<table>
+  <thead><tr><th></th><th>IPv4</th><th>IPv6</th></tr></thead>
+  <tbody>
+    <tr><td>Format</td><td>192.168.1.1</td><td>2001:db8::1</td></tr>
+    <tr><td>Address size</td><td>32 bits (4 bytes)</td><td>128 bits (16 bytes)</td></tr>
+    <tr><td>Addresses</td><td>~4.3 billion</td><td>~340 undecillion</td></tr>
+    <tr><td>NAT required</td><td>Yes (shortage)</td><td>No (abundance)</td></tr>
+    <tr><td>Adoption</td><td>Universal</td><td>~40-45% of traffic</td></tr>
+    <tr><td>Packet header</td><td>20-60 bytes</td><td>40 bytes (simpler)</td></tr>
+  </tbody>
+</table>
+
+<h2>What IP Geolocation Reveals (and What It Doesn't)</h2>
+<p>IP addresses are allocated to ISPs in blocks by regional internet registries (ARIN for North America, RIPE for Europe, APNIC for Asia-Pacific, LACNIC for Latin America, AFRINIC for Africa). Commercial geolocation databases from companies like MaxMind and IP2Location map these allocated blocks to approximate physical locations. Accuracy varies dramatically: country identification is ~99% reliable at the ISP level; city identification is ~70-80% accurate; street-level or neighborhood-level lookups are essentially useless for most IPs. Mobile IPs are particularly unreliable — they often geolocate to the carrier's data center rather than the user's actual location. VPNs and proxies further reduce accuracy by routing traffic through different geographic locations.</p>
+<p>For applications requiring precise location, use the browser's Geolocation API (with explicit user permission), which combines GPS, WiFi triangulation, and cell tower data — not IP lookup. IP geolocation is best used for coarse analytics (which countries are my users in?), fraud detection (is this purchase from the same country as the credit card?), and content localization (which language should I default to?). Our <a href="/tools/ip-lookup/">IP Lookup tool</a> shows the approximate location, ISP, and timezone for any public IP.</p>
+
+<h2>Debugging IP Issues</h2>
+<p><strong>"Users in a specific country can't access my site."</strong> Check whether you're using geo-blocking (via Cloudflare, AWS WAF, or server config). Look up the affected IPs to confirm their geolocation matches the blocked region. Geo-blocking databases go out of date; an IP range that was allocated to one country might have been reallocated to another. False positives are common with mobile carrier IPs that span regions.</p>
+<p><strong>"My firewall whitelist broke because my IP changed."</strong> If you're whitelisting IPs for SSH access, API authentication, or database connections, a dynamic IP will break the whitelist every time it changes. Switch to key-based or token-based authentication instead. If IP whitelisting is required, use a static IP from your ISP or a cloud-hosted jump box.</p>
+<p><strong>"Someone is attacking my server from this IP."</strong> Look up the IP to find the hosting provider or ISP. Most have an abuse contact (abuse@provider.com or a web form) where you can report malicious activity. Include timestamps in UTC, relevant log excerpts showing the attack pattern, and your server's IP. ISPs typically respond to abuse reports within 24-72 hours for clear-cut cases.</p>
+<h2>IP Addressing in Cloud Infrastructure</h2>
+<p>Cloud providers add layers of indirection between IP addresses and your actual servers. AWS Elastic IPs are static public IPv4 addresses that you can remap between instances — useful for failover and whitelisting. Load balancers (ALB, NLB) have their own IPs that may change; you access them via DNS name, not IP. Cloudflare and other CDNs sit in front of your origin, so visitors see Cloudflares IP, not yours. Understanding this chain — user → CDN → load balancer → instance → application — is essential for debugging connectivity issues. The IP the user connects to is rarely the IP of your actual server.</p>
+<p>Private IP ranges in cloud VPCs (Virtual Private Clouds) are even more important than public IPs for security. Your database should have a private IP only, accessible from your application servers within the VPC but not from the public internet. Security groups and network ACLs filter traffic by IP and port. A common misconfiguration: opening a database port to 0.0.0.0/0 (all IPs) instead of restricting it to the VPCs CIDR block. Always apply the principle of least privilege to IP-based access rules.</p>
+</div>
+`
+---
+<GuideLayout title="IP Addresses & Geolocation: What Developers Should Know | DevTools Hub" description="A complete guide to IP addresses. Covers IPv4 vs IPv6, public vs private, static vs dynamic, NAT, geolocation accuracy, and practical debugging scenarios for network issues." breadcrumb="IP Addresses">
+  <Fragment slot="title">IP Addresses & Geolocation:<br class="hidden sm:block" />What Developers Should Know</Fragment>
+  <Fragment slot="intro">IP addresses are the foundation of internet networking. From NAT to geolocation accuracy to practical debugging — understand the addresses that make the internet route packets.</Fragment>
+  <Fragment set:html={content} />
+</GuideLayout>

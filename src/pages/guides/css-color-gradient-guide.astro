@@ -1,0 +1,125 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+
+const content = `
+<h2>The Three CSS Color Formats</h2>
+<p>CSS supports multiple ways to specify colors. Each has strengths, and the best choice depends on what you're doing.</p>
+
+<h3>HEX: Compact and Universal</h3>
+<p>HEX uses a six-character code: <code>#RRGGBB</code>. Each pair represents red, green, and blue as 00 to FF (0–255). It's the most compact format and the most widely used.</p>
+<pre><code class="language-css">/* All the same color */
+color: #3b82f6;       /* Standard 6-digit hex */
+color: #3B82F6;       /* Case-insensitive */
+color: #38f;           /* 3-digit shorthand → #3388ff */</code></pre>
+<p>HEX is great for static colors, design tokens, and copy-paste from Figma. The downside: you can't easily make a HEX color lighter or darker without a converter.</p>
+
+<h3>RGB: Programmatic Friendly</h3>
+<p>RGB specifies each channel as a number from 0–255. It's easier to manipulate programmatically.</p>
+<pre><code class="language-css">/* Same color in RGB */
+color: rgb(59, 130, 246);
+color: rgba(59, 130, 246, 0.5);  /* With alpha */
+color: rgb(59 130 246 / 0.5);     /* Modern syntax */</code></pre>
+<p>RGB is the natural choice when generating colors dynamically in JavaScript. The modern syntax supports alpha without the <code>rgba()</code> variant.</p>
+
+<h3>HSL: Human-Friendly</h3>
+<p>HSL represents colors as hue (0–360°), saturation (0–100%), and lightness (0–100%). This maps directly to how humans think about color.</p>
+<pre><code class="language-css">/* Same blue in HSL */
+color: hsl(217, 91%, 60%);
+color: hsla(217, 91%, 60%, 0.5);  /* With alpha */</code></pre>
+<p>HSL shines when creating color variations. Want a lighter version? Increase lightness. Want a muted version? Decrease saturation. Creating a palette in HSL is a matter of adjusting two numbers.</p>
+
+<h3>When to Use Each</h3>
+<table>
+  <thead><tr><th>Format</th><th>Best For</th><th>Example</th></tr></thead>
+  <tbody>
+    <tr><td><strong>HEX</strong></td><td>Design tokens, static colors, copy-paste</td><td><code>#3b82f6</code></td></tr>
+    <tr><td><strong>RGB</strong></td><td>Dynamic colors, JS manipulation</td><td><code>rgb(59,130,246)</code></td></tr>
+    <tr><td><strong>HSL</strong></td><td>Color palettes, variations, theming</td><td><code>hsl(217,91%,60%)</code></td></tr>
+  </tbody>
+</table>
+<p>Use the <a href="/tools/color-picker/">Color Picker</a> to convert between HEX, RGB, and HSL in real-time. Pick any color visually and get all three formats instantly.</p>
+
+<h2>Building Color Palettes with HSL</h2>
+<p>The real power of HSL is in creating color scales. Here's how to build a palette for a brand color:</p>
+<pre><code class="language-css">/* Primary blue: hsl(217, 91%, 60%) */
+/* Create a full scale by adjusting only lightness */
+
+--color-50:  hsl(217, 91%, 95%);  /* Very light — backgrounds */
+--color-100: hsl(217, 91%, 90%);
+--color-200: hsl(217, 91%, 80%);
+--color-300: hsl(217, 91%, 70%);
+--color-400: hsl(217, 91%, 65%);
+--color-500: hsl(217, 91%, 60%);  /* Base */
+--color-600: hsl(217, 91%, 50%);
+--color-700: hsl(217, 91%, 40%);
+--color-800: hsl(217, 91%, 30%);
+--color-900: hsl(217, 91%, 20%);  /* Very dark — text on light bg */</code></pre>
+<p>Only the lightness value changes. The hue and saturation stay the same, so all shades feel like one family. This technique is used by Tailwind CSS, Chakra UI, and other design systems. You can also adjust saturation to create muted variants.</p>
+
+<h2>CSS Gradients: Beyond Flat Colors</h2>
+<p>Gradients create smooth transitions between colors. They're rendered by the browser, resolution-independent, and can be animated.</p>
+
+<h3>Linear Gradients</h3>
+<p>A linear gradient transitions along a straight line. You specify a direction and color stops.</p>
+<pre><code class="language-css">/* Top-left to bottom-right */
+background: linear-gradient(135deg, #667eea, #764ba2);
+
+/* Multiple color stops */
+background: linear-gradient(to right, #ff7e5f, #feb47b, #ff7e5f);
+
+/* With exact positions */
+background: linear-gradient(180deg, #a8edea 0%, #fed6e3 100%);</code></pre>
+
+<h3>Radial Gradients</h3>
+<p>A radial gradient transitions from a center point outward.</p>
+<pre><code class="language-css">/* Circular from center */
+background: radial-gradient(circle, #ff9a9e, #fecfef);
+
+/* Elliptical, positioned top-left */
+background: radial-gradient(ellipse at top left, #667eea, #764ba2);</code></pre>
+
+<h3>Gradient Best Practices</h3>
+<ul>
+  <li><strong>Choose colors close on the color wheel</strong> for subtle, professional gradients. High-contrast combinations (blue to red) can look garish.</li>
+  <li><strong>Always provide a solid fallback</strong> with <code>background-color</code> for older browsers.</li>
+  <li><strong>Use gradients sparingly.</strong> A subtle gradient on a hero section has impact. Every element with a gradient looks chaotic.</li>
+  <li><strong>Test on different screens.</strong> Color accuracy varies between displays.</li>
+</ul>
+<p>Use the <a href="/tools/css-gradient/">CSS Gradient Generator</a> to create gradients visually. Pick colors, adjust the angle, and copy the CSS directly.</p>
+
+<h2>Modern CSS Color Features</h2>
+<p>CSS Color Level 4 introduced powerful features available in all modern browsers:</p>
+<ul>
+  <li><strong>OKLCH color space</strong> — perceptually uniform. Colors with the same lightness actually appear equally bright to the human eye (unlike HSL).</li>
+  <li><strong>color-mix()</strong> — mix two colors in CSS: <code>color-mix(in srgb, blue 30%, white)</code> gives you a lighter blue without preprocessors.</li>
+  <li><strong>Relative color syntax</strong> — create variants from existing colors: <code>rgb(from var(--primary) r g b / 0.5)</code> for semi-transparent versions.</li>
+</ul>
+<p>If you're starting a new project, consider OKLCH over HSL — it produces more predictable results.</p>
+
+<h2>Color Accessibility</h2>
+<p>WCAG requires a minimum contrast ratio of <strong>4.5:1</strong> for normal text and <strong>3:1</strong> for large text. If you're squinting to read text on your background, the contrast is too low. Use a contrast checker to verify your combinations. And never rely solely on color to convey information — add icons, patterns, or text labels as backup.</p>
+
+<h2>Quick Reference</h2>
+<table>
+  <thead><tr><th>Task</th><th>Tool</th></tr></thead>
+  <tbody>
+    <tr><td>Pick a color and get HEX/RGB/HSL</td><td><a href="/tools/color-picker/">Color Picker</a></td></tr>
+    <tr><td>Create a CSS gradient and copy code</td><td><a href="/tools/css-gradient/">CSS Gradient Generator</a></td></tr>
+  </tbody>
+</table>
+
+<h2>Gradient Performance and Browser Compatibility</h2>
+<p>CSS gradients are rendered by the browser engine, not loaded as images. This makes them resolution-independent — they look sharp on any screen density without additional HTTP requests. However, complex gradients with many color stops can impact rendering performance on low-powered mobile devices. Each color stop requires the browser to calculate a color transition, and animating gradients (changing the angle, shifting color stops) triggers repaints. For performance-critical pages, limit gradients to two or three stops and avoid animating them on elements that cover large portions of the viewport.</p>
+<p>Browser support for CSS gradients is universal in modern browsers. Linear gradients have been supported since IE10. The modern syntax has been supported everywhere since roughly 2015. If you need to support very old browsers, provide a solid background-color fallback before the gradient declaration. Browsers that do not understand gradients will ignore the declaration and use the fallback.</p>
+`
+---
+
+<GuideLayout
+  title="CSS Colors & Gradients: A Frontend Developer's Guide | DevTools Hub"
+  description="Master CSS colors and gradients. Understand HEX, RGB, HSL formats, when to use each, and how to create beautiful gradients with practical examples and live tools."
+  breadcrumb="Colors & Gradients"
+>
+  <Fragment slot="title">CSS Colors &amp; Gradients:<br class="hidden sm:block" />A Frontend Developer's Guide</Fragment>
+  <Fragment slot="intro">HEX, RGB, HSL, gradients — understand the formats, when to use each, and how to create color systems that scale across your entire project.</Fragment>
+  <Fragment set:html={content} />
+</GuideLayout>

@@ -1,0 +1,30 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro'
+import Header from '../components/Header.astro'
+import Footer from '../components/Footer.astro'
+---
+
+<BaseLayout title="About DevTools Hub | 40+ Free Developer Tools" description="DevTools Hub provides 40+ free, private, browser-based developer tools. No sign-ups, no data collection, no limits.">
+  <Header />
+  <main class="flex-1 py-16">
+    <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-4 dark:text-white">About DevTools Hub</h1>
+      <p class="text-lg text-gray-500 mb-12 dark:text-gray-400">40+ free developer tools. No sign-ups. No data collection. No limits.</p>
+
+      <div class="prose prose-gray max-w-none dark:prose-invert space-y-6">
+        <h2 class="text-xl font-bold text-gray-900 dark:text-white">What We Do</h2>
+        <p class="text-gray-500 dark:text-gray-400">DevTools Hub is a collection of free, browser-based tools for developers. JSON formatting, Base64 encoding, UUID generation, regex testing — every tool runs entirely in your browser. Your data never leaves your computer.</p>
+
+        <h2 class="text-xl font-bold text-gray-900 dark:text-white">Why We Built This</h2>
+        <p class="text-gray-500 dark:text-gray-400">Most online developer tools either require sign-ups, show ads, or send your data to a server. We wanted tools that are genuinely free, completely private, and fast enough that you never wait for a page load. Everything runs client-side. No server processing. No data collection.</p>
+
+        <h2 class="text-xl font-bold text-gray-900 dark:text-white">Privacy</h2>
+        <p class="text-gray-500 dark:text-gray-400">All tools process data locally in your browser. We use Google Analytics (GA4) to understand which tools are popular and how people find us — but we never see the data you paste into any tool. Read our <a href="/privacy/" class="text-blue-600 dark:text-blue-400">Privacy Policy</a> for details.</p>
+
+        <h2 class="text-xl font-bold text-gray-900 dark:text-white">Contact</h2>
+        <p class="text-gray-500 dark:text-gray-400">Questions, bug reports, or suggestions for a new tool? Email us at <a href="mailto:miraclehuang611@gmail.com" class="text-blue-600 dark:text-blue-400">miraclehuang611@gmail.com</a> or visit the <a href="/contact/" class="text-blue-600 dark:text-blue-400">Contact page</a>.</p>
+      </div>
+    </div>
+  </main>
+  <Footer />
+</BaseLayout>

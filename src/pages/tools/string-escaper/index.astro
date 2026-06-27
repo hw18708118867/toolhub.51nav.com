@@ -1,0 +1,80 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'string-escaper')!
+
+const steps = [
+  { name: 'Enter Your Text', text: 'Type or paste the text you want to escape or unescape into the input panel.' },
+  { name: 'Choose Direction', text: 'Click "JS Escape" to add escape characters (\\n, \\t, \\", etc.). Click "JS Unescape" to convert escape sequences back to literal characters.' },
+  { name: 'Copy the Result', text: 'The output appears instantly in the right panel. Copy it and use it in your JavaScript code, JSON strings, or wherever escaped text is needed.' },
+]
+
+const faq = [
+  { question: 'What is string escaping?', answer: 'String escaping adds backslash (\\\\) before special characters so they can be safely included in string literals. For example, a double quote inside a double-quoted string must be escaped as \\" to prevent it from ending the string prematurely.' },
+  { question: 'When do I need to escape strings?', answer: 'You need to escape strings when embedding text in JavaScript/JSON string literals, writing regular expressions, or handling any text that contains characters with special meaning in the target context. Escaping ensures the text is interpreted as literal characters, not as code.' },
+  { question: 'What characters are escaped?', answer: 'This tool escapes: backslash (\\\\) → \\\\\\\\, double quote (") → \\\\", single quote (\') → \\\\\', newline → \\\\n, tab → \\\\t, and carriage return → \\\\r. These are the most common escape sequences used in JavaScript strings.' },
+  { question: 'What happens if I unescape invalid sequences?', answer: 'The tool handles common escape sequences (\\\\n, \\\\t, \\\\r, \\\\\', \\\\", \\\\\\\\) safely. If the input contains invalid escape sequences, they may be left as-is or produce unexpected results. Always verify unescaped output before using it in production.' },
+]
+
+const before = 'Hello\nWorld\t"Tab"'
+const after = 'Hello\\nWorld\\t\\"Tab\\"'
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free online string escaper. Escape and unescape special characters for JavaScript and JSON. All processing happens locally in your browser." {steps} {faq}
+>
+  <div class="flex flex-wrap gap-3 mb-6">
+    <button id="escapeBtn" class="btn btn-primary">JS Escape</button>
+    <button id="unescapeBtn" class="btn btn-secondary">JS Unescape</button>
+    <button id="sampleBtn" class="btn btn-secondary">Load Sample</button>
+    <button id="clearBtn" class="btn btn-secondary">Clear</button>
+  </div>
+  <div class="grid lg:grid-cols-2 gap-6">
+    <div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Input</span></div><textarea id="escapeInput" class="code-input" placeholder="Enter text..."></textarea></div>
+    <div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Output</span></div><pre id="escapeOutput" class="code-output"></pre></div>
+  </div>
+
+  <section slot="examples" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Examples</h2>
+    <div class="grid lg:grid-cols-2 gap-6">
+      <div><h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 dark:text-gray-400">Before (Raw Text)</h3><pre class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-700 dark:bg-gray-900 dark:border-gray-800 dark:text-gray-300"><code>Hello
+World	"Tab"</code></pre></div>
+      <div><h3 class="text-sm font-semibold text-green-600 uppercase tracking-wider mb-3">After (JS Escaped)</h3><pre class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-700 overflow-x-auto dark:bg-gray-900 dark:border-gray-800 dark:text-gray-300"><code>{after}</code></pre></div>
+    </div>
+  </section>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Common Escape Sequences</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">Here are the most commonly used escape sequences in JavaScript and JSON:</p>
+      <ul class="list-disc list-inside space-y-2 text-gray-500 dark:text-gray-400">
+        <li><code>\\n</code> — Newline</li>
+        <li><code>\\t</code> — Tab</li>
+        <li><code>\\r</code> — Carriage return</li>
+        <li><code>\\"</code> — Double quote</li>
+        <li><code>\\'</code> — Single quote</li>
+        <li><code>\\\\</code> — Backslash</li>
+      </ul>
+    </div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+      <a href="/guides/string-escaping-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">String Escaping in JS & JSON</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Escape sequences for safe text handling.</p></div></div></a>
+      <a href="/guides/string-escaping-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">String Escaping in JS & JSON</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Escape sequences for safe text handling.</p></div></div></a>
+    </div>
+  </section>
+
+  <script>
+    const escapeBtn = document.getElementById('escapeBtn')!; const unescapeBtn = document.getElementById('unescapeBtn')!; const clearBtn = document.getElementById('clearBtn')!; const sampleBtn = document.getElementById('sampleBtn')!; const escapeInput = document.getElementById('escapeInput'); const escapeOutput = document.getElementById('escapeOutput')!
+    function escapeJs(s: string) { return s.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\t/g, '\\t').replace(/\r/g, '\\r') }
+    function unescapeJs(s: string) { return s.replace(/\\n/g, '\n').replace(/\\t/g, '\t').replace(/\\r/g, '\r').replace(/\\'/g, "'").replace(/\\"/g, '"').replace(/\\\\/g, '\\') }
+    escapeBtn.addEventListener('click', () => { escapeOutput.textContent = escapeJs(escapeInput.value) })
+    unescapeBtn.addEventListener('click', () => { escapeOutput.textContent = unescapeJs(escapeInput.value) })
+    clearBtn.addEventListener('click', () => { escapeInput.value = ''; escapeOutput.textContent = '' })
+    sampleBtn.addEventListener('click', () => { escapeInput.value = 'Hello\nWorld\t"Tab"'; escapeOutput.textContent = '' })
+  </script>
+</ToolLayout>

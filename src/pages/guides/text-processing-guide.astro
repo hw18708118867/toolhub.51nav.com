@@ -1,0 +1,127 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+
+const content = `
+<h2>Why Text Processing Matters</h2>
+<p>Every developer spends a surprising amount of time manipulating text. Cleaning up CSV data. Extracting email addresses from a document. Converting variable names between camelCase and snake_case. Removing duplicate lines from a log file. These tasks are mundane but unavoidable — and doing them manually is slow and error-prone.</p>
+<p>The good news: most text processing tasks follow the same patterns. Once you know the right tools and techniques, you can handle them in seconds instead of minutes.</p>
+
+<h2>Regular Expressions: The Swiss Army Knife</h2>
+<p>Regex is the most powerful text processing tool in a developer's arsenal. It's also the most intimidating. The syntax looks like line noise, and a single misplaced character can turn a working pattern into a silent failure. But you don't need to be a regex guru — a handful of patterns cover the vast majority of real-world use cases.</p>
+
+<h3>Essential Patterns</h3>
+<pre><code class="language-javascript">// Email addresses
+\\S+@\\S+\\.\\S+
+// Matches: hello@example.com, support@test.org
+
+// Phone numbers
+\\b\\d{3}[-.]?\\d{3}[-.]?\\d{4}\\b
+// Matches: 555-123-4567, 555.123.4567, 5551234567
+
+// URLs
+https?://[^\\s]+
+// Matches: https://example.com, http://localhost:3000/path
+
+// Dates (YYYY-MM-DD)
+\\d{4}-\\d{2}-\\d{2}
+// Matches: 2024-01-15, 1999-12-31</code></pre>
+
+<h3>Understanding Flags</h3>
+<p>Flags change how a regex pattern behaves:</p>
+<ul>
+  <li><strong><code>g</code> (global)</strong> — find all matches, not just the first one. Without <code>g</code>, <code>/\\d+/</code> on "abc123def456" only matches "123". With it, you get both "123" and "456".</li>
+  <li><strong><code>i</code> (case-insensitive)</strong> — <code>/hello/i</code> matches "Hello", "HELLO", and "hello".</li>
+  <li><strong><code>m</code> (multiline)</strong> — <code>^</code> and <code>$</code> match the start/end of each line, not just the whole string. Essential for multi-line text.</li>
+</ul>
+
+<h3>Watch Out: Catastrophic Backtracking</h3>
+<p>The most common regex mistake is <strong>catastrophic backtracking</strong>. It happens when a pattern with nested quantifiers tries to match a string that almost — but not quite — fits. The engine tries every possible combination, and with a long enough string, this can freeze your application.</p>
+<pre><code class="language-javascript">// ❌ Vulnerable to catastrophic backtracking
+/(a+)+b/
+
+// Input: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaac" (30 a's then c)
+// The engine tries every possible grouping of a's before giving up
+// This can take seconds or minutes</code></pre>
+<p>The fix: avoid nesting quantifiers. Use atomic groups or possessive quantifiers when your engine supports them. Always test patterns with both matching and non-matching input.</p>
+<p>Use the <a href="/tools/regex-tester/">Regex Tester</a> to experiment with patterns in real-time. It highlights matches and shows the match count — you'll see exactly what your pattern is doing.</p>
+
+<h2>Case Conversion: Speaking the Right Language</h2>
+<p>Different ecosystems use different naming conventions. JavaScript uses camelCase. Python uses snake_case. CSS uses kebab-case. Switching between them is tedious.</p>
+<pre><code class="language-javascript">// camelCase — JavaScript, Java, TypeScript
+myVariableName
+
+// snake_case — Python, Ruby, Rust, SQL
+my_variable_name
+
+// kebab-case — CSS, HTML, URLs
+my-variable-name
+
+// PascalCase — C#, React components, .NET
+MyVariableName
+
+// UPPER_CASE — Constants, environment variables
+MY_VARIABLE_NAME</code></pre>
+<p>Imagine integrating a Python backend with a JavaScript frontend. The API returns <code>{"user_id": 1, "first_name": "Jane"}</code>. Your frontend expects <code>{"userId": 1, "firstName": "Jane"}</code>. Every key needs conversion. The <a href="/tools/text-case/">Text Case</a> converter handles this in one click — paste, click the format you need, copy the result.</p>
+
+<h2>Line Deduplication: Cleaning Up Lists</h2>
+<p>If you've ever combined multiple CSV exports, merged search results, or cleaned up a log file, you've dealt with duplicate lines. Removing them manually is tedious and error-prone.</p>
+<pre><code class="language-text">// Input (with duplicates)
+apple
+banana
+apple
+cherry
+banana
+date
+
+// Output (deduplicated, preserving order)
+apple
+banana
+cherry
+date</code></pre>
+<p>The <a href="/tools/dedupe-lines/">Dedupe Lines</a> tool handles this in one click. It preserves the order of first occurrence while removing duplicates. You can also sort lines alphabetically. Useful for email lists, domain lists, keyword research, and any scenario where you need unique values from a combined data source.</p>
+
+<h2>Word Counting: More Than Just Numbers</h2>
+<p>Counting words sounds trivial, but it's a surprisingly frequent need. SEO meta descriptions should be 150–160 characters. Title tags under 60 characters. Social media posts have strict character limits. The <a href="/tools/word-counter/">Word Counter</a> tracks characters, words, lines, and sentences in real-time — no context-switching between your editor and a separate tool.</p>
+
+<h2>String Escaping</h2>
+<p>Every programming language has special characters. In JavaScript, double quotes delimit strings. In JSON, backslashes start escape sequences. When you need to include these characters as literal text, you escape them with a backslash.</p>
+<pre><code class="language-javascript">// Raw text with special characters
+Hello
+World	"Tab"
+
+// JS-escaped version
+"Hello\\nWorld\\t\\"Tab\\""
+
+// Now it can be safely included in a string literal
+const message = "Hello\\nWorld\\t\\"Tab\\"";</code></pre>
+<p>Use the <a href="/tools/string-escaper/">String Escaper</a> to escape and unescape text for JavaScript and JSON. It handles newlines, tabs, quotes, and backslashes.</p>
+
+<h2>A Text Processing Workflow</h2>
+<p>Most text tasks follow this pattern:</p>
+<ol>
+  <li><strong>Get the raw text</strong> — copy from wherever it lives (log file, CSV export, API response).</li>
+  <li><strong>Clean it up</strong> — remove duplicates with <a href="/tools/dedupe-lines/">Dedupe Lines</a>, normalize case with <a href="/tools/text-case/">Text Case</a>, escape special characters with <a href="/tools/string-escaper/">String Escaper</a>.</li>
+  <li><strong>Extract what you need</strong> — use <a href="/tools/regex-tester/">Regex Tester</a> to find patterns like email addresses, dates, or phone numbers.</li>
+  <li><strong>Verify the output</strong> — check counts with <a href="/tools/word-counter/">Word Counter</a> and scan for obvious errors.</li>
+  <li><strong>Use the result</strong> — paste it into your code, document, or wherever it needs to go.</li>
+</ol>
+<p>This workflow turns a 30-minute manual task into a 2-minute pipeline. The tools are free, they run in your browser, and your data never leaves your computer.</p>
+
+<h2>Building Reusable Text Processing Scripts</h2>
+<p>The tools on this site solve ad-hoc text processing tasks — the things you do once, interactively, when you need an answer quickly. For repetitive tasks, invest in a script. A weekly process of cleaning a CSV export, deduplicating lines, normalizing case, and counting results is worth automating. A shell script chaining a few commands with pipes, or a Node.js script calling the same transformations programmatically, turns a five-minute manual grind into a sub-second automated pipeline. The time you spend writing the script pays for itself within a few weeks of running it.</p>
+<p>When you build text processing into a production system, design for idempotency. A deduplication step that runs twice should produce identical output both times. A case conversion step should be clearly documented as lossy (going from mixed-case to lowercase loses information). A word count step should yield the same result regardless of input order. Idempotent processing steps are composable, testable, and safe to run repeatedly — you can re-process data without worrying about accumulating side effects. This is the difference between a quick script and a reliable data pipeline component.</p>
+
+<h2>Regex in Production: Performance and Safety</h2>
+<p>The regex patterns you test with a few lines of sample text may behave very differently against real-world input. A pattern that completes in microseconds on a 100-character string can run for seconds or minutes on a 10,000-character string if it triggers catastrophic backtracking. The classic example: <code>/(a+)+b/</code> tested against "aaaaaaaaaaaaaaaaaaaaac" — the engine tries every possible grouping of the letter 'a' before concluding there's no match. Always test regex patterns against worst-case input: long strings that should match, long strings that should not match, and strings with repetitive patterns that could trigger backtracking. Set timeouts on regex execution in production — Node.js doesn't have a built-in regex timeout, but you can run regex in a worker thread with a timeout, or use libraries like re2 that use a backtracking-free algorithm.</p>
+`
+---
+
+<GuideLayout
+  title="Developer Text Processing: Regex, Case Conversion & Deduplication | DevTools Hub"
+  description="Master text processing tasks developers face daily. Regex patterns, case conversion, line deduplication, and word counting with practical examples and workflows."
+  breadcrumb="Text Processing"
+>
+  <Fragment slot="title">Developer Text Processing:<br class="hidden sm:block" />Regex, Case Conversion &amp; Deduplication</Fragment>
+  <Fragment slot="intro">Text processing is the bread and butter of development work. Whether you're cleaning data, refactoring code, or parsing logs, these techniques and tools will save you hours every week.</Fragment>
+  <Fragment set:html={content} />
+</GuideLayout>

@@ -1,0 +1,50 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import { tools } from '../../../data/tools'
+const tool = tools.find(t => t.id === 'image-to-base64')!
+const steps = [
+  { name: 'Upload an Image', text: 'Click the upload area or drag and drop an image file. Supported formats: PNG, JPEG, GIF, WebP, SVG, and BMP.' },
+  { name: 'Get Base64 Data URI', text: 'The image is converted to a Base64 data URI that you can use directly in HTML, CSS, or JSON.' },
+  { name: 'Copy and Use', text: 'Copy the Base64 string or the full data URI. Use it in <code>src</code> attributes, CSS <code>url()</code>, or any context that accepts data URIs.' },
+]
+const faq = [
+  { question: 'What is a Base64 image?', answer: 'A Base64 image is a text representation of an image file, encoded as a data URI. It can be embedded directly in HTML or CSS without needing a separate file. This reduces HTTP requests but increases the overall file size by about 33%.' },
+  { question: 'When should I use Base64 images?', answer: 'Base64 is best for small images (icons, logos) that are used repeatedly. It eliminates HTTP requests at the cost of larger file sizes. For large images, it\'s usually better to load them as separate files.' },
+  { question: 'Is there a size limit?', answer: 'This tool runs in your browser, so there\'s no server-side limit. However, very large images may cause performance issues. For images over 1MB, consider using a dedicated image optimization tool first.' },
+]
+---
+<ToolLayout tool={tool} description="Free online Image to Base64 converter. Convert images to Base64 data URIs instantly. Supports PNG, JPEG, WebP, GIF, SVG. All processing is local." {steps} {faq}>
+  <div class="mb-6"><div class="border-2 border-dashed border-gray-300 rounded-2xl p-10 text-center hover:border-blue-500 transition-colors cursor-pointer dark:border-gray-700" id="dropZone"><input type="file" id="fileInput" accept="image/*" class="hidden"><svg class="w-12 h-12 text-gray-400 mx-auto mb-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><p class="text-gray-500 dark:text-gray-400">Drag & drop an image or click to browse</p><p class="text-xs text-gray-400 mt-2">PNG, JPEG, WebP, GIF, SVG, BMP</p></div></div>
+  <div id="previewArea" class="hidden mb-6"><img id="imgPreview" class="max-h-48 rounded-xl mx-auto" alt="Preview"><p class="text-center text-sm text-gray-500 mt-2" id="imgInfo"></p></div>
+  <div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Base64 Output</span><button id="copyBtn" class="btn btn-sm btn-secondary">Copy</button></div><pre id="b64Output" class="code-output text-xs break-all">Upload an image to see the Base64 output.</pre></div>
+  <section slot="tutorial" class="mb-10"><h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Using Data URIs</h2><div class="text-gray-500 dark:text-gray-400 leading-relaxed space-y-3"><p>A data URI looks like: <code>data:image/png;base64,iVBORw0KGgo...</code>. It includes the MIME type, encoding type, and the Base64-encoded data. You can use it anywhere an image URL is accepted.</p><p>In HTML: <code>&lt;img src="data:image/png;base64,..."&gt;</code>. In CSS: <code>background-image: url(data:image/png;base64,...);</code>. Data URIs are great for small images that are part of your design system, like icons and logos.</p></div></section>
+  <script is:inline>
+    async function copyText(text) { try { await navigator.clipboard.writeText(text) } catch {} }
+    var dropZone = document.getElementById('dropZone'); var fileInput = document.getElementById('fileInput'); var previewArea = document.getElementById('previewArea'); var imgPreview = document.getElementById('imgPreview'); var imgInfo = document.getElementById('imgInfo'); var b64Output = document.getElementById('b64Output'); var copyBtn = document.getElementById('copyBtn');
+    dropZone.addEventListener('click', function() { fileInput.click(); });
+    dropZone.addEventListener('dragover', function(e) { e.preventDefault(); dropZone.classList.add('border-blue-500'); });
+    dropZone.addEventListener('dragleave', function() { dropZone.classList.remove('border-blue-500'); });
+    dropZone.addEventListener('drop', function(e) { e.preventDefault(); dropZone.classList.remove('border-blue-500'); var file = e.dataTransfer && e.dataTransfer.files ? e.dataTransfer.files[0] : null; if (file) processFile(file); });
+    fileInput.addEventListener('change', function() { var file = fileInput.files && fileInput.files[0]; if (file) processFile(file); });
+    function processFile(file) {
+      var reader = new FileReader();
+      reader.onload = function() {
+        var b64 = reader.result;
+        imgPreview.src = b64;
+        previewArea.classList.remove('hidden');
+        imgInfo.textContent = file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)';
+        b64Output.textContent = b64;
+      };
+      reader.readAsDataURL(file);
+    }
+    copyBtn.addEventListener('click', async function() { await copyText(b64Output.textContent || ''); });
+  </script>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+      <a href="/guides/web-encoding-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">Web Encoding Explained</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Base64, URL encoding, HTML entities.</p></div></div></a>
+      <a href="/guides/web-encoding-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">Web Encoding Explained</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Base64, URL encoding, HTML entities.</p></div></div></a>
+    </div>
+  </section>
+</ToolLayout>

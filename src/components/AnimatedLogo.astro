@@ -1,0 +1,142 @@
+---
+// AnimatedLogo.astro — DevTools Hub animated logo
+// Perpetual idle animation: breathing, glow, sequential node wave (br→bl→tl→tr→br)
+// Use in Header or any Astro page
+---
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" class="animated-logo w-full h-full">
+  <defs>
+    <linearGradient id="al-grad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#2563eb"/>
+      <stop offset="100%" stop-color="#1d4ed8"/>
+    </linearGradient>
+    <radialGradient id="al-glow-grad" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="60%" stop-color="#2563eb" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#2563eb" stop-opacity="0.4"/>
+    </radialGradient>
+    <radialGradient id="al-node" cx="0.35" cy="0.35" r="0.5">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#93c5fd"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Outer glow ring -->
+  <g class="al-glow">
+    <rect x="2" y="2" width="44" height="44" rx="10" fill="url(#al-glow-grad)" opacity="0.3"/>
+  </g>
+
+  <!-- Container: rounded square -->
+  <g class="al-container">
+    <rect x="3" y="3" width="42" height="42" rx="9" fill="url(#al-grad)"/>
+  </g>
+
+  <!-- Grid lines -->
+  <g class="al-grid">
+    <line class="al-line-main" x1="14" y1="24" x2="34" y2="24" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-opacity="0.7" pathLength="1"/>
+    <line class="al-line-main" x1="24" y1="14" x2="24" y2="34" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-opacity="0.7" pathLength="1"/>
+    <line class="al-line-diag" x1="16" y1="16" x2="32" y2="32" stroke="white" stroke-width="1" stroke-linecap="round" stroke-opacity="0.35" pathLength="1"/>
+    <line class="al-line-diag" x1="32" y1="16" x2="16" y2="32" stroke="white" stroke-width="1" stroke-linecap="round" stroke-opacity="0.35" pathLength="1"/>
+  </g>
+
+  <!-- Grid nodes — sequential wave: br → bl → tl → tr → br -->
+  <g class="al-nodes">
+    <!-- Top-left: pulses 3rd (delay 1000ms) -->
+    <circle class="al-node al-node-tl" cx="16" cy="16" r="2.5" fill="url(#al-node)" style="transform-origin: 16px 16px;"/>
+    <!-- Top-right: pulses 4th (delay 1500ms) -->
+    <circle class="al-node al-node-tr" cx="32" cy="16" r="2.5" fill="url(#al-node)" style="transform-origin: 32px 16px;"/>
+    <!-- Bottom-left: pulses 2nd (delay 500ms) -->
+    <circle class="al-node al-node-bl" cx="16" cy="32" r="2.5" fill="url(#al-node)" style="transform-origin: 16px 32px;"/>
+    <!-- Bottom-right: pulses 1st (delay 0ms) -->
+    <circle class="al-node al-node-br" cx="32" cy="32" r="2.5" fill="url(#al-node)" style="transform-origin: 32px 32px;"/>
+  </g>
+
+  <!-- Center dot -->
+  <circle class="al-center" cx="24" cy="24" r="1.8" fill="white" opacity="0.9"/>
+</svg>
+
+<style is:global>
+  /* Perpetual idle animations — only when user has no motion preference */
+  @media (prefers-reduced-motion: no-preference) {
+    .al-container {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: al-breathing 3000ms cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+    .al-glow {
+      animation: al-glow-pulse 3000ms cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+    /* Sequential node wave: br → bl → tl → tr → br */
+    .al-node {
+      animation: al-node-wave 2000ms cubic-bezier(0.16, 1, 0.3, 1) infinite;
+    }
+    .al-node-br { animation-delay: 0ms; }
+    .al-node-bl { animation-delay: 500ms; }
+    .al-node-tl { animation-delay: 1000ms; }
+    .al-node-tr { animation-delay: 1500ms; }
+
+    .al-line-main {
+      animation: al-line-wave 3000ms cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    .al-line-diag {
+      animation: al-line-wave-diag 3000ms cubic-bezier(0.4, 0, 0.2, 1) infinite;
+      animation-delay: 400ms;
+    }
+
+    .al-center {
+      animation: al-center-pulse 2000ms cubic-bezier(0.16, 1, 0.3, 1) infinite;
+      animation-delay: 1000ms;
+    }
+  }
+
+  /* Breathing: container gently scales */
+  @keyframes al-breathing {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.02); }
+    100% { transform: scale(1); }
+  }
+
+  /* Glow: counter-phase pulse */
+  @keyframes al-glow-pulse {
+    0%   { opacity: 0.2; }
+    25%  { opacity: 0.5; }
+    50%  { opacity: 0.3; }
+    75%  { opacity: 0.5; }
+    100% { opacity: 0.2; }
+  }
+
+  /*
+   * Sequential node wave: each node pulses in its 500ms window (25% of 2000ms)
+   *  0–25%:   active pulse (peak at 7.5%, settle by 15%, rest at 25%)
+   *  25–100%: idle — wait for next cycle
+   */
+  @keyframes al-node-wave {
+    0%     { transform: scale(1); opacity: 0.75; }
+    7.5%   { transform: scale(1.35); opacity: 1; }
+    15%    { transform: scale(1.06); opacity: 0.9; }
+    25%    { transform: scale(1); opacity: 0.75; }
+    100%   { transform: scale(1); opacity: 0.75; }
+  }
+
+  /* Main grid lines: opacity wave */
+  @keyframes al-line-wave {
+    0%   { stroke-opacity: 0.6; }
+    50%  { stroke-opacity: 0.85; }
+    100% { stroke-opacity: 0.6; }
+  }
+
+  /* Diagonal lines: offset phase opacity wave */
+  @keyframes al-line-wave-diag {
+    0%   { stroke-opacity: 0.25; }
+    50%  { stroke-opacity: 0.5; }
+    100% { stroke-opacity: 0.25; }
+  }
+
+  /* Center dot: gentle brightness pulse */
+  @keyframes al-center-pulse {
+    0%   { opacity: 0.85; }
+    50%  { opacity: 1; }
+    100% { opacity: 0.85; }
+  }
+</style>

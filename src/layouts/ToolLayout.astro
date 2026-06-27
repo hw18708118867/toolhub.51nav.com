@@ -1,0 +1,198 @@
+---
+import BaseLayout from './BaseLayout.astro'
+import Header from '../components/Header.astro'
+import Footer from '../components/Footer.astro'
+import Breadcrumb from '../components/Breadcrumb.astro'
+import AnimatedIcon from '../components/AnimatedIcon.astro'
+import QuickSwitch from '../components/QuickSwitch.astro'
+import type { Tool } from '../data/tools'
+import { tools, categories } from '../data/tools'
+
+interface Props {
+  tool: Tool
+  /** SEO meta description */
+  description?: string
+  /** How-to steps for structured data */
+  steps?: { name: string; text: string }[]
+  /** FAQ items for structured data */
+  faq?: { question: string; answer: string }[]
+}
+
+const { tool, description, steps = [], faq = [] } = Astro.props
+
+// Auto-generate related tools: same category, excluding current tool, max 4
+const relatedTools = tools
+  .filter(t => t.category === tool.category && t.id !== tool.id)
+  .slice(0, 4)
+
+// Category name
+const categoryName = categories[tool.category]?.name ?? 'Tools'
+
+// Build JSON-LD structured data
+const siteUrl = 'https://toolhub.51nav.com'
+const toolUrl = `${siteUrl}/tools/${tool.id}/`
+
+// 1. SoftwareApplication + HowTo
+const appLd: any = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: tool.name,
+  description: description ?? tool.description,
+  applicationCategory: 'DeveloperApplication',
+  operatingSystem: 'Web Browser',
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+  url: toolUrl,
+}
+if (steps.length > 0) {
+  appLd.mainEntity = {
+    '@type': 'HowTo',
+    name: `How to use ${tool.name}`,
+    step: steps.map((s, i) => ({
+      '@type': 'HowToStep', position: i + 1, name: s.name, text: s.text,
+    })),
+  }
+}
+
+// 2. BreadcrumbList
+const breadcrumbLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: siteUrl },
+    { '@type': 'ListItem', position: 2, name: 'Tools', item: `${siteUrl}/tools/` },
+    { '@type': 'ListItem', position: 3, name: categoryName, item: `${siteUrl}/tools/` },
+    { '@type': 'ListItem', position: 4, name: tool.name },
+  ],
+}
+
+// 3. FAQPage (if faq exists)
+const faqLd = faq.length > 0 ? {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faq.map(f => ({
+    '@type': 'Question',
+    name: f.question,
+    acceptedAnswer: { '@type': 'Answer', text: f.answer },
+  })),
+} : null
+---
+
+<BaseLayout title={`${tool.name} - Free Online Tool | DevTools Hub`} description={description ?? tool.description}>
+  <Header />
+  <main class="flex-1 py-8 sm:py-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <!-- Breadcrumb -->
+      <Breadcrumb items={[
+        { label: 'Home', href: '/' },
+        { label: 'Tools', href: '/tools/' },
+        { label: categoryName, href: '/tools/' },
+        { label: tool.name }
+      ]} />
+
+      <!-- H1 + Short Intro -->
+      <div class="mb-6">
+        <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-3 dark:text-white">
+          {tool.name}
+        </h1>
+        <p class="text-lg text-gray-500 max-w-3xl dark:text-gray-400">
+          {description ?? tool.description}
+        </p>
+      </div>
+
+      <!-- ==================== TOOL AREA ==================== -->
+      <div class="bg-white border border-gray-200 rounded-2xl p-4 sm:p-6 mb-10 dark:bg-gray-900 dark:border-gray-800">
+        <slot />
+      </div>
+
+      <!-- ==================== USAGE STEPS ==================== -->
+      {steps.length > 0 && (
+        <section class="mb-10">
+          <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">
+            How to Use {tool.name}
+          </h2>
+          <div class="space-y-4">
+            {steps.map((step, i) => (
+              <div class="flex gap-4">
+                <div class="flex-shrink-0 w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 font-bold text-sm dark:bg-blue-600/20 dark:text-blue-400">
+                  {i + 1}
+                </div>
+                <div>
+                  <h3 class="text-lg font-semibold text-gray-900 mb-1 dark:text-white">{step.name}</h3>
+                  <p class="text-gray-500 dark:text-gray-400">{step.text}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <!-- ==================== EXAMPLES ==================== -->
+      <slot name="examples" />
+
+      <!-- ==================== FAQ ==================== -->
+      {faq.length > 0 && (
+        <section class="mb-10">
+          <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">
+            Frequently Asked Questions
+          </h2>
+          <div class="space-y-3">
+            {faq.map((item) => (
+              <details class="group bg-white border border-gray-200 rounded-xl overflow-hidden dark:bg-gray-900 dark:border-gray-800">
+                <summary class="flex items-center justify-between px-5 py-4 cursor-pointer hover:bg-gray-50 transition-colors list-none dark:hover:bg-gray-800">
+                  <span class="text-gray-900 font-medium pr-4 dark:text-white">{item.question}</span>
+                  <svg class="w-5 h-5 text-gray-400 flex-shrink-0 group-open:rotate-180 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M6 9l6 6 6-6"/>
+                  </svg>
+                </summary>
+                <div class="px-5 pb-4 text-gray-500 dark:text-gray-400">
+                  <p>{item.answer}</p>
+                </div>
+              </details>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <!-- ==================== TUTORIAL CONTENT ==================== -->
+      <slot name="tutorial" />
+
+      <!-- ==================== RELATED TOOLS ==================== -->
+      {relatedTools.length > 0 && (
+        <section class="mb-10">
+          <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">
+            Related Tools
+          </h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {relatedTools.map(rt => (
+              <a href={`/tools/${rt.id}/`} class="group">
+                <div class="bg-white border border-gray-200 rounded-xl p-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 hover:-translate-y-0.5 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600">
+                  <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600 flex-shrink-0 group-hover:bg-blue-600 group-hover:text-white transition-all duration-200 overflow-visible dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white">
+                      <AnimatedIcon type={rt.icon} />
+                    </div>
+                    <div class="min-w-0">
+                      <h4 class="text-sm font-semibold text-gray-900 truncate dark:text-white">{rt.name}</h4>
+                      <p class="text-xs text-gray-400 truncate dark:text-gray-500">{rt.description}</p>
+                    </div>
+                  </div>
+                </div>
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <!-- ==================== RELATED ARTICLES ==================== -->
+      <slot name="relatedArticles" />
+    </div>
+  </main>
+  <Footer />
+
+  <!-- Quick Switch tool palette -->
+  <QuickSwitch currentToolId={tool.id} />
+
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json" set:html={JSON.stringify(appLd)}></script>
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbLd)}></script>
+  {faqLd && <script type="application/ld+json" set:html={JSON.stringify(faqLd)}></script>}
+</BaseLayout>

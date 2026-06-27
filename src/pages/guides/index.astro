@@ -1,0 +1,86 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import Header from '../../components/Header.astro'
+import Footer from '../../components/Footer.astro'
+
+const sections = [
+  {
+    name: 'Data & APIs',
+    guides: [
+      { href: '/guides/json-debugging-guide/', title: 'JSON Data Debugging Guide', desc: 'Find, fix, and prevent common JSON errors in API development.' },
+      { href: '/guides/csv-json-conversion-guide/', title: 'CSV to JSON Conversion', desc: 'Convert data between CSV and JSON, handle edge cases and delimiters.' },
+      { href: '/guides/number-bases-guide/', title: 'Number Bases: Binary, Hex & Octal', desc: 'Understand and convert between decimal, hex, binary, and octal.' },
+      { href: '/guides/unix-timestamps-guide/', title: 'Unix Timestamps & Timezone Handling', desc: 'Epoch time, seconds vs milliseconds, and timezone best practices.' },
+      { href: '/guides/cron-expressions-guide/', title: 'Cron Expressions Guide', desc: 'Schedule automated tasks with the five-field cron syntax.' },
+    ]
+  },
+  {
+    name: 'Encoding & Web',
+    guides: [
+      { href: '/guides/web-encoding-guide/', title: 'Web Encoding: Base64, URL & HTML Entities', desc: 'The three encoding schemes every developer encounters.' },
+      { href: '/guides/url-structure-guide/', title: 'URL Structure Demystified', desc: 'Protocol, host, path, query — every component explained.' },
+      { href: '/guides/url-slugs-guide/', title: 'URL Slugs: SEO-Friendly Naming', desc: 'Create clean, readable URL slugs that improve click-through rates.' },
+      { href: '/guides/string-escaping-guide/', title: 'String Escaping in JS & JSON', desc: 'Escape sequences for quotes, backslashes, and control characters.' },
+    ]
+  },
+  {
+    name: 'Text & Content',
+    guides: [
+      { href: '/guides/text-processing-guide/', title: 'Text Processing for Developers', desc: 'Regex patterns, case conversion, deduplication — practical workflows.' },
+      { href: '/guides/naming-conventions-guide/', title: 'Naming Conventions Across Languages', desc: 'camelCase, snake_case, kebab-case, PascalCase, and when to use each.' },
+      { href: '/guides/line-deduplication-guide/', title: 'Line Deduplication Guide', desc: 'Clean up lists and data files by removing duplicate lines.' },
+      { href: '/guides/word-count-seo-guide/', title: 'Word Counts & SEO', desc: 'Content length benchmarks for titles, meta descriptions, and blog posts.' },
+      { href: '/guides/lorem-ipsum-guide/', title: 'Lorem Ipsum in Design & Development', desc: 'When to use placeholder text, and when to replace it with real content.' },
+    ]
+  },
+  {
+    name: 'Network & Security',
+    guides: [
+      { href: '/guides/dns-records-guide/', title: 'DNS Records Explained', desc: 'A, AAAA, MX, CNAME, TXT, NS — every record type with examples.' },
+      { href: '/guides/ip-addresses-guide/', title: 'IP Addresses & Geolocation', desc: 'IPv4 vs IPv6, public vs private, and how IP geolocation works.' },
+      { href: '/guides/user-agent-guide/', title: 'User Agent Parsing', desc: 'Decode browser, OS, and device from any user agent string.' },
+      { href: '/guides/ssl-certificates-guide/', title: 'SSL Certificates Explained', desc: 'Certificate chains, expiry, verification, and self-signed certs.' },
+      { href: '/guides/password-hash-guide/', title: 'Password Security & Hash Algorithms', desc: 'MD5 vs SHA-256, bcrypt, Argon2, and password best practices.' },
+    ]
+  },
+  {
+    name: 'Code Quality',
+    guides: [
+      { href: '/guides/sql-formatting-guide/', title: 'SQL Formatting Guide', desc: 'Write clean, readable queries with consistent formatting conventions.' },
+      { href: '/guides/text-diffing-guide/', title: 'Text Diffing for Code Review', desc: 'Read diff output, compare configs, and debug with line-by-line comparison.' },
+      { href: '/guides/css-color-gradient-guide/', title: 'CSS Colors & Gradients Guide', desc: 'HEX, RGB, HSL explained. Build palettes and gradients.' },
+      { href: '/guides/qr-codes-guide/', title: 'QR Codes: How They Work', desc: 'Error correction, sizing, encoding, and practical uses beyond URLs.' },
+    ]
+  },
+]
+---
+
+<BaseLayout title="Developer Guides | DevTools Hub" description="23 in-depth developer guides covering JSON debugging, web encoding, text processing, networking, security, and more.">
+  <Header />
+  <main class="flex-1 py-16">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="mb-12">
+        <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-4 dark:text-white">Developer Guides</h1>
+        <p class="text-lg text-gray-500 dark:text-gray-400">23 in-depth tutorials. Each one covers a specific topic — no filler, no fluff.</p>
+      </div>
+      <div class="space-y-12">
+        {sections.map(section => (
+          <div>
+            <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4 dark:text-gray-400">{section.name}</h2>
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {section.guides.map(g => (
+                <a href={g.href} class="group block">
+                  <div class="bg-white border border-gray-200 rounded-xl p-5 h-full hover:border-blue-500 hover:shadow-md transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600">
+                    <h3 class="font-semibold text-gray-900 mb-1.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">{g.title}</h3>
+                    <p class="text-sm text-gray-500 leading-relaxed dark:text-gray-400">{g.desc}</p>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </main>
+  <Footer />
+</BaseLayout>

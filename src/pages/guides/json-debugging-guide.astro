@@ -1,0 +1,153 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+
+const content = `
+<h2>The Problem</h2>
+<p>If you've spent any time working with web APIs, you've probably stared at a screen wondering why your perfectly reasonable-looking JSON isn't parsing. Maybe it's a missing comma. Maybe it's a trailing comma. Maybe you accidentally used single quotes instead of double quotes. JSON looks simple — it's just key-value pairs and arrays — but the simplicity is deceptive. One misplaced character and your entire API response breaks.</p>
+<p>This guide walks through the most common JSON problems, how to spot them quickly, and the tools and workflows that make working with JSON painless.</p>
+
+<h2>The Five Most Common JSON Errors</h2>
+
+<h3>1. Trailing Commas</h3>
+<p>This is the number one JSON mistake. JavaScript allows trailing commas in objects and arrays. JSON does not. If you've been writing JavaScript all day and then hand-edit a JSON config file, your muscle memory will betray you.</p>
+<pre><code class="language-json">// ❌ Invalid — trailing comma after "active"
+{
+  "name": "DevTools Hub",
+  "version": "1.0.0",
+  "active": true,
+}
+
+// ✅ Valid — no trailing comma
+{
+  "name": "DevTools Hub",
+  "version": "1.0.0",
+  "active": true
+}</code></pre>
+<p>The fix is simple: remove the trailing comma. But spotting it in a 500-line file? That's where the <a href="/tools/json-formatter/">JSON Formatter</a> saves you. Paste the file, hit <strong>Validate</strong>, and it tells you exactly which line has the problem.</p>
+
+<h3>2. Single Quotes Instead of Double Quotes</h3>
+<p>JavaScript accepts both single and double quotes for strings. JSON only accepts double quotes. This trips up developers constantly when copying between JavaScript code and JSON files.</p>
+<pre><code class="language-json">// ❌ Invalid — single quotes
+{'name': 'DevTools Hub'}
+
+// ✅ Valid — double quotes
+{"name": "DevTools Hub"}</code></pre>
+
+<h3>3. Unescaped Special Characters</h3>
+<p>If your JSON string contains double quotes, backslashes, or control characters, they need to be escaped. Otherwise the parser thinks the string ended early.</p>
+<pre><code class="language-json">// ❌ Broken — inner quote terminates the string
+{"message": "He said \\"hello\\""}
+
+// ✅ Fixed — escaped inner quotes
+{"message": "He said \\\"hello\\\""}
+
+// ✅ Also fixed — backslash escaping
+{"path": "C:\\\\Users\\\\Documents"}</code></pre>
+
+<h3>4. Missing Commas Between Properties</h3>
+<p>When adding a new property, it's easy to forget the comma after the previous line. The parser sees two identifiers next to each other and doesn't know what to do.</p>
+<pre><code class="language-json">// ❌ Missing comma after "version"
+{
+  "name": "DevTools Hub"
+  "version": "1.0.0"
+}
+
+// ✅ Comma added
+{
+  "name": "DevTools Hub",
+  "version": "1.0.0"
+}</code></pre>
+
+<h3>5. Non-String Keys</h3>
+<p>In JSON, all object keys must be strings wrapped in double quotes. JavaScript object literals let you skip the quotes for simple identifiers, but JSON doesn't.</p>
+<pre><code class="language-json">// ❌ Invalid — unquoted key
+{name: "DevTools Hub"}
+
+// ✅ Valid — quoted key
+{"name": "DevTools Hub"}</code></pre>
+
+<h2>A Systematic Debugging Workflow</h2>
+<p>When you encounter a JSON error, don't just stare at the raw text. Follow this workflow:</p>
+<ol>
+  <li><strong>Validate first.</strong> Use the <a href="/tools/json-formatter/">JSON Formatter</a> before anything else. It tells you the exact line and column where the parser failed. This solves 80% of problems in under 5 seconds.</li>
+  <li><strong>Format the JSON.</strong> Even valid JSON is hard to read when minified. The <a href="/tools/json-formatter/">JSON Formatter</a> adds proper indentation. The visual structure alone often reveals problems — a missing bracket, an array that should be an object, or data nested at the wrong level.</li>
+  <li><strong>Check the structure.</strong> Scan the braces and brackets. Every <code>{</code> needs a matching <code>}</code>. Most editors highlight pairs, but a quick visual scan catches the obvious ones.</li>
+  <li><strong>Test with a known-good sample.</strong> Compare against the API documentation's example response. If the structure differs, that's your clue.</li>
+  <li><strong>Check the data types.</strong> Is that field a string or a number? JSON doesn't have a date type. A boolean <code>true</code> is not the same as the string <code>"true"</code>.</li>
+</ol>
+
+<h2>Working with Large JSON Files</h2>
+<p>When you're dealing with hundreds or thousands of lines, the approach changes. First, <strong>always format it</strong>. A 50KB minified JSON blob becomes readable after formatting. The indentation creates a visual hierarchy that makes the data structure obvious.</p>
+<p>Second, use your editor's search. Most JSON files have consistent key names — searching for <code>"email"</code> or <code>"user_id"</code> is faster than scrolling.</p>
+<p>Third, if you're comparing two versions of the same JSON, use the <a href="/tools/diff-checker/">Diff Checker</a>. It highlights exactly what changed, which is invaluable for debugging.</p>
+<p>For very large datasets, consider whether JSON is the right format at all. A line-delimited format (JSONL) is much easier to process incrementally when you have millions of records.</p>
+
+<h2>JSON and APIs: The Real-World Context</h2>
+<p>Most JSON debugging happens in the context of APIs. Before debugging the JSON body, <strong>check the HTTP status code</strong>. A 400 response means your request was malformed. A 500 means the server crashed. Error responses are often structured differently from success responses.</p>
+<p>If you're working with authenticated APIs, you'll encounter JWTs. The payload is Base64-encoded JSON. You can decode it with the <a href="/tools/jwt-decoder/">JWT Decoder</a> to inspect claims without writing any code — useful for checking token expiration, permissions, or user identity.</p>
+
+<h2>JSON vs YAML</h2>
+<p>If you work with Docker, Kubernetes, or CI/CD pipelines, you deal with YAML as much as JSON. YAML uses indentation instead of braces, supports comments, and is more human-readable. But it's also more error-prone — a single misplaced space changes the nesting level.</p>
+<p>Many teams write configs in YAML but convert to JSON for programmatic processing. The <a href="/tools/json-yaml/">JSON ↔ YAML</a> converter makes this translation straightforward.</p>
+<pre><code class="language-yaml"># JSON
+{"server": {"port": 8080, "host": "localhost"}}
+
+# Same data in YAML
+server:
+  port: 8080
+  host: localhost</code></pre>
+
+<h2>Prevent Errors Before They Happen</h2>
+<h3>Use a JSON Schema</h3>
+<p>JSON Schema defines the expected structure of your data — required fields, types, and patterns. Tools like Ajv validate JSON against a schema automatically, catching errors before they reach your application logic.</p>
+
+<h3>Generate, Don't Hand-Write</h3>
+<p>Use your language's serialization library: <code>JSON.stringify()</code> in JavaScript, <code>json.dumps()</code> in Python. Never build JSON by concatenating strings — it's error-prone and a security risk.</p>
+
+<h3>Add Validation to CI</h3>
+<p>Add a step to your CI pipeline that parses every <code>.json</code> file in your repository. A malformed config file should fail the build, not make it to production.</p>
+<pre><code class="language-javascript">// Quick validation script for CI pipelines
+const fs = require('fs');
+const path = require('path');
+
+function validateJsonFiles(dir) {
+  const files = fs.readdirSync(dir);
+  for (const file of files) {
+    const fullPath = path.join(dir, file);
+    if (file.endsWith('.json')) {
+      try {
+        JSON.parse(fs.readFileSync(fullPath, 'utf8'));
+        console.log('✓ ' + file);
+      } catch (e) {
+        console.error('✗ ' + file + ': ' + e.message);
+        process.exit(1);
+      }
+    }
+  }
+}
+validateJsonFiles('./config');</code></pre>
+
+<h2>Quick Reference</h2>
+<table>
+  <thead><tr><th>Task</th><th>Tool</th><th>When to Use</th></tr></thead>
+  <tbody>
+    <tr><td>Validate JSON</td><td><a href="/tools/json-formatter/">JSON Formatter</a></td><td>Before parsing any JSON you didn't generate</td></tr>
+    <tr><td>Format / Beautify</td><td><a href="/tools/json-formatter/">JSON Formatter</a></td><td>Reading minified API responses or configs</td></tr>
+    <tr><td>Minify JSON</td><td><a href="/tools/json-formatter/">JSON Formatter</a></td><td>Reducing payload size for production</td></tr>
+    <tr><td>Convert JSON to YAML</td><td><a href="/tools/json-yaml/">JSON ↔ YAML</a></td><td>Creating config files from JSON data</td></tr>
+    <tr><td>Decode JWT payload</td><td><a href="/tools/jwt-decoder/">JWT Decoder</a></td><td>Inspecting auth tokens during debugging</td></tr>
+    <tr><td>Compare JSON versions</td><td><a href="/tools/diff-checker/">Diff Checker</a></td><td>Finding what changed in an API response</td></tr>
+  </tbody>
+</table>
+`
+---
+
+<GuideLayout
+  title="JSON Data Debugging: A Practical Guide for Developers | DevTools Hub"
+  description="Learn how to debug, format, and validate JSON data like a pro. Covers common JSON errors, formatting tools, JWT debugging, and real-world workflows."
+  breadcrumb="JSON Debugging"
+>
+  <Fragment slot="title">JSON Data Debugging:<br class="hidden sm:block" />A Practical Guide</Fragment>
+  <Fragment slot="intro">Stop guessing why your JSON is broken. A systematic approach to finding, fixing, and preventing the most common JSON errors — with real examples from API development, configuration files, and data pipelines.</Fragment>
+  <Fragment set:html={content} />
+</GuideLayout>

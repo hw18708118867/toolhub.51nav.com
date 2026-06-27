@@ -1,0 +1,70 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+const content = `
+<div class="prose prose-gray max-w-none dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-strong:text-gray-900 dark:prose-strong:text-white prose-code:text-blue-600 dark:prose-code:text-blue-400 prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-pre:bg-gray-50 dark:prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-gray-800">
+
+<h2>What Cron Expressions Do</h2>
+<p>A cron expression is a string of five (or sometimes six) fields that defines when a scheduled task should run. It was invented for Unix's cron daemon in Version 7 Unix (1979) by Brian Kernighan, but the concept has far outlived its origin. Today, cron expressions schedule jobs in GitHub Actions workflows, Kubernetes CronJobs, AWS CloudWatch Events and EventBridge rules, Google Cloud Scheduler, Vercel cron jobs, and virtually every CI/CD platform. The syntax is one of those rare standards that escaped its original context and became infrastructure.</p>
+<p>The power of cron expressions is their precision combined with their simplicity. A single string defines an exact repeating schedule. No GUI calendar picker, no YAML schedule block, no programming — just five fields that describe when a job fires. Master them once, and you can schedule tasks on any platform that supports cron syntax.</p>
+
+<h2>The Five Fields</h2>
+<pre><code class="language-text">minute  hour  day-of-month  month  day-of-week
+  0-59   0-23      1-31      1-12     0-6 (0=Sunday, 7=Sunday on some systems)</code></pre>
+<p>Every field accepts a number, a wildcard, or combinations using special characters. Missing or extra fields are the most common cron mistake — copying a six-field expression (which adds seconds as the first field, used by Quartz Scheduler and some Java frameworks) into a five-field system silently shifts every field left, producing a completely different schedule. Always verify how many fields your platform expects.</p>
+
+<h2>Special Characters</h2>
+<h3>Asterisk (*) — Match Every Value</h3>
+<p><code>*</code> in the hour field means every hour. <code>*</code> in the day-of-week field means every day. The expression <code>* * * * *</code> means every minute — it fires 1,440 times per day. This is almost never what you intended. It's the default in example code because it's the simplest expression to demonstrate, but it's dangerous in production. A resource-intensive job running every minute can overwhelm a server.</p>
+
+<h3>Step Values (/) — Every Nth Interval</h3>
+<p><code>*/5</code> in the minute field means every 5 minutes — it produces 0, 5, 10, 15 ... 55. The step starts from the field's minimum value (0 for minutes and hours, 1 for day-of-month and month, 0 for day-of-week). To start from a different value, specify the starting point: <code>3/5</code> in minutes produces 3, 8, 13, 18 ... 58. This is useful for staggering jobs — if you have three similar jobs that shouldn't all run at the same time, schedule them at <code>0/5</code>, <code>2/5</code>, and <code>4/5</code>.</p>
+
+<h3>Ranges (-) — From X Through Y</h3>
+<p><code>1-5</code> in day-of-week means Monday through Friday. <code>9-17</code> in hours means 9 AM to 5 PM inclusive (both endpoints fire). Ranges combine with steps: <code>9-17/2</code> means every 2 hours from 9 to 17: 9, 11, 13, 15, 17. No spaces around the hyphen.</p>
+
+<h3>Lists (,) — Specific Values</h3>
+<p><code>1,15</code> in day-of-month means the 1st and 15th only. <code>0,30</code> in minutes means at :00 and :30 past each hour. <code>1-5,10-15</code> is valid — it means 1 through 5 and 10 through 15. Commas have the lowest precedence; everything else in the field is evaluated before the comma splits.</p>
+
+<h2>Common Patterns</h2>
+<table>
+  <thead><tr><th>Expression</th><th>Schedule</th><th>When You'd Use It</th></tr></thead>
+  <tbody>
+    <tr><td><code>*/5 * * * *</code></td><td>Every 5 minutes</td><td>Health checks, metrics collection</td></tr>
+    <tr><td><code>0 * * * *</code></td><td>Hourly at :00</td><td>Cache warming, log rotation</td></tr>
+    <tr><td><code>0 9 * * 1-5</code></td><td>9 AM weekdays</td><td>Daily report emails</td></tr>
+    <tr><td><code>0 0 1 * *</code></td><td>Midnight, 1st of month</td><td>Monthly billing, report generation</td></tr>
+    <tr><td><code>30 2 * * 0</code></td><td>2:30 AM Sundays</td><td>Weekly database maintenance</td></tr>
+    <tr><td><code>0 0 * * 0</code></td><td>Midnight every Sunday</td><td>Weekly backups</td></tr>
+  </tbody>
+</table>
+
+<h2>Production Gotchas</h2>
+<p><strong>Day-of-month AND day-of-week interaction.</strong> When both fields have specific values (not *), the job fires when EITHER condition matches — it's an OR, not an AND. <code>0 0 1 * 0</code> means midnight on the 1st of the month AND every Sunday. This surprises developers who expect AND semantics ("the first of the month only if it's a Sunday"). To get AND behavior, you need logic within the script itself: check the date inside your job and exit early if conditions aren't met.</p>
+<p><strong>Daylight Saving Time transitions.</strong> When clocks spring forward, jobs scheduled during the skipped hour (usually 2:00-3:00 AM) simply don't run that day — those times don't exist. When clocks fall back, the 1:00 AM hour happens twice, and jobs fire twice. For critical jobs, schedule outside the 1:00-3:00 AM danger zone, run on UTC to avoid DST entirely, or add idempotency checks so double execution doesn't cause problems. Most cron implementations handle DST differently — test your specific platform.</p>
+<p><strong>Server timezone assumptions.</strong> Cron uses the server's local timezone unless configured otherwise. A server provisioned in UTC-5 runs <code>0 9 * * *</code> at 9 AM Eastern, while an identical server in UTC runs it at 9 AM UTC (4 AM Eastern). Containerized environments may default to UTC. Always verify the timezone your cron daemon or scheduler uses. Cloud providers (AWS, GCP) typically use UTC for scheduled events.</p>
+
+<h2>Testing Cron Expressions</h2>
+<p>Never deploy a cron expression without verifying what it actually does. Use our <a href="/tools/cron-parser/">Cron Expression Parser</a> to see the next five execution times for any expression. This catches the "every minute instead of every hour" mistake and the "firing on weekends when I meant weekdays" mistake before they reach production. For complex scheduling logic, write a test that asserts the job fires at the expected times for a range of dates — including DST transition dates.</p><h2>Quick Reference</h2>
+<table>
+<thead><tr><th>Schedule</th><th>Expression</th></tr></thead>
+<tbody>
+<tr><td>Every 5 minutes</td><td><code>*/5 * * * *</code></td></tr>
+<tr><td>Hourly</td><td><code>0 * * * *</code></td></tr>
+<tr><td>Weekdays 9 AM</td><td><code>0 9 * * 1-5</code></td></tr>
+<tr><td>Midnight 1st</td><td><code>0 0 1 * *</code></td></tr>
+</tbody>
+</table>
+
+<h2>Testing Cron Before Deployment</h2>
+<p>Before deploying, verify your expression shows the expected execution times. Use our <a href="/tools/cron-parser/">Cron Expression Parser</a>. For production cron debugging, check execution logs — most cron daemons log to syslog. When migrating between platforms, verify field count: standard Unix uses 5 fields; Quartz (Java) uses 6 or 7. Never assume a cron expression from one platform works unchanged on another.</p>
+<h2>Cron in Modern Infrastructure</h2>
+<p>While traditional cron runs on a single server, modern infrastructure distributes scheduled jobs across clusters. Kubernetes CronJobs create Jobs on a schedule, with configurable concurrency policies (Forbid prevents overlap, Replace kills the old job, Allow runs them concurrently). Vercel Cron Jobs run serverless functions on a schedule, with a maximum duration of 10-900 seconds depending on your plan. GitHub Actions scheduled workflows use cron syntax in the on.schedule field, but they run with a 5-minute granularity minimum and may be delayed during high-load periods. Each platform has its own quirks — test your schedule on the actual platform before relying on it.</p>
+<p>Monitoring scheduled jobs requires different thinking than monitoring always-on services. A cron job that silently fails leaves no symptom except the work that did not get done — emails that were not sent, backups that were not created, reports that were not generated. Set up heartbeat monitoring: each successful job execution pings a monitoring endpoint. If the heartbeat stops, alert. This catches both "the job ran and failed" and "the job never ran at all" — two failure modes that cron exit codes do not distinguish.</p>
+</div>
+`
+---
+<GuideLayout title="Cron Expressions: A Complete Scheduling Guide for Developers | DevTools Hub" description="Master cron expression syntax. Covers five fields, four special characters, common patterns, DST edge cases, day-of-month vs day-of-week interaction, and testing before deployment." breadcrumb="Cron Expressions">
+  <Fragment slot="title">Cron Expressions:<br class="hidden sm:block" />A Complete Scheduling Guide</Fragment>
+  <Fragment slot="intro">Cron powers scheduled tasks across the entire tech stack. From the five-field syntax to DST pitfalls — everything you need to write schedules that fire exactly when expected, every time.</Fragment>
+  <Fragment set:html={content} />
+</GuideLayout>

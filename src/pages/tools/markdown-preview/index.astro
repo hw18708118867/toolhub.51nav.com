@@ -1,0 +1,52 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import { tools } from '../../../data/tools'
+const tool = tools.find(t => t.id === 'markdown-preview')!
+const steps = [
+  { name: 'Write Markdown', text: 'Type or paste your Markdown text in the left panel. Use standard Markdown syntax for headings, lists, links, code blocks, and formatting.' },
+  { name: 'Preview in Real-Time', text: 'The rendered HTML preview appears instantly in the right panel as you type. No page refresh needed.' },
+]
+const faq = [
+  { question: 'What is Markdown?', answer: 'Markdown is a lightweight markup language that uses plain text formatting syntax. It was created by John Gruber in 2004 to make writing for the web easier. Markdown is widely used for README files, documentation, blog posts, and forum comments.' },
+  { question: 'What Markdown features are supported?', answer: 'This tool supports standard Markdown: headings, bold/italic, links, images, lists, code blocks, blockquotes, tables, and horizontal rules. It uses a simple regex-based parser, so complex extensions like footnotes or task lists may not render perfectly.' },
+  { question: 'Can I use this for writing blog posts?', answer: 'Yes! Write your content in Markdown, preview it here, then copy the HTML output or paste the Markdown into your CMS. Many blogging platforms (Ghost, Jekyll, Hugo) support Markdown natively.' },
+]
+---
+<ToolLayout tool={tool} description="Free online Markdown previewer. Write Markdown and see the HTML preview in real-time. All processing happens locally in your browser." {steps} {faq}>
+  <div class="grid lg:grid-cols-2 gap-6">
+    <div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Markdown</span><button id="sampleBtn" class="btn btn-sm btn-secondary">Load Sample</button></div><textarea id="mdInput" class="code-input" placeholder="# Heading&#10;&#10;**bold** and *italic*&#10;&#10;- List item 1&#10;- List item 2&#10;&#10;[Link](https://example.com)" oninput="preview()"></textarea></div>
+    <div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Preview</span></div><div id="mdPreview" class="p-4 prose prose-sm max-w-none dark:prose-invert"><p class="text-gray-400">Start typing Markdown to see the preview...</p></div></div>
+  </div>
+  <section slot="examples" class="mb-10"><h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Markdown Quick Reference</h2><div class="overflow-x-auto"><table class="w-full text-left"><thead><tr class="border-b border-gray-200 dark:border-gray-800"><th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">Syntax</th><th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">Result</th></tr></thead><tbody class="text-sm text-gray-500 dark:text-gray-400"><tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4 font-mono"># Heading</td><td class="py-3 px-4">H1 heading</td></tr><tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4 font-mono">**bold**</td><td class="py-3 px-4"><strong>bold text</strong></td></tr><tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4 font-mono">[text](url)</td><td class="py-3 px-4">hyperlink</td></tr><tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4 font-mono">\`code\`</td><td class="py-3 px-4"><code>inline code</code></td></tr><tr><td class="py-3 px-4 font-mono">\`\`\`code block\`\`\`</td><td class="py-3 px-4">fenced code block</td></tr></tbody></table></div></section>
+  <script is:inline>
+    var mdInput = document.getElementById('mdInput'); var mdPreview = document.getElementById('mdPreview'); var sampleBtn = document.getElementById('sampleBtn');
+    function preview() { var md = mdInput.value; if (!md.trim()) { mdPreview.innerHTML = '<p class="text-gray-400">Start typing Markdown to see the preview...</p>'; return; }
+      var html = md.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+      html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+      html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+      html = html.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+      html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+      html = html.replace(/`{3}(\w*)\n?([\s\S]*?)`{3}/g, '<pre><code>$2</code></pre>');
+      html = html.replace(/`(.+?)`/g, '<code>$1</code>');
+      html = html.replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2">$1</a>');
+      html = html.replace(/^\- (.+)$/gm, '<li>$1</li>');
+      html = html.replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>');
+      html = html.replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>');
+      html = html.replace(/^---$/gm, '<hr>');
+      html = html.replace(/\n\n/g, '</p><p>');
+      html = '<p>' + html + '</p>';
+      mdPreview.innerHTML = html;
+    }
+    sampleBtn.addEventListener('click', function() { mdInput.value = '# Hello World\n\nThis is a **Markdown** previewer.\n\n- Feature 1\n- Feature 2\n\n> A blockquote\n\n`inline code`\n\n```\ncode block\n```'; preview(); });
+  </script>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+      <a href="/guides/text-processing-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">Text Processing for Developers</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Regex, case conversion, deduplication workflows.</p></div></div></a>
+      <a href="/guides/text-processing-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">Text Processing for Developers</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Regex, case conversion, deduplication workflows.</p></div></div></a>
+    </div>
+  </section>
+</ToolLayout>

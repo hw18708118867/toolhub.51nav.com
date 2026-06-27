@@ -1,0 +1,47 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+const content = `
+<div class="prose prose-gray max-w-none dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-strong:text-gray-900 dark:prose-strong:text-white prose-code:text-blue-600 dark:prose-code:text-blue-400 prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-pre:bg-gray-50 dark:prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-gray-800">
+
+<h2>When Two Data Formats Collide</h2>
+<p>CSV is the universal format of spreadsheets, databases, and data export tools. JSON is the universal format of APIs and web applications. Every developer eventually needs to bridge these worlds — an Excel export that needs to become an API payload, a database dump that needs to feed a charting library, a CSV from a business partner that needs to enter your JSON-based pipeline. The conversion seems straightforward — rows become objects, columns become keys — but the details make it trickier than an afternoon of <code>split(',')</code> calls can handle.</p>
+<p>The core difference: CSV is a two-dimensional table format with no type system and no nesting. JSON is a tree format with strings, numbers, booleans, null, objects, and arrays. Going from the simpler format (CSV) to the richer one (JSON) is lossless — you can always represent a table as an array of flat objects. Going the other way loses structure — nested objects and arrays need flattening. Understanding this asymmetry helps you decide which direction to convert and what to expect from the output.</p>
+
+<h2>CSV to JSON: The Basic Conversion</h2>
+<p>The first row of a well-formed CSV typically contains the column headers. Each subsequent row becomes a JSON object with those headers as property names. Values are strings by default — CSV carries no type information, so there's no way to distinguish the number 30 from the string "30" without additional context or post-processing.</p>
+<pre><code class="language-text">// CSV input
+name,age,city
+Alice,30,New York
+Bob,25,London
+
+// JSON output (all values are strings)
+[
+  {"name": "Alice", "age": "30", "city": "New York"},
+  {"name": "Bob", "age": "25", "city": "London"}
+]</code></pre>
+
+<h2>Real-World CSV Edge Cases</h2>
+<p><strong>Commas inside values.</strong> When a field itself contains the delimiter character, RFC 4180 specifies that the field must be wrapped in double quotes: <code>"Smith, John",30,"New York, NY"</code>. A naive <code>split(',')</code> breaks on every comma, splitting "Smith, John" into two separate fields. Many hand-rolled CSV parsers fail here. You discover the bug when someone with a comma in their name or address can't be imported.</p>
+<p><strong>Quotes inside quoted fields.</strong> Double quotes within a quoted field are escaped by doubling: <code>"She said ""hello"" to me"</code>. This is the CSV standard, but many CSV generators (including some versions of Excel in non-English locales) use different escaping conventions. Parsing user-supplied CSV means being robust to multiple quoting styles.</p>
+<p><strong>Line breaks inside fields.</strong> A quoted field can legitimately contain line breaks. This is valid per RFC 4180 but breaks any parser that assumes each line is a complete row. If your CSV has multi-line fields, a line-counting approach won't work.</p>
+<p><strong>Delimiter detection.</strong> Commas are the standard, but tabs (TSV files) and semicolons are common — especially in European locales where commas serve as decimal separators. A robust converter auto-detects the delimiter by checking which character appears most consistently across the first few rows.</p>
+<p><strong>BOM (Byte Order Mark).</strong> CSV files exported from Excel on Windows often start with a UTF-8 BOM (U+FEFF, three invisible bytes at the start of the file). It's invisible in most text editors but appears as garbage characters if not stripped before processing. Always check for and strip the BOM.</p>
+<p><strong>Empty and missing values.</strong> Two consecutive commas (<code>,,</code>) represent an empty field. A row with fewer fields than the header represents missing trailing fields. How should these map to JSON? Empty string for empty fields, null for missing trailing ones? There's no universal answer — it depends on what the downstream consumer expects.</p>
+<p>Our <a href="/tools/csv-to-json/">CSV to JSON converter</a> handles these edge cases. It auto-detects comma, tab, and semicolon delimiters, properly handles quoted fields with embedded commas and line breaks, and strips BOM characters. All processing happens in your browser.</p>
+
+<h2>JSON to CSV: The Reverse Conversion</h2>
+<p>Going from JSON to CSV works cleanly for an array of flat objects. Object keys become column headers, object values become row data, and the structure maps directly. Nested data needs flattening: <code>{"user": {"name": "Alice", "address": {"city": "NYC"}}}</code> can't fit into a 2D table without transformation. Common flattening strategies: dot-notation keys (user.name, user.address.city), JSON-stringify nested values (producing embedded JSON strings in CSV cells), or simply skip nested fields. Each has trade-offs depending on whether the CSV will be read by humans (dot notation is readable) or machines (JSON strings preserve structure for re-parsing).</p>
+
+<h2>Type Handling Strategy</h2>
+<p>CSV has no type system — every value is a string. JSON has strings, numbers, booleans, and null. The conversion question: should "30" become the string "30" or the number 30? Should "true" become a boolean? Most converters preserve everything as strings to avoid data loss, deferring type coercion to the application layer. If your CSV has a known schema (column 1 is always an integer, column 2 is always a date in ISO format), you can apply type conversion in a post-processing step. If you don't know the schema — say, you're building a generic conversion tool — keeping everything as strings is the safe choice.</p>
+<h2>Building Robust CSV Import Pipelines</h2>
+<p>A production CSV import pipeline needs more than a converter. It needs validation (are required columns present? are values in expected formats?), error handling (what happens when row 5,000 is malformed — reject the whole file or skip the bad row?), and logging (which rows were imported successfully, which failed, and why?). Most import failures in production are not conversion errors — they are data quality errors in the source CSV. A phone number field containing "N/A", a date field with inconsistent formatting, a required email field left blank. Build validation into your pipeline from the start.</p>
+<p>For large CSV files, streaming parsers avoid loading the entire file into memory. Node.js has csv-parse with a streaming API. Python has csv.reader which yields rows one at a time. Streaming is essential for files over ~100MB — parsing a 500MB CSV into memory can crash your process. If your users are uploading CSVs of unknown size, always use a streaming parser with a configurable maximum file size.</p><h2>Choosing Between CSV and JSON for Your Project</h2><p>CSV excels when your data is tabular, your users work with spreadsheets, and human readability in text editors matters. JSON excels when your data has hierarchy, you are communicating between programs via APIs, and type fidelity matters. The right choice depends on your data shape and your consumers. A common anti-pattern: forcing deeply nested JSON into a CSV by flattening keys. This works technically but produces CSVs with dozens of columns that are hard to work with in Excel. If your data is hierarchical, keep it in JSON and provide a CSV export that summarizes or extracts a subset.</p><p>For data exchange between systems you control, consider formats beyond CSV and JSON. Parquet and Avro provide compression and schema evolution. Protocol Buffers and MessagePack provide compact binary serialization. CSV and JSON are the simplest, most universal options — they are human-readable and require no tooling beyond a text editor — but they are not always the most efficient.</p>
+</div>
+`
+---
+<GuideLayout title="CSV to JSON: Data Format Conversion Demystified | DevTools Hub" description="A complete guide to CSV-JSON conversion. Covers the basic conversion, real-world CSV edge cases, delimiter detection, BOM handling, JSON-to-CSV flattening, and type handling strategy." breadcrumb="CSV & JSON">
+  <Fragment slot="title">CSV to JSON:<br class="hidden sm:block" />Complete Conversion Guide</Fragment>
+  <Fragment slot="intro">Converting between spreadsheets and APIs is trickier than it looks. From RFC 4180 quoting rules to BOM characters to type handling — everything you need to convert data without corruption.</Fragment>
+  <Fragment set:html={content} />
+</GuideLayout>

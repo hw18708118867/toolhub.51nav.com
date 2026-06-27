@@ -1,0 +1,82 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+const content = `
+<div class="prose prose-gray max-w-none dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-strong:text-gray-900 dark:prose-strong:text-white prose-code:text-blue-600 dark:prose-code:text-blue-400 prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-pre:bg-gray-50 dark:prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-gray-800">
+
+<h2>Every URL Has the Same Anatomy</h2>
+<p>Any URL, from the simplest to the most complex, decomposes into exactly the same structural components. Understanding each one — its name, its purpose, and how it interacts with the others — makes you better at debugging redirects, designing clean APIs, sanitizing user input, and explaining to colleagues why their URL "doesn't work."</p>
+<pre><code class="language-text">https://user:pass@example.com:8080/path/to/page?q=hello&lang=en#section
+\____/  \______/ \_________/ \__/ \___________/ \______________/ \_____/
+  |        |         |        |         |              |            |
+protocol  auth     hostname  port    pathname       search        hash</code></pre>
+
+<h2>Component by Component</h2>
+<h3>Protocol (Scheme)</h3>
+<p>The scheme tells the browser which protocol to use when connecting. <code>https</code> means HTTP over TLS — the connection is encrypted, and the server's identity is verified via its SSL certificate. <code>http</code> is unencrypted HTTP — the entire conversation is in plaintext, visible to anyone on the network path. <code>ftp</code> is File Transfer Protocol. <code>ws</code> and <code>wss</code> are WebSocket (unencrypted and encrypted). <code>mailto</code> opens the user's email client. <code>tel</code> opens the phone dialer. The scheme determines the default port: 443 for HTTPS, 80 for HTTP, 21 for FTP. If no port is specified in the URL, the browser uses the scheme's default.</p>
+
+<h3>Hostname</h3>
+<p>The domain name or IP address identifying the server. This is what DNS resolves before any connection happens. Can be a root domain (example.com), a subdomain (api.example.com, mail.example.com, blog.example.com), or a raw IP address (192.168.1.1, [::1] for IPv6). Each subdomain is independent from the DNS perspective — api.example.com can point to a completely different server than www.example.com, with different A records, different hosting providers, and even different SSL certificates.</p>
+
+<h3>Port</h3>
+<p>The network port on the server, ranging from 0 to 65535. Usually omitted in URLs because the scheme implies the default (443 for HTTPS, 80 for HTTP). Explicit ports appear in development (localhost:3000, localhost:8080, localhost:5173 for Vite) and when a production service runs on a non-standard port. Only one process can bind to a given port on a given IP address at a time.</p>
+
+<h3>Pathname</h3>
+<p>The resource path, structured like a filesystem hierarchy but not necessarily corresponding to actual files on disk. <code>/blog/2024/hello-world</code> is a common pattern. Modern web frameworks route pathnames to handler functions based on pattern matching, not filesystem layout. The path is case-sensitive on Linux/Unix servers (Apache, Nginx) and case-insensitive on Windows servers (IIS, old ASP.NET). This inconsistency causes subtle bugs: a link to <code>/About</code> works on the developer's Windows machine but returns 404 when deployed to a Linux server.</p>
+
+<h3>Search (Query String)</h3>
+<p>Key-value pairs after <code>?</code>, separated by <code>&</code>. Used to pass parameters to the server: <code>?page=2&limit=20&sort=desc</code>. Each value should be URL-encoded so special characters (<code>&</code>, <code>=</code>, <code>?</code>, <code>#</code>, spaces) don't break the URL structure. The order of query parameters is not guaranteed to be preserved by all servers or proxies. Don't rely on parameter ordering. For encoding individual parameter values, use <code>encodeURIComponent</code> — it encodes everything except alphanumeric characters and <code>-_.!~*'()</code>. For encoding an entire URL including query parameters, use <code>encodeURI</code> but be aware it leaves <code>&</code> and <code>=</code> unencoded because they're structural within query strings.</p>
+
+<h3>Hash (Fragment)</h3>
+<p>Everything after the <code>#</code>. The hash is special: the browser never sends it to the server. It's used exclusively for client-side purposes — scrolling to an element with a matching <code>id</code> attribute, or routing in single-page applications where JavaScript reads the hash and renders the appropriate view. Because the server never sees hash changes, they don't trigger page reloads. This makes hashes ideal for preserving client-side application state in the URL without the overhead of server requests. It also means you can't use hashes for server-side routing or analytics without JavaScript to capture and report them separately.</p>
+
+<h2>Use the URL API, Not Regex</h2>
+<p>JavaScript's built-in <code>URL</code> constructor provides a reliable parser that handles every edge case in the URL specification — IPv6 addresses, internationalized domain names (IDN), obscure port numbers, Unicode characters in paths, and empty components. A hand-rolled regex misses one or more of these.</p>
+<pre><code class="language-javascript">const url = new URL('https://example.com:8080/path?q=hello&lang=en#section');
+url.protocol;     // 'https:'
+url.hostname;     // 'example.com'
+url.port;         // '8080'
+url.pathname;     // '/path'
+url.search;       // '?q=hello&lang=en'
+url.hash;         // '#section'
+url.origin;       // 'https://example.com:8080'
+url.href;         // The full URL string
+
+// Query parameter access — no manual parsing needed
+url.searchParams.get('q');        // 'hello'
+url.searchParams.get('lang');     // 'en'
+url.searchParams.has('missing');  // false
+url.searchParams.getAll('q');     // ['hello'] — for repeated params
+url.searchParams.set('page', '2');
+url.searchParams.delete('lang');
+url.toString(); // URL with modifications applied</code></pre>
+
+<h2>Production Pitfalls</h2>
+<p><strong>Double slashes.</strong> <code>https://example.com//path</code> — most web servers normalize consecutive slashes in the path, but not all. Apache and Nginx treat multiple slashes as equivalent to a single slash by default. Some API frameworks treat <code>//path</code> and <code>/path</code> as distinct routes. Don't rely on normalization — avoid double slashes entirely.</p>
+<p><strong>Trailing slashes.</strong> <code>/about</code> and <code>/about/</code> are different URLs. Search engines index them as separate pages, splitting your PageRank. Pick one convention and redirect the other with a 301. Most static sites and CMS platforms let you configure this globally.</p>
+<p><strong>Unencoded characters.</strong> Spaces in URLs must be encoded as <code>%20</code>. Browsers may auto-encode spaces typed in the address bar, but programmatic HTTP clients won't. If you're constructing URLs in code, always encode user-supplied components. The <code>URL</code> constructor handles encoding for the main URL components; use <code>encodeURIComponent</code> for individual parameter values.</p>
+<p>Debug your URLs with our <a href="/tools/url-parser/">URL Parser</a>. Paste any URL and see every component broken down, plus individual query parameters decoded and displayed.</p><h2>Quick Reference</h2>
+<table>
+<thead><tr><th>Component</th><th>Example</th><th>Required</th></tr></thead>
+<tbody>
+<tr><td>Scheme</td><td>https://</td><td>Yes</td></tr>
+<tr><td>Hostname</td><td>example.com</td><td>Yes</td></tr>
+<tr><td>Port</td><td>:8080</td><td>No</td></tr>
+<tr><td>Pathname</td><td>/path</td><td>No</td></tr>
+<tr><td>Search</td><td>?q=hello</td><td>No</td></tr>
+<tr><td>Hash</td><td>#section</td><td>No</td></tr>
+</tbody>
+</table>
+
+<h2>URL Design for REST APIs</h2>
+<p>Use plural nouns for collections (/users, not /user). Nested paths for relationships (/users/123/orders). Query parameters for filtering and pagination. Avoid verbs — the HTTP method already describes the action. Avoid deeply nested resources beyond two levels. A well-designed URL structure makes an API intuitive to explore and easy to document.</p>
+<h2>URL Design for Single-Page Applications</h2>
+<p>SPAs use client-side routing, which creates URL design challenges that server-rendered apps do not face. The browser never requests the server for a new page when the user navigates within the SPA — JavaScript intercepts the click, updates the URL via the History API, and renders the new view. But if the user refreshes the page or shares the URL, the browser makes a server request. The server must respond with the SPA shell (index.html) for every valid SPA route, not a 404. This is typically configured as a catch-all route or a rewrite rule in Nginx/Apache.</p>
+<p>Hash-based routing (example.com/#/users/123) works without server configuration because the hash is never sent to the server. History-based routing (example.com/users/123) produces cleaner URLs but requires the server to handle all routes. Modern SPAs overwhelmingly use history-based routing with a catch-all server rule. If you see #! or #/ in URLs today, it is usually a legacy SPA from before the History API was widely supported.</p>
+</div>
+`
+---
+<GuideLayout title="URL Structure Demystified: Protocol, Host, Path & Query | DevTools Hub" description="A complete guide to URL anatomy. Covers all seven components with examples, the JavaScript URL API, query parameter handling, URL encoding rules, and common production pitfalls." breadcrumb="URL Structure">
+  <Fragment slot="title">URL Structure Demystified:<br class="hidden sm:block" />Every Component Explained</Fragment>
+  <Fragment slot="intro">Every URL breaks into the same seven components. Learn what each one does, how to parse URLs reliably with the URL API, and the pitfalls that cause 404s, redirect loops, and duplicate content.</Fragment>
+  <Fragment set:html={content} />
+</GuideLayout>

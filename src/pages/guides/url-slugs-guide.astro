@@ -1,0 +1,60 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+const content = `
+<div class="prose prose-gray max-w-none dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-strong:text-gray-900 dark:prose-strong:text-white prose-code:text-blue-600 dark:prose-code:text-blue-400 prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-pre:bg-gray-50 dark:prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-gray-800">
+
+<h2>What a URL Slug Does</h2>
+<p>A slug is the human-readable segment of a URL that identifies a specific resource. In <code>/blog/how-to-build-a-rest-api</code>, the slug is <code>how-to-build-a-rest-api</code>. It's derived from the page title — "How to Build a REST API" — by converting to lowercase, replacing spaces with hyphens, and stripping special characters. A slug serves two audiences. For users, it previews what the page is about before they click — a clean, descriptive URL inspires more trust and click-throughs than <code>/post?id=12345</code>. For search engines, each word in the slug is an additional relevance signal that reinforces the page's title tag and H1 heading.</p>
+<p>Auto-generated numeric IDs (<code>/post/12345</code>) tell neither humans nor search engines anything about the content. They're simpler to implement — every CMS supports them out of the box — but they miss the opportunity to add keywords to the URL. A slug like <code>understanding-dns-records</code> contains three keywords that tell Google (and users) exactly what the page covers before anyone reads a word of the content.</p>
+
+<h2>Rules for Good Slugs</h2>
+<ul>
+  <li><strong>Lowercase only.</strong> URLs are case-sensitive on Linux/Unix servers. <code>/About</code> and <code>/about</code> can be different pages — or one can return 404 while the other works. This creates duplicate content problems for search engines and broken links for users. Force lowercase everywhere.</li>
+  <li><strong>Hyphens, not underscores.</strong> Google's algorithms treat hyphens as word separators and underscores as word joiners. This was confirmed by Matt Cutts (former head of Google's webspam team) and verified repeatedly since. <code>how-to-build</code> is indexed as three separate words: "how", "to", "build". <code>how_to_build</code> is indexed as one compound word: "how_to_build". If you want your URL keywords to match search queries, use hyphens.</li>
+  <li><strong>Remove stop words.</strong> Articles (a, an, the), conjunctions (and, or, but), and prepositions (in, on, at, by, for) add length without meaning in URLs. "How to Build a REST API" should become <code>build-rest-api</code>, not <code>how-to-build-a-rest-api</code>. Exception: keep stop words when removing them changes meaning — "to-be-or-not-to-be" is a specific reference that would lose meaning if reduced to "be-or-not-be".</li>
+  <li><strong>Keep it short.</strong> Aim for 3-5 words, under 60 characters. Google truncates long URLs in search results at around 60-70 characters. Longer URLs are harder to share, harder to type, and more likely to be truncated in analytics reports or social media embeds. Each additional word dilutes the keyword density and adds visual noise.</li>
+  <li><strong>No special characters.</strong> Strip everything except lowercase letters, numbers, and hyphens. Accented characters should be transliterated: café → cafe, naïve → naive, façade → facade. Unicode characters in URLs get percent-encoded, turning a readable slug into an unreadable string of <code>%C3%A9</code> sequences. Always output ASCII.</li>
+  <li><strong>Avoid dates.</strong> <code>/blog/2024-01-15/how-to-build-an-api</code> signals to users (and search engines) that the content is from January 2024. Two years later, the information might still be accurate, but the URL makes it look outdated. Use <code>/blog/how-to-build-an-api</code> for evergreen content. If dates are needed for URL uniqueness, put them in a separate path segment or use your CMS's date-based archive without putting dates in individual post slugs.</li>
+</ul>
+
+<h2>Slug Generation: Manual vs. Automatic</h2>
+<p>Most CMS platforms auto-generate slugs from the title. WordPress, for example, takes "How to Build a REST API" and produces <code>how-to-build-a-rest-api</code>. This works, but it's unoptimized — the auto-generated slug includes stop words ("how", "to", "a") that add length without keyword value. Always review and edit auto-generated slugs before publishing. Strip the stop words, check the length, and make sure the remaining keywords match what users would actually search for.</p>
+<p>Our <a href="/tools/slug-generator/">Slug Generator</a> produces clean slugs from any input text. It handles lowercase conversion, hyphen replacement, stop word removal, Unicode transliteration, and length limits — the things a naive <code>.toLowerCase().replace(/ /g, '-')</code> misses.</p>
+
+<h2>Slugs and SEO: What Actually Matters</h2>
+<p>Keywords in the URL are a minor ranking factor compared to the title tag (major), H1 heading (major), body content (major), and backlinks (major). Changing your slugs to include keywords won't move you from page three to page one. But clean, readable URLs contribute to the overall relevance signal, and they affect click-through rates from search results — a ranking factor Google does track. A user choosing between two search results is more likely to click <code>/blog/how-to-build-a-rest-api</code> than <code>/blog/12345</code> or <code>/blog/how_to_build_a_rest_api</code>.</p>
+<p>When you change a slug, always set up a 301 (permanent) redirect from the old URL to the new one. Without it, anyone who bookmarked or linked to the old URL hits a 404, and Google loses the accumulated PageRank for that page. If you're migrating a site with hundreds or thousands of pages, generate redirect rules programmatically — a URL mapping spreadsheet plus a script to produce server config or .htaccess rules. Test the redirects before deploying. A single misconfigured redirect that creates a loop or points to the wrong page will cause more SEO damage than keeping the old slugs.</p>
+
+<h2>Slug Patterns by Content Type</h2>
+<table>
+  <thead><tr><th>Content Type</th><th>URL Pattern</th><th>Example</th></tr></thead>
+  <tbody>
+    <tr><td>Blog post</td><td><code>/blog/{slug}</code></td><td><code>/blog/dns-records-explained</code></td></tr>
+    <tr><td>Product page</td><td><code>/products/{slug}</code></td><td><code>/products/wireless-headphones</code></td></tr>
+    <tr><td>Category</td><td><code>/{slug}</code> or <code>/category/{slug}</code></td><td><code>/audio-equipment</code></td></tr>
+    <tr><td>Documentation</td><td><code>/docs/{section}/{slug}</code></td><td><code>/docs/api/authentication</code></td></tr>
+  </tbody>
+</table>
+<p>Pick a URL structure and commit to it. Changing URL patterns later — moving from <code>/blog/{slug}</code> to <code>/articles/{slug}</code> — requires 301 redirects for every affected URL. For a site with 500 blog posts, that's 500 redirects. Consistent patterns also make your site easier to crawl: Googlebot can discover new pages by incrementing known URL patterns.</p><h2>Quick Reference</h2>
+<table>
+<thead><tr><th>Rule</th><th>Do</th><th>Dont</th></tr></thead>
+<tbody>
+<tr><td>Case</td><td>my-page</td><td>My-Page</td></tr>
+<tr><td>Separator</td><td>my-page</td><td>my_page</td></tr>
+<tr><td>Special chars</td><td>cafe</td><td>caf%C3%A9</td></tr>
+</tbody>
+</table>
+
+<h2>Handling Slug Conflicts</h2>
+<p>When two pages would share the same slug, you need disambiguation. Common approaches: numeric suffixes (my-post-2), date prefixes (2024-01-my-post), or category segments (tech/my-post). WordPress uses numeric suffixes. Apply your strategy consistently, and check for conflicts before publishing. A duplicate slug that silently overwrites an existing page is a content management bug that can go unnoticed for months.</p>
+<h2>Migrating URL Structures</h2>
+<p>Changing your URL structure — from /blog/2024/01/post-title to /blog/post-title, for example — requires planning. Export all current URLs (from your sitemap, CMS, or server logs). For each old URL, determine the new URL. Generate 301 redirects for every mapping. Test the redirects: both that they redirect to the correct destination and that they do not create redirect chains (A → B → C). Redirect chains slow page loads and can cause search engines to stop following the chain. Each redirect should point directly to the final destination.</p>
+<p>After deploying redirects, monitor your search console for 404 errors. A sitemap update tells search engines about your new URLs; the 301 redirects tell them where the old ones went. Both are needed. Expect a temporary dip in search traffic during the transition as Google reindexes your pages. Traffic typically recovers within 2-4 weeks if the redirects are correct. If traffic does not recover, check for redirects pointing to the wrong destinations — a common mistake when generating redirect rules programmatically.</p>
+</div>
+`
+---
+<GuideLayout title="URL Slugs: SEO-Friendly Naming Best Practices | DevTools Hub" description="A complete guide to URL slugs. Covers hyphen vs underscore, stop word removal, length limits, auto-generated vs manual slugs, 301 redirects, and URL structure patterns for SEO." breadcrumb="URL Slugs">
+  <Fragment slot="title">URL Slugs: SEO-Friendly<br class="hidden sm:block" />Naming Best Practices</Fragment>
+  <Fragment slot="intro">The words in your URLs affect click-through rates and search rankings. From hyphens-vs-underscores to 301 redirects — everything you need to create clean, effective URL slugs.</Fragment>
+  <Fragment set:html={content} />
+</GuideLayout>

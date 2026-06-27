@@ -1,0 +1,65 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'regex-tester')!
+
+const steps = [
+  { name: 'Enter Your Regex Pattern', text: 'Type your regular expression pattern in the pattern field. Use the flags (g, i, m) to control global matching, case-insensitivity, and multiline mode.' },
+  { name: 'Enter Test String', text: 'Paste or type the text you want to test against in the test string field. Click "Sample" to load an example.' },
+  { name: 'View Matches', text: 'Matches are highlighted in real-time as you type. The match count is displayed above the output. No match found? Check your pattern and flags.' },
+]
+
+const faq = [
+  { question: 'What is a regular expression?', answer: 'A regular expression (regex) is a sequence of characters that defines a search pattern. It\'s used for pattern matching, string searching, and text manipulation. Regex is supported in virtually all programming languages and is a powerful tool for text processing.' },
+  { question: 'What do the flags g, i, and m mean?', answer: 'g (global) finds all matches instead of stopping at the first one. i (case-insensitive) ignores letter case when matching. m (multiline) makes ^ and $ match the start/end of each line instead of the whole string.' },
+  { question: 'What are common regex patterns?', answer: '\\d matches digits, \\w matches word characters, \\s matches whitespace, . matches any character, * means zero or more, + means one or more, ? means optional, [] defines a character set, () creates a capture group, and | means OR.' },
+  { question: 'Why is my regex not matching?', answer: 'Common issues include: forgetting to escape special characters (like . or +), not using the correct flags, or the pattern not matching the input format. Try testing with simpler patterns first, then build up complexity gradually.' },
+]
+
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free online regex tester. Test and debug regular expressions in real-time. Highlight matches, count results, and test with sample data. All processing is local and private." {steps} {faq}
+>
+  <div class="code-panel mb-6"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Regular Expression</span></div><div class="p-4 bg-white dark:bg-gray-900 flex items-center gap-3"><span class="text-gray-400 text-lg font-mono">/</span><input type="text" id="rePattern" class="form-input flex-1 bg-gray-50 border border-gray-200 text-gray-900 rounded-lg px-4 py-2 font-mono dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100" placeholder="Enter pattern..."><span class="text-gray-400 text-lg font-mono">/</span><label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="reG" checked class="w-4 h-4 rounded"><span class="font-mono text-gray-600 dark:text-gray-400">g</span></label><label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="reI" class="w-4 h-4 rounded"><span class="font-mono text-gray-600 dark:text-gray-400">i</span></label><label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="reM" class="w-4 h-4 rounded"><span class="font-mono text-gray-600 dark:text-gray-400">m</span></label></div></div>
+  <div class="code-panel mb-6"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Test String</span><button id="sampleBtn" class="btn btn-sm btn-secondary">Sample</button></div><textarea id="reInput" class="code-input" placeholder="Enter text to test..."></textarea></div>
+  <div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Matches</span><span id="reCount" class="text-gray-500 dark:text-gray-400 text-sm"></span></div><pre id="reOutput" class="code-output p-4">Enter regex and test string...</pre></div>
+
+  <section slot="examples" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Common Regex Patterns</h2>
+    <div class="overflow-x-auto"><table class="w-full text-left"><thead><tr class="border-b border-gray-200 dark:border-gray-800"><th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">Pattern</th><th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">Matches</th><th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">Example</th></tr></thead><tbody class="text-gray-500 dark:text-gray-400 font-mono text-sm"><tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">\\S+@\\S+\\.\\S+</td><td class="py-3 px-4">Email addresses</td><td class="py-3 px-4">hello@example.com</td></tr><tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">\\b\\d&#123;&#125;[-.]?\\d&#123;&#125;[-.]?\\d&#123;&#125;\\b</td><td class="py-3 px-4">Phone numbers</td><td class="py-3 px-4">555-123-4567</td></tr><tr><td class="py-3 px-4">https?://[^\\s]+</td><td class="py-3 px-4">URLs</td><td class="py-3 px-4">https://example.com</td></tr></tbody></table></div>
+  </section>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Regex Quick Reference</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">Regular expressions are a powerful tool for text processing. Here are the most commonly used patterns:</p>
+      <h3 class="text-lg font-semibold text-gray-900 mt-6 mb-3 dark:text-white">Character Classes</h3>
+      <ul class="list-disc list-inside space-y-2 text-gray-500 dark:text-gray-400">
+        <li><code>\\d</code> — any digit (0-9)</li>
+        <li><code>\\w</code> — any word character (a-z, A-Z, 0-9, _)</li>
+        <li><code>\\s</code> — any whitespace</li>
+        <li><code>.</code> — any character except newline</li>
+        <li><code>[abc]</code> — any character in the set</li>
+      </ul>
+    </div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+      <a href="/guides/text-processing-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">Text Processing for Developers</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Regex, case conversion, deduplication workflows.</p></div></div></a>
+      <a href="/guides/text-processing-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">Text Processing for Developers</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Regex, case conversion, deduplication workflows.</p></div></div></a>
+    </div>
+  </section>
+
+  <script>
+    const patternInput = document.getElementById('rePattern'); const testInput = document.getElementById('reInput'); const reOutput = document.getElementById('reOutput')!; const reCount = document.getElementById('reCount')!; const reG = document.getElementById('reG'); const reI = document.getElementById('reI'); const reM = document.getElementById('reM'); const sampleBtn = document.getElementById('sampleBtn')!
+    function escapeHtml(s: string) { const div = document.createElement('div'); div.textContent = s; return div.innerHTML }
+    function testRegex() { const pattern = patternInput.value; const input = testInput.value; if (!pattern || !input) { reOutput.innerHTML = 'Enter regex and test string...'; reCount.textContent = ''; return }; try { const flags: string[] = []; if (reG.checked) flags.push('g'); if (reI.checked) flags.push('i'); if (reM.checked) flags.push('m'); const regex = new RegExp(pattern, flags.join('')); const matches: Array<{ text: string; index: number }> = []; let match: RegExpExecArray | null; if (flags.includes('g')) { while ((match = regex.exec(input)) !== null) { matches.push({ text: match[0], index: match.index }) } } else { match = regex.exec(input); if (match) matches.push({ text: match[0], index: match.index }) }; if (matches.length > 0) { let html = escapeHtml(input); let offset = 0; matches.forEach(m => { const before = html.substring(0, m.index + offset); const after = html.substring(m.index + m.text.length + offset); html = before + `<mark style="background: #3b82f6; color: white; padding: 2px 4px; border-radius: 4px;">${escapeHtml(m.text)}</mark>` + after; offset += 44 }); reOutput.innerHTML = html; reCount.textContent = `${matches.length} match${matches.length > 1 ? 'es' : ''}` } else { reOutput.innerHTML = escapeHtml(input); reCount.textContent = '0 matches' } } catch (e) { reOutput.innerHTML = '<span class="text-red-400">Error: ' + escapeHtml((e as Error).message) + '</span>'; reCount.textContent = '' } }
+    patternInput.addEventListener('input', testRegex); testInput.addEventListener('input', testRegex); reG.addEventListener('input', testRegex); reI.addEventListener('input', testRegex); reM.addEventListener('input', testRegex)
+    sampleBtn.addEventListener('click', () => { testInput.value = 'Contact hello@example.com or support@test.org'; patternInput.value = '\\S+@\\S+\\.\\S+'; testRegex() })
+  </script>
+</ToolLayout>

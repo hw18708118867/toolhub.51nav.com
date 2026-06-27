@@ -1,0 +1,54 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+const content = `
+<div class="prose prose-gray max-w-none dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-strong:text-gray-900 dark:prose-strong:text-white prose-code:text-blue-600 dark:prose-code:text-blue-400 prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-pre:bg-gray-50 dark:prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-gray-800">
+
+<h2>How QR Codes Encode Data</h2>
+<p>A QR code is a two-dimensional matrix barcode — a grid of black and white squares called modules that encodes data both horizontally and vertically. Unlike the one-dimensional barcodes on retail packaging that store a dozen digits in a single row of varying-width bars, QR codes pack information into a square, giving them far higher capacity. The largest QR code version (version 40, 177×177 modules) can hold up to 4,296 alphanumeric characters or 7,089 numeric digits.</p>
+<p>Denso Wave, a Toyota subsidiary, invented QR codes in 1994 to track vehicles and components through manufacturing. The name stands for Quick Response — the codes were designed to be decoded at high speed by industrial cameras on a production line. Crucially, Denso Wave chose not to exercise its patent rights on the QR code technology. This decision — releasing it to the public domain — is why QR codes are ubiquitous today. No licensing fees, no royalties, no permission needed. Anyone can implement the standard.</p>
+
+<h2>The Anatomy of a QR Code</h2>
+<p>Every QR code contains several fixed structural elements that a scanner uses to locate and interpret it, surrounding the actual data modules. The three large squares in the corners (and sometimes a fourth, smaller one) are position detection patterns. They tell the scanner where the code is, its orientation, and its size — regardless of rotation or perspective. The alternating black-and-white modules along the edges between them are timing patterns that establish the module grid spacing. The smaller squares scattered through the interior are alignment patterns that help the scanner correct for distortion when the code is printed on a curved surface or viewed at an oblique angle. The area around these structural elements is where your actual data lives, encoded according to the QR code specification.</p>
+
+<h2>Error Correction: Why QR Codes Still Work When Damaged</h2>
+<p>QR codes use Reed-Solomon error correction — the same algorithm that keeps your CDs playable with minor scratches and your satellite TV working through atmospheric interference. The encoder adds redundant data alongside your content. When parts of the code are obscured, smudged, or physically damaged, the decoder uses this redundancy to reconstruct the original information mathematically.</p>
+<table>
+  <thead><tr><th>Level</th><th>Recovery</th><th>When to Use</th></tr></thead>
+  <tbody>
+    <tr><td>L (Low)</td><td>~7%</td><td>Clean digital display, controlled lighting</td></tr>
+    <tr><td>M (Medium)</td><td>~15%</td><td>General purpose — most generators default here</td></tr>
+    <tr><td>Q (Quartile)</td><td>~25%</td><td>Printed materials, outdoor signage</td></tr>
+    <tr><td>H (High)</td><td>~30%</td><td>Logo overlaid, harsh environments, industrial use</td></tr>
+  </tbody>
+</table>
+<p>Higher correction levels mean more redundant codewords and a physically denser code with more modules. The code must be larger to maintain the same module size, or the modules must be smaller (harder to scan from a distance). If you're overlaying a logo on your QR code — which obscures some modules — use level H and ensure the logo covers no more than 30% of the code area. If the code will only be displayed on a clean digital screen with controlled lighting, level L or M is sufficient and produces a simpler, easier-to-scan code.</p>
+
+<h2>What QR Codes Can Encode</h2>
+<p>QR codes support multiple data formats, each with a specific encoding scheme that scanners recognize and handle appropriately:</p>
+<ul>
+  <li><strong>Website URLs.</strong> The most common use case. Simply encode the URL — scanning opens it in the default browser. Always use HTTPS URLs. Some modern scanners flag or warn about HTTP URLs.</li>
+  <li><strong>Wi-Fi credentials.</strong> Format: <code>WIFI:S:&lt;SSID&gt;;T:&lt;WPA|WEP|nopass&gt;;P:&lt;password&gt;;;</code>. Scanning connects to the network without typing the password. Print it on a card for your Airbnb, office lobby, or conference room. The SSID and password are stored in plaintext in the QR code, so anyone who can see the code can extract the credentials.</li>
+  <li><strong>Contact information (vCard/MeCard).</strong> Encodes name, phone, email, organization, and address in vCard format. Scanning adds the contact directly to the phone's address book. Widely used on business cards and conference badges.</li>
+  <li><strong>Email.</strong> <code>mailto:hello@example.com?subject=Hello&body=...</code> opens the email client with the address, subject, and body pre-filled.</li>
+  <li><strong>Phone.</strong> <code>tel:+15551234567</code> opens the phone dialer with the number pre-entered. Useful on business cards and service signage.</li>
+  <li><strong>SMS.</strong> <code>SMSTO:+15551234567:Your message here</code> opens the messaging app with the recipient and text pre-filled.</li>
+  <li><strong>Plain text.</strong> Any text up to the character limit. Used for coupon codes, serial numbers, event ticket identifiers, and boarding passes.</li>
+  <li><strong>Geolocation.</strong> <code>geo:40.7128,-74.0060</code> opens the maps app centered on the specified coordinates.</li>
+</ul>
+
+<h2>Design and Scanning Considerations</h2>
+<p><strong>Quiet zone.</strong> Every QR code requires a white border (the quiet zone) of at least four modules wide on all four sides. This border separates the code from its surroundings so the scanner can distinguish code modules from background elements. Many designers trim this border in graphics software, not realizing the code becomes unscannable. If you need a borderless look, make the quiet zone the same color as the background behind the code — the scanner sees contrast between code modules and quiet zone, regardless of what color the quiet zone is.</p>
+<p><strong>Size and distance.</strong> The ratio is roughly 10:1 — scanning distance divided by 10 equals the minimum code width. A phone scanning from 30 cm away needs a code at least 3 cm wide. A billboard scanned from 3 meters needs a code at least 30 cm. For digital screens, 200×200 pixels or larger scans reliably on modern phones. Don't go below 128×128 pixels.</p>
+<p><strong>Color and contrast.</strong> The scanner needs adequate contrast between dark and light modules — it's reading luminance differences, not color. Black on white is the safest choice. Dark navy on white works well. Light gray on white fails — the contrast is too low. Dark modules should be at least 50% darker than light modules. If using brand colors, test with a real phone under typical lighting conditions before printing. What looks fine on a calibrated design monitor in a bright office may be unreadable in a dimly lit restaurant.</p>
+<p>Generate your own with our <a href="/tools/qr-code/">QR Code Generator</a>. Customize the size and color, then download as a PNG. Everything runs in your browser.</p>
+<h2>QR Codes in Marketing and Product Design</h2>
+<p>QR codes on printed materials bridge physical and digital experiences. A restaurant menu with a QR code linking to an online ordering page. A conference badge with a QR code encoding the attendees contact info. A product package with a QR code linking to setup instructions. The key design decision: does the QR code stand alone or integrate into the visual design? Standalone codes (black on white, prominent, obvious) scan the most reliably. Integrated codes (styled with brand colors, overlaid with logos, embedded in images) look better but require higher error correction levels and more testing.</p>
+<p>Always test QR codes in their final context. A code that scans perfectly on your design monitor may fail when printed on a curved coffee cup, displayed on a TV screen at a trade show booth, or viewed through a scratched phone camera lens. Test with multiple phone models (iOS and Android, old and new) under the actual lighting conditions where the code will be scanned. One unreadable QR code at a conference or on a product package undermines the entire purpose of including it.</p>
+</div>
+`
+---
+<GuideLayout title="QR Codes: How They Work, Encoding & Best Practices | DevTools Hub" description="A complete guide to QR codes. Covers the encoding, error correction, structural anatomy, data types beyond URLs, and design rules for size, contrast, and quiet zones." breadcrumb="QR Codes">
+  <Fragment slot="title">QR Codes: How They Work<br class="hidden sm:block" />& Best Practices</Fragment>
+  <Fragment slot="intro">QR codes encode far more than URLs — from Wi-Fi credentials to contact cards. Understand the encoding, error correction, and design rules that make codes scannable every time.</Fragment>
+  <Fragment set:html={content} />
+</GuideLayout>

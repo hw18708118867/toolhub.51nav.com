@@ -1,0 +1,56 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+const content = `
+<div class="prose prose-gray max-w-none dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-strong:text-gray-900 dark:prose-strong:text-white prose-code:text-blue-600 dark:prose-code:text-blue-400 prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-pre:bg-gray-50 dark:prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-gray-800">
+
+<h2>Why Placeholder Text Exists</h2>
+<p>Lorem Ipsum has been the printing and typesetting industry's standard dummy text since the 1500s. An unknown printer took a galley of type and scrambled passages from Cicero's "De Finibus Bonorum et Malorum" (written in 45 BC) to create a type specimen book. The scrambled Latin looked enough like real text to demonstrate typefaces, but was unreadable enough that reviewers wouldn't be distracted by the content. This accidental 500-year legacy is why every design tool, CMS, and website template comes pre-filled with "Lorem ipsum dolor sit amet."</p>
+<p>The practical value of placeholder text has nothing to do with Latin and everything to do with attention. When you show a client a mockup with real headlines and body copy, they read the words and form opinions about the messaging. When you show them Lorem Ipsum, they evaluate the layout, typography, spacing, and visual hierarchy. Placeholder text is a tool for directing attention to design decisions rather than content decisions. Used well, it keeps a review focused. Used poorly, it hides the fact that your design doesn't work with real content.</p>
+
+<h2>When to Use Lorem Ipsum (and When Absolutely Not)</h2>
+<p><strong>Use it during:</strong> early wireframing when real copy hasn't been written yet. Typography testing — evaluating font choices, line heights, letter spacing, and paragraph width. Layout demonstrations where you want stakeholders focused on structure, not wording. Component library development where the content is irrelevant to the component's function. Placeholder data for pagination testing — you need 100 items, and Lorem Ipsum fills them quickly.</p>
+<p><strong>Replace it before:</strong> any user-facing presentation. Placeholder text in a live site signals that the site is unfinished. It confuses actual users who try to read it. It destroys credibility. And Google penalizes it — search engines see Lorem Ipsum as thin or nonsensical content, which can trigger manual actions for low-quality pages.</p>
+<p><strong>Never use it during:</strong> usability testing. Test participants need realistic, task-relevant content to understand what they're looking at and make decisions. A dashboard filled with Lorem Ipsum tells a tester nothing about whether the dashboard is usable. Replace placeholder text with sample data that matches the expected content's tone, complexity, and length. Instead of "Lorem ipsum dolor sit amet, consectetur adipiscing elit," write "Your order #12345 for 3 items has shipped and will arrive Friday, June 15."</p>
+
+<h2>Plain Text vs. HTML Output</h2>
+<p>Our <a href="/tools/lorem-ipsum/">Lorem Ipsum generator</a> provides two output formats. Plain text gives you unformatted paragraphs — what you want for pasting into Figma, Sketch, Adobe XD, or any design tool where you're working with text layers. HTML output wraps each paragraph in <code>&lt;p&gt;</code> tags plus optional formatting — what you want when you're building a webpage or component prototype and need semantically correct markup.</p>
+<pre><code class="language-html"><!-- Plain text: paste into design tools -->
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod
+tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
+veniam, quis nostrud exercitation ullamco laboris.
+
+<!-- HTML: paste into your code -->
+&lt;p&gt;Lorem ipsum dolor sit amet, consectetur adipiscing elit.&lt;/p&gt;
+&lt;p&gt;Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.&lt;/p&gt;</code></pre>
+
+<h2>Matching Placeholder Length to Real Content</h2>
+<p>The most common mistake with Lorem Ipsum is generating too much of it. If your final page will have 300 words of body copy split across three sections, don't fill the template with 2,000 words of placeholder text. You'll design for a text density that never materializes — line heights that work for dense paragraphs may look sparse with shorter content, and vice versa. Match the volume: a hero section gets one paragraph. A blog post template gets 3-5 paragraphs. A long-form article gets 5-10. The goal is to simulate the final layout as closely as possible.</p>
+
+<h2>Alternatives to Lorem Ipsum</h2>
+<p>Lorem Ipsum isn't the only option. <strong>Corporate Ipsum</strong> uses business jargon ("leveraging synergistic core competencies") — good for enterprise product mockups where stakeholders expect that tone. <strong>Hipster Ipsum</strong> uses artisanal and craft-themed vocabulary — popular in certain design communities. <strong>Bacon Ipsum</strong> is meat-themed filler text. <strong>Cupcake Ipsum</strong> is dessert-themed. These are entertaining and sometimes useful for setting a brand tone in mockups before the real voice is established.</p>
+<p>More practically: <strong>real sample content</strong> is always better than dummy text when presenting to stakeholders. Use actual headlines from competitors or industry publications. Use anonymized versions of real data your application will handle. If you're building a medical app, create sample patient records that look realistic — with plausible names, dates, and conditions — rather than "Patient X" with "Condition Y." The closer your placeholder data matches reality, the better your design decisions will be.</p>
+
+<h2>The Words Behind the Nonsense</h2>
+<p>The standard Lorem Ipsum passage comes from sections 1.10.32-33 of Cicero's "De Finibus Bonorum et Malorum" (On the Ends of Good and Evil). The original Latin: "Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit..." The standard placeholder text starts in the middle of a sentence, which is why it begins with "lorem ipsum" (a truncated form of "dolorem ipsum"). Knowing this won't help you design better, but it's a reliable conversation starter with other designers and developers. The passage is a philosophical treatise on the nature of pleasure and pain — though nothing of that meaning survives in the scrambled placeholder version.</p><h2>Quick Reference</h2>
+<table>
+<thead><tr><th>Use Case</th><th>Paragraphs</th><th>Format</th></tr></thead>
+<tbody>
+<tr><td>Hero section</td><td>1</td><td>Plain text</td></tr>
+<tr><td>Blog template</td><td>3-5</td><td>HTML</td></tr>
+<tr><td>Long-form article</td><td>5-10</td><td>HTML</td></tr>
+</tbody>
+</table>
+
+<h2>The Ethics of Placeholder Text</h2>
+<p>Lorem Ipsum is a tool, not a solution. When you present a mockup with Lorem Ipsum, you are saying "the words here do not matter yet." When you launch with Lorem Ipsum still in place, users see an unfinished site. The most professional use is the briefest: fill space during design, replace with real content before anyone outside the team sees it.</p>
+<h2>Placeholder Text in Design Systems</h2>
+<p>Component libraries and design systems often ship with Lorem Ipsum in their example content. This is convenient for developers who drop a component into a page and see what it looks like with text. But it creates a risk: a developer who forgets to replace the placeholder before merging to production ships Lorem Ipsum to real users. Design systems should make placeholder content visually obvious — use a distinct background color, a "PLACEHOLDER" label, or a console warning in development mode — so it is impossible to miss during review.</p>
+<p>Some teams solve this by using realistic but obviously fake sample content instead of Lorem Ipsum. Names like "Jane Sample" and "Acme Corporation," addresses like "123 Main Street, Anytown," email addresses at example.com. This content looks real enough to test layouts but is clearly not production data. It also avoids the problem of Lorem Ipsum looking unprofessional when stakeholders review designs.</p>
+</div>
+`
+---
+<GuideLayout title="Lorem Ipsum: Using Placeholder Text in Design & Development | DevTools Hub" description="A comprehensive guide to Lorem Ipsum placeholder text. Learn its history, when to use it and when to avoid it, alternatives for different contexts, and how to match placeholder volume to real content." breadcrumb="Lorem Ipsum">
+  <Fragment slot="title">Lorem Ipsum: Placeholder<br class="hidden sm:block" />Text in Design & Development</Fragment>
+  <Fragment slot="intro">Lorem Ipsum has been the standard for 500 years. But using it wrong hurts your designs, your usability tests, and your SEO. Learn the rules, the alternatives, and when to switch to real content.</Fragment>
+  <Fragment set:html={content} />
+</GuideLayout>

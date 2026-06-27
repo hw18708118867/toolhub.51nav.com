@@ -1,0 +1,92 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+const content = `
+<div class="prose prose-gray max-w-none dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-strong:text-gray-900 dark:prose-strong:text-white prose-code:text-blue-600 dark:prose-code:text-blue-400 prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-pre:bg-gray-50 dark:prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-gray-800">
+
+<h2>What DNS Does, in Plain English</h2>
+<p>Every time you type a URL into your browser, a system called DNS translates that name into an IP address a computer can actually use. Think of DNS as the internet's phonebook. You look up "github.com," and DNS tells you the server is at 140.82.121.3. Without DNS, you'd need to memorize IP addresses for every website you visit.</p>
+<p>This lookup happens in milliseconds, behind the scenes. Your browser checks its local cache, then asks your router, then your ISP's DNS server, then the root nameservers, the TLD nameservers, and finally the authoritative nameserver for that domain. The whole chain involves multiple record types, each serving a different purpose.</p>
+<p>When something goes wrong with DNS — a mistyped record, an expired domain, a misconfigured nameserver — websites become unreachable, email stops working, and subdomains vanish. Understanding the record types and how to query them is the difference between fixing a DNS problem in five minutes and spending an afternoon guessing.</p>
+
+<h2>The Record Types You Actually Need to Know</h2>
+
+<h3>A Records: The Workhorse</h3>
+<p>An A record maps a domain name to an IPv4 address. It's the most fundamental DNS record. When you set up a website, you create an A record pointing your domain to your server's IP. Most domains have at least one A record for the bare domain and one for the www subdomain.</p>
+<pre><code class="language-text"># A record: name → IPv4 address
+example.com.    300    IN    A    93.184.216.34
+www.example.com. 300  IN    A    93.184.216.34</code></pre>
+<p>The number 300 is the TTL (Time to Live) in seconds. It tells DNS resolvers how long to cache this record before checking again. A low TTL (60-300 seconds) means faster propagation when you change IPs but higher DNS query loads. A high TTL (3600-86400 seconds) reduces query traffic but means changes take hours to propagate. For production domains, 300-3600 seconds is a reasonable range. During migrations, temporarily lower the TTL to 60 seconds so the cutover happens quickly, then raise it back after the change stabilizes.</p>
+
+<h3>AAAA Records: IPv6 Support</h3>
+<p>AAAA records do the same thing as A records, but for IPv6 addresses. As IPv4 addresses run out, AAAA records become increasingly important. Most modern websites configure both A and AAAA records so visitors can connect over either protocol. If you're setting up a new domain, configure both from the start — adding IPv6 later is a common oversight that leaves some users unable to connect.</p>
+<pre><code class="language-text">example.com.    300    IN    AAAA    2606:2800:220:1:248:1893:25c8:1946</code></pre>
+<p>Most cloud providers and CDNs handle dual-stack (IPv4 + IPv6) automatically. But if you're running your own server, you need to ensure the server actually listens on an IPv6 address. Adding an AAAA record pointing to a server that only listens on IPv4 will cause connection failures for IPv6 users.</p>
+
+<h3>CNAME: The Alias</h3>
+<p>A CNAME record creates an alias from one domain to another. Instead of pointing www.example.com to an IP, you point it to example.com. Then if the server IP changes, you only update the A record — the CNAME follows automatically. This is the standard pattern for www subdomains and CDN configurations.</p>
+<pre><code class="language-text">www.example.com.    300    IN    CNAME    example.com.
+cdn.example.com.    300   IN    CNAME    example.cdnprovider.com.</code></pre>
+<p>One important limitation: you can't use a CNAME at the root of a domain (the apex). The DNS specification prohibits a CNAME from coexisting with other records at the same name, and the apex always has NS and SOA records. That's why services like GitHub Pages ask you to set up A records for the bare domain instead of a CNAME. Some DNS providers offer "ANAME" or "ALIAS" records (vendor-specific) that behave like CNAMEs but work at the apex.</p>
+<p>Another gotcha: CNAME chains. If www points to example.com, which points to another domain, which points to another, you've created a chain. Each step adds latency to the DNS resolution. Most resolvers limit chain depth to prevent infinite loops, but it's best practice to keep chains to one or two levels maximum.</p>
+
+<h3>MX Records: Where Email Goes</h3>
+<p>MX (Mail Exchange) records tell the world which servers handle email for your domain. Each MX record has a priority number — lower numbers are tried first. This lets you set up a primary mail server with a backup if the first one is unreachable.</p>
+<pre><code class="language-text">example.com.    300    IN    MX    10    mail.example.com.
+example.com.    300    IN    MX    20    backup.mail.example.com.</code></pre>
+<p>A common mistake: moving a website to a new host and forgetting to update MX records. A records control your website; MX records control your email. They're completely independent — changing one doesn't affect the other. If email stops working after a migration, check the MX records first. Also verify the mail server hostname in the MX record actually resolves to an A record — an MX pointing to a hostname without an A record is a dead end.</p>
+
+<h3>TXT Records: Verification and Security</h3>
+<p>TXT records store arbitrary text. They're used for domain verification (proving you own the domain to Google, Microsoft, etc.) and email security protocols that prevent email spoofing.</p>
+<p><strong>SPF (Sender Policy Framework)</strong> specifies which servers are allowed to send email from your domain. Without SPF, anyone can spoof email from your domain.</p>
+<p><strong>DKIM (DomainKeys Identified Mail)</strong> adds a digital signature to outgoing emails so receiving servers can verify they weren't modified in transit.</p>
+<p><strong>DMARC</strong> tells receiving servers what to do with emails that fail SPF or DKIM checks — quarantine them, reject them, or let them through with a warning.</p>
+<pre><code class="language-text"># SPF: authorize Google to send email for this domain
+example.com.  300  IN  TXT  "v=spf1 include:_spf.google.com ~all"
+
+# DKIM: public key for verifying email signatures
+google._domainkey.example.com.  300  IN  TXT  "v=DKIM1; k=rsa; p=MIIBIjAN..."
+
+# DMARC: reject emails that fail SPF/DKIM
+_dmarc.example.com.  300  IN  TXT  "v=DMARC1; p=reject; rua=mailto:dmarc@example.com"
+
+# Domain verification for third-party services
+example.com.  300  IN  TXT  "google-site-verification=abc123def456"</code></pre>
+
+<h3>NS Records: Who's in Charge</h3>
+<p>NS (Name Server) records specify which servers are authoritative for a domain. When you register a domain and point it to Cloudflare or AWS Route 53, you're changing the NS records to delegate control to those services. NS records are set at your domain registrar and tell the world "for DNS queries about this domain, ask these servers." Without correct NS records, none of your other DNS records matter — they'll never be found.</p>
+
+<h2>How to Look Up DNS Records</h2>
+<p>From the command line, <code>dig</code> (Linux/Mac) and <code>nslookup</code> (Windows) are the standard tools. <code>dig</code> gives more detailed output, including the TTL and the full response chain. <code>nslookup</code> is simpler but available everywhere.</p>
+<pre><code class="language-bash"># Linux / macOS — detailed output with TTL
+dig example.com A
+dig example.com MX
+dig example.com TXT
+dig example.com ANY          # All record types
+
+# Windows
+nslookup -type=A example.com
+nslookup -type=MX example.com
+
+# Trace the full delegation path
+dig example.com +trace</code></pre>
+<p>If you prefer a browser-based tool, our <a href="/tools/dns-lookup/">DNS Lookup</a> shows A, AAAA, MX, CNAME, TXT, and NS records for any domain — no terminal needed. It's useful when you're on a machine without dig or when you want to quickly check records without switching contexts.</p>
+
+<h2>Common DNS Problems and Fixes</h2>
+<p><strong>"I changed my DNS but the site still shows the old IP."</strong> This is TTL caching. The old record is cached on DNS servers between you and the authoritative server. Wait for the TTL to expire (check the TTL value on the old record — that's how many seconds you need to wait from when you made the change), or flush your local DNS cache: <code>sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder</code> (Mac) or <code>ipconfig /flushdns</code> (Windows). You can also use a tool like Google's public DNS flush at dns.google.com/cache to clear Google's resolver cache.</p>
+<p><strong>"My email isn't working after switching hosts."</strong> You probably forgot to update the MX records. A records control your website; MX records control your email. When you switch hosting providers, the new provider's control panel might help you set up A records but leave MX records pointing to the old provider. Check both.</p>
+<p><strong>"My subdomain works but the bare domain doesn't."</strong> Check that the bare domain has an A record. Some DNS providers only create records for www by default. Also verify you haven't accidentally used a CNAME at the apex, which is invalid per the DNS specification.</p>
+<p><strong>"DNS changes didn't propagate."</strong> DNS doesn't actually "propagate" in the traditional sense — there's no push mechanism. Resolvers cache records until the TTL expires, then fetch fresh ones. If changes aren't visible, either the TTL hasn't expired yet, or you're querying a resolver that cached the old record. Use <code>dig @8.8.8.8 example.com</code> to query Google's DNS directly (bypassing your local cache) and verify the authoritative server has the updated record.</p>
+
+<h2>Tools for DNS Debugging</h2>
+<p>Our <a href="/tools/dns-lookup/">DNS Lookup tool</a> lets you query any record type for any domain right from your browser. Pair it with the <a href="/tools/my-ip/">My IP tool</a> to see your own public IP, and the <a href="/tools/ip-lookup/">IP Lookup tool</a> to investigate where a specific IP is hosted. Together they cover the most common DNS and networking questions developers face without needing to drop into a terminal.</p>
+<h2>DNS Migration: Moving Domains Without Downtime</h2>
+<p>When migrating a domain between DNS providers, the key is lowering TTLs before the migration, not after. A day or two before the cutover, reduce TTLs on all records to 60-300 seconds. Then make the change at the new provider and update your domains nameservers at the registrar. The old records with low TTLs expire quickly, and resolvers pick up the new records. After verifying the migration is successful and stable, raise TTLs back to normal values (1800-86400 seconds) to reduce query load. The entire process takes 24-48 hours, not the "up to 72 hours" often quoted — that number assumes default TTLs of 86400 seconds, which you should already have lowered.</p>
+<p>Always export your DNS records before beginning a migration. Most providers have an export function, but if not, use dig to query each record type. Save the export as both a file (for record-keeping) and as input for the new providers import tool. Verify the import by spot-checking critical records — your A record, MX records, and any TXT records for email authentication. A missed SPF or DKIM record can break email delivery, which users notice much faster than a slightly slower website.</p>
+</div>
+`
+---
+<GuideLayout title="DNS Records Explained: A, AAAA, MX, CNAME, TXT | DevTools Hub" description="A practical guide to DNS record types. Learn A, AAAA, MX, CNAME, TXT, and NS records with examples and debugging tips for developers." breadcrumb="DNS Records">
+  <Fragment slot="title">DNS Records Explained:<br class="hidden sm:block" />A, AAAA, MX, CNAME & TXT</Fragment>
+  <Fragment slot="intro">Every developer deals with DNS, but most only learn it when something breaks. A practical guide to the six record types you'll actually encounter — with real examples and debugging tips.</Fragment>
+  <Fragment set:html={content} />
+</GuideLayout>

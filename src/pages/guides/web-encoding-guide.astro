@@ -1,0 +1,103 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+
+const content = `
+<h2>Why Encoding Matters</h2>
+<p>Every time you open a web page, send a form, or click a link, data is being encoded and decoded behind the scenes. Encoding makes sure data survives the journey from browser to server without corruption. It handles special characters, binary data, and reserved symbols so they don't break the systems that transport them.</p>
+<p>Most developers interact with three encoding schemes regularly: <strong>Base64</strong>, <strong>URL encoding</strong>, and <strong>HTML entities</strong>. They serve different purposes but are easy to confuse. This guide explains what each one does, when to use it, and how to avoid the mistakes that trip up even experienced developers.</p>
+
+<h2>Base64: Turning Binary into Text</h2>
+<h3>What It Does</h3>
+<p>Base64 converts binary data into a string of 64 printable ASCII characters: <code>A-Z</code>, <code>a-z</code>, <code>0-9</code>, <code>+</code>, and <code>/</code>. Every 3 bytes of input become 4 Base64 characters. If the input isn't a multiple of 3 bytes, padding characters (<code>=</code>) are added. The result is about 33% larger than the original, but it can travel through any text-based system safely.</p>
+<p>Think of Base64 as a universal translator for binary data. It lets you embed an image inside a CSS file, send a file attachment through email, or include binary data in a JSON payload — all things that would otherwise be impossible because those formats only support text.</p>
+
+<h3>When to Use It</h3>
+<ul>
+  <li><strong>Data URIs</strong> — embedding small images directly in CSS: <code>url(data:image/png;base64,iVBOR...)</code></li>
+  <li><strong>HTTP Basic Authentication</strong> — the Authorization header uses Base64 for <code>username:password</code>. It's not encryption, but it ensures the credentials travel as text.</li>
+  <li><strong>Email Attachments (MIME)</strong> — email was designed for text. Base64 makes it possible to attach images, PDFs, and other binary files.</li>
+  <li><strong>API Tokens</strong> — JWTs use Base64URL encoding (replacing <code>+</code> and <code>/</code> with <code>-</code> and <code>_</code>) for the header and payload.</li>
+</ul>
+
+<h3>Common Mistakes</h3>
+<pre><code class="language-javascript">// ❌ Don't use Base64 for passwords — it's encoding, not hashing
+const encoded = btoa('myPassword123');
+// Anyone can decode: atob(encoded) === 'myPassword123'
+
+// ❌ Base64 output is ~33% larger than input
+// A 1MB file becomes ~1.33MB when encoded
+
+// ✅ Use it when you need binary data in a text channel
+const dataUri = 'data:image/png;base64,' + imageBase64;</code></pre>
+<p>Use the <a href="/tools/base64-converter/">Base64 Converter</a> to encode and decode text instantly. Everything runs in your browser — no data is sent anywhere.</p>
+
+<h2>URL Encoding: Making URLs Safe</h2>
+<h3>What It Does</h3>
+<p>URLs can only contain a limited set of characters: letters, digits, and a few symbols (<code>-</code>, <code>_</code>, <code>.</code>, <code>~</code>). Everything else — spaces, <code>&</code>, <code>?</code>, <code>=</code>, <code>#</code>, non-ASCII characters — must be percent-encoded. Each unsafe character becomes <code>%</code> followed by its two-digit hex code. A space becomes <code>%20</code>. An ampersand becomes <code>%26</code>.</p>
+
+<h3>encodeURI vs encodeURIComponent</h3>
+<p>JavaScript has two URL encoding functions, and using the wrong one is a common source of bugs:</p>
+<pre><code class="language-javascript">const url = 'https://example.com/search?q=hello world&lang=en';
+
+// encodeURI: preserves URL structure characters (/, ?, &, =, #)
+encodeURI(url);
+// → "https://example.com/search?q=hello%20world&lang=en"
+
+// encodeURIComponent: encodes EVERYTHING except alphanumeric and -_.!~*'()
+encodeURIComponent('hello world & welcome');
+// → "hello%20world%20%26%20welcome"</code></pre>
+<p><strong>Rule of thumb:</strong> use <code>encodeURIComponent</code> for individual parameter values, and <code>encodeURI</code> for complete URLs. Use <code>encodeURIComponent</code> on a full URL and you'll encode the slashes, breaking it entirely.</p>
+<p>Test your encoding with the <a href="/tools/url-encode/">URL Encode/Decode</a> tool. Paste any text to see how it looks when URL-encoded.</p>
+
+<h2>HTML Entities: Displaying Code as Text</h2>
+<h3>What It Does</h3>
+<p>HTML entities let you display characters that have special meaning in HTML. If you want to show <code>&lt;div&gt;</code> on a web page instead of having the browser interpret it as an HTML tag, you encode the angle brackets:</p>
+<pre><code class="language-html">&amp;  →  &amp;amp;
+&lt;   →  &amp;lt;
+&gt;   →  &amp;gt;
+"    →  &amp;quot;
+'    →  &amp;#39;</code></pre>
+
+<h3>Security: XSS Prevention</h3>
+<p>Cross-Site Scripting (XSS) attacks happen when user input is rendered as HTML without encoding. If your app inserts a comment directly into the page, a malicious user could include <code>&lt;script&gt;</code> tags that execute in other users' browsers.</p>
+<p>HTML entity encoding is your first line of defense. Converting <code>&lt;</code> to <code>&amp;lt;</code> ensures the browser displays it as text. Modern frameworks (React, Vue, Angular) do this automatically — but if you're using <code>innerHTML</code> or building HTML strings manually, you're on your own.</p>
+<pre><code class="language-javascript">// ❌ Dangerous — user input rendered as HTML
+element.innerHTML = userComment;
+
+// ✅ Safe — browser handles encoding
+element.textContent = userComment;
+
+// ✅ Also safe — encode before using innerHTML
+element.innerHTML = encodeHtmlEntities(userComment);</code></pre>
+<p>Use the <a href="/tools/html-entities/">HTML Entities</a> encoder to convert special characters to entities and back.</p>
+
+<h2>Encoding Quick Reference</h2>
+<table>
+  <thead><tr><th>Encoding</th><th>Input</th><th>Output</th><th>Use Case</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Base64</strong></td><td><code>Hello</code></td><td><code>SGVsbG8=</code></td><td>Binary data in text channels</td></tr>
+    <tr><td><strong>URL Encode</strong></td><td><code>hello world</code></td><td><code>hello%20world</code></td><td>Safe URLs with special chars</td></tr>
+    <tr><td><strong>HTML Entity</strong></td><td><code>&lt;div&gt;</code></td><td><code>&amp;lt;div&amp;gt;</code></td><td>Displaying HTML as text</td></tr>
+  </tbody>
+</table>
+
+<h2>Putting It All Together</h2>
+<p>These three encoding schemes solve different problems with a shared purpose: making data safe for transport and display. The most common mistake is using the wrong encoding for the job. Don't Base64-encode a URL parameter. Don't URL-encode HTML content. Don't use HTML entities in a JSON string.</p>
+<p>Each encoding has a specific context. Using the right one makes your code more reliable and your debugging sessions shorter. Bookmark the <a href="/tools/base64-converter/">Base64 Converter</a>, <a href="/tools/url-encode/">URL Encoder</a>, and <a href="/tools/html-entities/">HTML Entities</a> encoder — you'll reach for them more often than you expect.</p>
+
+<h2>Encoding in Authentication and Security Contexts</h2>
+<p>HTTP Basic Authentication uses Base64 to encode the credentials string "username:password" into a header: Authorization: Basic dXNlcjpwYXNz. This is encoding, not encryption — anyone who intercepts the request can decode it immediately. Basic Auth must always be sent over HTTPS. For modern API authentication, token-based methods like Bearer tokens and API keys have largely replaced Basic Auth because they don't expose the user's password on every request.</p>
+<p>JWTs (JSON Web Tokens) use Base64URL encoding for their header and payload sections. Base64URL is a variant that replaces + with - and / with _ to be URL-safe without additional percent-encoding. The signature section uses the same encoding but contains binary data — the output of the HMAC or RSA signing algorithm. Decoding a JWT without verifying the signature reveals the header and payload, which are public to anyone who can see the token. JWTs are signed, not encrypted. Never put secrets in a JWT payload.</p>
+<p>Cross-site scripting (XSS) prevention depends on correct HTML entity encoding. When you insert user-supplied data into a web page, encode special characters as HTML entities. Most frameworks (React, Vue, Angular) do this automatically in their template syntax. XSS vulnerabilities happen when developers bypass the framework — using innerHTML, building HTML strings with concatenation, or writing custom render functions that skip the escaping layer. Trust your framework's escaping. Verify when you bypass it.</p>
+`
+---
+
+<GuideLayout
+  title="Web Encoding Guide: Base64, URL Encoding & HTML Entities | DevTools Hub"
+  description="A practical guide to web encoding schemes. Learn when to use Base64, URL encoding, and HTML entities with real examples and code snippets."
+  breadcrumb="Web Encoding"
+>
+  <Fragment slot="title">Web Encoding:<br class="hidden sm:block" />Base64, URL Encoding &amp; HTML Entities</Fragment>
+  <Fragment slot="intro">Encoding is the invisible glue that holds the web together. Understand the three encoding schemes every developer encounters — and when to use each one — with real code examples and practical advice.</Fragment>
+  <Fragment set:html={content} />
+</GuideLayout>

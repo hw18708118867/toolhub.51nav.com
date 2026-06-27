@@ -1,0 +1,89 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+const content = `
+<div class="prose prose-gray max-w-none dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-strong:text-gray-900 dark:prose-strong:text-white prose-code:text-blue-600 dark:prose-code:text-blue-400 prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-pre:bg-gray-50 dark:prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-gray-800">
+
+<h2>What a User Agent String Tells You</h2>
+<p>Every HTTP request your browser sends includes a User-Agent header. It's a string — often 100-200 characters long — that identifies the browser, operating system, rendering engine, and sometimes the device model. Servers have been parsing these strings for nearly three decades to serve optimized content, track analytics, detect bots, and make compatibility decisions. The string looks like line noise, but it encodes structured information that's genuinely useful when you know how to read it.</p>
+<p>Why does every browser claim to be "Mozilla/5.0"? The answer is a piece of internet history. In 1995, Netscape Navigator (codenamed Mozilla) introduced the frame element. Servers started User-Agent-sniffing for "Mozilla" to serve framed content. Microsoft Internet Explorer, wanting to receive the same framed content, included "Mozilla" in its UA string too. Every browser since has done the same to avoid being served degraded content. "Mozilla/5.0" today means absolutely nothing — it's a 25-year-old compatibility shim baked into the web's foundation.</p>
+
+<h2>Decoding Real User Agents</h2>
+<p>Each browser has a distinct signature. Once you've seen a few, the patterns become obvious:</p>
+<pre><code class="language-text"># Chrome 120 on Windows 10
+Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
+  (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36
+→ Browser: Chrome 120 | OS: Windows 10/11 (64-bit) | Engine: Blink (via AppleWebKit token)
+
+# Safari 17 on macOS 14 Sonoma
+Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/605.1.15
+  (KHTML, like Gecko) Version/17.0 Safari/605.1.15
+→ Browser: Safari 17 | OS: macOS 14 | Engine: WebKit
+
+# Firefox 121 on Linux
+Mozilla/5.0 (X11; Linux x86_64; rv:121.0) Gecko/20100101 Firefox/121.0
+→ Browser: Firefox 121 | OS: Linux (64-bit) | Engine: Gecko
+
+# Microsoft Edge on Windows
+Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
+  (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0
+→ Browser: Edge 120 | OS: Windows 10/11 | Engine: Blink
+→ Note: Edge is nearly identical to Chrome except for the "Edg/" token</code></pre>
+
+<h2>The Anatomy of a UA String</h2>
+<p>Break any modern UA string into these layers:</p>
+<ul>
+  <li><strong>Compatibility prefix.</strong> Always "Mozilla/5.0". Historical baggage, zero information value. Ignore it.</li>
+  <li><strong>Platform token.</strong> The parenthesized section. Contains OS name, OS version, CPU architecture, and sometimes device model. "Windows NT 10.0; Win64; x64" means 64-bit Windows 10 or 11. "Macintosh; Intel Mac OS X 14_0" means macOS 14 on Intel (underscores replace dots — 14_0 is version 14.0). "X11; Linux x86_64" means desktop Linux. "Linux; Android 13; Pixel 7" means Android 13 on a Google Pixel 7.</li>
+  <li><strong>Engine tokens.</strong> "AppleWebKit/537.36 (KHTML, like Gecko)" appears in every WebKit and Blink browser. The version number (537.36) hasn't changed meaningfully in years — it's frozen. "Gecko/20100101" identifies Firefox's engine; the date is the Gecko build date.</li>
+  <li><strong>Browser token.</strong> The actual browser identity. "Chrome/120.0.0.0" for Chrome. "Version/17.0 Safari/605.1.15" for Safari (Safari puts its version in a separate "Version/" token). "Firefox/121.0" for Firefox. "Edg/120.0.0.0" for Edge.</li>
+</ul>
+
+<h2>Key Fields for Analytics and Debugging</h2>
+<p><strong>Browser name.</strong> Chrome, Safari, Firefox, Edge, Opera, Samsung Internet, UC Browser. Each has a distinctive token pattern. Chrome-based browsers all include "Chrome/" plus their own identifier (Edg/, OPR/ for Opera). Safari is the only major browser that uses a separate "Version/" token instead of putting the version in the browser name token.</p>
+<p><strong>Browser version.</strong> Major version is usually enough for analytics. Minor and patch versions (120.0.0.0) rarely matter for compatibility decisions. When debugging a browser-specific bug, the major version tells you whether the user is on a recent release or an outdated one.</p>
+<p><strong>Operating system.</strong> Extract from the platform token. For analytics, group by OS family (Windows, macOS, Linux, Android, iOS) rather than specific versions. OS fragmentation is less meaningful than browser fragmentation for most web development decisions.</p>
+<p><strong>Device type.</strong> "Mobile" usually means a phone. "Tablet" or "iPad" means a tablet. Absence means desktop (with some edge cases — some Android tablets report as desktop, and some desktop browsers in touchscreen mode report as mobile). For responsive design, use CSS media queries and matchMedia, not UA sniffing.</p>
+
+<h2>Parsing User Agents Programmatically</h2>
+<p>If you need to parse UA strings in your application, use a library. Don't write your own regex — the edge cases (bots, legacy browsers, regional browsers like Yandex and Baidu, embedded WebViews) will consume weeks of maintenance. The <code>ua-parser-js</code> library (JavaScript) handles most real-world UA strings. Python has <code>user-agents</code>. Both are regularly updated as new browser versions and devices are released.</p>
+<p>For quick one-off parsing, our <a href="/tools/user-agent/">User Agent Parser</a> identifies the browser, OS, device type, and engine from any UA string you paste in. It handles the common patterns for Chrome, Safari, Firefox, Edge, and their mobile variants.</p>
+
+<h2>Common User Agent Problems in Production</h2>
+<p><strong>"Our analytics show traffic from Internet Explorer 6 in 2024."</strong> Almost certainly a bot or a misconfigured web scraper. No real user is running IE6. Many scrapers use old UA strings as defaults. Filter these out of your analytics by checking for impossible combinations — IE6 on Windows 10, Chrome 120 on Windows 95, etc.</p>
+<p><strong>"My site breaks on Safari but the UA says Chrome."</strong> The user might be using an iOS device where all browsers (Chrome, Firefox, Edge) are required by Apple to use Safari's WebKit engine under the hood. The UA string shows the actual browser brand and version, but the rendering engine is always Safari's WebKit on iOS. Test on actual iOS devices, not just by UA parsing.</p>
+<p><strong>"Bots are crawling my site and wasting bandwidth."</strong> Check the UA string for common bot identifiers: "Googlebot", "Bingbot", "Slurp" (Yahoo), "DuckDuckBot", "Baiduspider", "AhrefsBot", "SemrushBot". Legitimate bots identify themselves clearly. Malicious scrapers often impersonate Chrome. Rate-limiting and robots.txt are better defenses than UA blocking.</p>
+
+<h2>Feature Detection vs. UA Sniffing</h2>
+<p>For compatibility decisions — "does this browser support WebP images?" or "can I use CSS Grid here?" — feature detection is strictly better than UA sniffing. Check for the actual API or CSS property you need:</p>
+<pre><code class="language-javascript">// ✅ Feature detection: check what you actually need
+if ('geolocation' in navigator) { /* use geolocation */ }
+if (CSS.supports('display', 'grid')) { /* use CSS Grid */ }
+if (typeof fetch !== 'undefined') { /* use Fetch API */ }
+
+// ❌ UA sniffing: guess based on browser version
+// Breaks when browsers update, doesn't account for polyfills
+const isChrome120 = /Chrome\/120/.test(navigator.userAgent);</code></pre>
+<p>Feature detection is future-proof. When a browser adds support for a feature, your code starts using it automatically — no UA regex update needed. UA sniffing creates a maintenance burden that grows with every browser release. Reserve UA parsing for analytics, logging, and debugging — places where you're observing behavior, not controlling it.</p><h2>Quick Reference</h2>
+<table>
+<thead><tr><th>Browser</th><th>Token</th></tr></thead>
+<tbody>
+<tr><td>Chrome</td><td>Chrome/ + version</td></tr>
+<tr><td>Safari</td><td>Version/ + Safari/</td></tr>
+<tr><td>Firefox</td><td>Firefox/ + version</td></tr>
+<tr><td>Edge</td><td>Edg/ + version</td></tr>
+</tbody>
+</table>
+
+<h2>The Future: User-Agent Client Hints</h2>
+<p>Googles User-Agent Client Hints (UA-CH) replaces the monolithic UA string with structured hints. The browser sends minimal high-entropy data only when the server requests it via Accept-CH. Chrome supports UA-CH since version 89. Other browsers have been slower to adopt. The traditional UA string remains the universal fallback but is being deprecated. New applications should support both — structured hints when available, UA string parsing as fallback.</p>
+<h2>User Agents in Web Scraping and Bot Detection</h2>
+<p>Web scrapers often impersonate browsers by sending a Chrome or Firefox User-Agent string. The simplest defense: check if the UA string claims to be Chrome but the request lacks Chrome-specific headers (like the Sec-CH-UA client hints) or JavaScript behaviors that a real Chrome browser would exhibit. More sophisticated bot detection combines UA analysis with TLS fingerprinting (JA3/JA4 signatures), IP reputation databases, and behavioral analysis. UA string matching alone is too easy to spoof to be useful as a security measure.</p>
+<p>Legitimate bots identify themselves clearly in their UA string. Googlebot uses "Googlebot/2.0," Bingbot uses "bingbot/2.0," and both publish their IP ranges for verification. If a request claims to be Googlebot in its UA string but originates from an AWS IP not in Googles published crawler ranges, it is a fake. Verify bots by doing a reverse DNS lookup on their IP and checking it matches the claimed bot's domain. This is more reliable than trusting the UA string.</p>
+</div>
+`
+---
+<GuideLayout title="User Agent Parsing: Browser Detection & Device Identification | DevTools Hub" description="A comprehensive guide to User Agent strings. Learn to decode browser, OS, and device from any UA string, plus why feature detection beats UA sniffing for compatibility." breadcrumb="User Agent">
+  <Fragment slot="title">User Agent Parsing:<br class="hidden sm:block" />Browser Detection & Device ID</Fragment>
+  <Fragment slot="intro">Every HTTP request carries a User-Agent string. Learn to decode it for debugging and analytics — the four layers of information, common patterns across browsers, and the production problems that UA sniffing creates.</Fragment>
+  <Fragment set:html={content} />
+</GuideLayout>

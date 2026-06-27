@@ -1,0 +1,6 @@
+# robots.txt for DevTools Hub
+
+User-agent: *
+Allow: /
+
+Sitemap: {{ site.url }}/sitemap.xml

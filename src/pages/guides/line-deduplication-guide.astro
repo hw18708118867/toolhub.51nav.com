@@ -1,0 +1,60 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+const content = `
+<div class="prose prose-gray max-w-none dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-strong:text-gray-900 dark:prose-strong:text-white prose-code:text-blue-600 dark:prose-code:text-blue-400 prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-pre:bg-gray-50 dark:prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-gray-800">
+
+<h2>Duplicate Lines Are Everywhere</h2>
+<p>Merge two email lists from different marketing platforms, and you get duplicates where the same subscriber appears in both exports. Combine CSV files from separate business units, and every customer shared between them appears twice. Scrape search results from multiple engines, and the top-ranking URLs repeat across every source. Consolidate keyword lists from Ahrefs, SEMrush, and Google Keyword Planner, and the same high-value phrases overlap everywhere.</p>
+<p>These tasks share a pattern: you have text data organized as lines (one record per line), and you need only the unique entries. Doing this manually — scrolling through hundreds or thousands of lines, deleting duplicates by eye — is slow, error-prone, and the kind of mechanical work that makes developers question their career choices. A <a href="/tools/dedupe-lines/">line deduplication tool</a> handles it in one click. Paste, click, get unique results. The time savings compound when you process data daily or weekly.</p>
+
+<h2>How Deduplication Works</h2>
+<p>The algorithm is straightforward: iterate through each line, maintain a Set (hash set) of lines you've already seen, and output only lines that aren't in the set. A Set provides O(1) average lookup time, so processing N lines takes O(N) time. For lists under 100,000 lines, this completes in under a second in a browser. The memory cost is proportional to the number of unique lines — if your list has 10,000 lines but only 500 are unique, you only store those 500 in the Set.</p>
+
+<h2>Deduplication vs. Sorting: Know the Difference</h2>
+<p>Removing duplicates preserves the first-occurrence order. Each unique line keeps its position from when it first appeared in the input. This matters when order carries meaning — a ranked list of search results (position 1 is the best), a chronological log file (oldest entries first), or a priority-ordered task list.</p>
+<p>Sorting rearranges lines alphabetically or numerically, ignoring original order. It's useful for creating a canonical order for comparison, generating an index, or presenting data consistently regardless of input order.</p>
+<p>You can chain these operations. Sort first, then deduplicate: produces a sorted list with no duplicates — ideal for generating unique word lists or removing duplicates from alphabetized data. Deduplicate first, then sort: produces a clean list organized by content — ideal for cleaning then presenting. The order of operations changes the output, so choose based on your goal.</p>
+<pre><code class="language-text">// Input: 6 lines, 3 unique values, 3 duplicates
+apple
+banana
+apple
+cherry
+banana
+date
+
+// Deduplicate (first-occurrence order, 4 lines)
+apple
+banana
+cherry
+date
+
+// Sort (alphabetical, 6 lines — duplicates preserved)
+apple
+apple
+banana
+banana
+cherry
+date</code></pre>
+
+<h2>Case Sensitivity and Normalization</h2>
+<p>Default deduplication is case-sensitive and whitespace-sensitive. "Apple", "apple", and "apple " (trailing space) are three different lines. This matters when cleaning user-submitted data where formatting is inconsistent. To handle this, normalize before deduplication: lowercase everything (for case-insensitive matching), trim trailing whitespace, and optionally remove leading whitespace. Use the <a href="/tools/text-case/">Text Case converter</a> for normalization, then deduplicate. For email addresses specifically: lowercase the domain part (always case-insensitive), but be careful with the local part (theoretically case-sensitive per RFC 5321, though most providers treat it case-insensitively in practice).</p>
+
+<h2>Real-World Use Cases</h2>
+<p><strong>Email list deduplication.</strong> Export subscriber lists from Mailchimp, ConvertKit, and a conference registration CSV. Combine into one file, normalize email addresses to lowercase, deduplicate. Result: a clean, unique list ready for import into your CRM. Before importing, also validate email format — deduplication catches exact duplicates but not typos like "gmali.com" vs "gmail.com."</p>
+<p><strong>Log file analysis.</strong> A 50,000-line server log has the same error message repeating hundreds of times, interspersed with normal entries. Deduplicate to see only the unique messages. Then count frequencies: how many times does each unique message appear? This is the fastest way to identify the dominant error patterns without scrolling through thousands of repeated lines.</p>
+<p><strong>Keyword research consolidation.</strong> You've pulled keyword suggestions from three SEO tools and a Google Search Console export. Merge all files, deduplicate to get a unique master list. Now you have a comprehensive keyword set without blind spots from any single tool's database.</p>
+<p><strong>Domain portfolio cleanup.</strong> A domain registrar export includes the same domain in multiple categories — active domains, expired domains, and domains pending transfer. Deduplicate before counting your total portfolio size to avoid double-counting domains that appear in multiple sections.</p>
+
+<h2>Performance for Large Lists</h2>
+<p>For lists up to ~100,000 lines, browser-based deduplication is fast — under a second on modern hardware. The Set-based algorithm scales linearly. For lists in the millions of lines, command-line tools are more appropriate: <code>sort -u input.txt > output.txt</code> (sorts and deduplicates in one pass, but changes order), or <code>awk '!seen[$0]++' input.txt > output.txt</code> (deduplicates while preserving order, but requires memory proportional to unique lines). For datasets measured in gigabytes, use a database — import the data into a table with a unique constraint and let the database engine handle deduplication efficiently.</p>
+<h2>Deduplication in Data Pipelines</h2>
+<p>In ETL (Extract, Transform, Load) pipelines, deduplication is typically one step in a multi-stage cleaning process. The order matters: normalize first (lowercase, trim whitespace, standardize formats), then deduplicate, then validate. If you validate before deduplicating, you waste cycles validating duplicate records. If you deduplicate before normalizing, you miss duplicates that differ only in formatting. A well-ordered pipeline reduces compute cost and improves data quality.</p>
+<p>For databases, deduplication is best handled at the schema level with UNIQUE constraints or primary keys. Application-level deduplication is a safety net, not the primary defense. If your database allows duplicate records, your application code will eventually introduce them. A UNIQUE constraint on the natural key (email address for a users table, domain name for a domains table) prevents duplicates at the storage layer, which is more reliable than any application-level check.</p><h2>Fuzzy Deduplication and Record Linkage</h2><p>Exact deduplication finds identical lines. It does not find near-duplicates: "John Smith" and "John  Smith" (double space), "example.com" and "Example.Com" (different case), or "Acme Corp" and "Acme Corporation" (different forms). For these, you need fuzzy matching. Edit distance algorithms (Levenshtein, Damerau-Levenshtein) measure how many character changes separate two strings. SimHash and MinHash identify near-duplicate documents by comparing hash signatures. These techniques are more complex than exact matching but catch duplicates that would otherwise go undetected.</p><p>Record linkage is the broader problem: given two datasets with no shared identifier, find which records refer to the same entity. A CRM might have a contact listed one way and an email list listing them another way — same person, different representation. Probabilistic record linkage uses multiple fields (name, email, address, phone) to estimate match probability. This is what deduplication tools in CRMs and marketing platforms do under the hood.</p>
+</div>
+`
+---
+<GuideLayout title="Line Deduplication: Cleaning Up Lists & Data Files | DevTools Hub" description="A comprehensive guide to removing duplicate lines from text data. Covers the deduplication algorithm, sorting vs deduplication, case normalization, real-world workflows, and performance for large datasets." breadcrumb="Line Deduplication">
+  <Fragment slot="title">Line Deduplication:<br class="hidden sm:block" />Cleaning Lists & Data Files</Fragment>
+  <Fragment slot="intro">From email lists to log files to keyword research, duplicate lines waste time and corrupt data. Learn the techniques, the workflows, and the edge cases that produce clean, accurate results.</Fragment>
+  <Fragment set:html={content} />
+</GuideLayout>

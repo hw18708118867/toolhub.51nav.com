@@ -1,0 +1,88 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+const content = `
+<div class="prose prose-gray max-w-none dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-strong:text-gray-900 dark:prose-strong:text-white prose-code:text-blue-600 dark:prose-code:text-blue-400 prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-pre:bg-gray-50 dark:prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-gray-800">
+
+<h2>Why SQL Formatting Matters</h2>
+<p>SQL is one of the few languages where a single query can be a one-liner or span a hundred lines. The same SELECT statement, unformatted, looks like noise. Formatted, its structure is visible at a glance: you can see which tables are joined, on what conditions, what's being filtered, how results are grouped and ordered. During an incident at 3 AM, a well-formatted query is the difference between spotting the bug in ten seconds and squinting at it for ten minutes.</p>
+<p>This isn't about aesthetics. Code review of SQL is notoriously difficult because the logic of a query — the join order, the filter conditions, the aggregation — isn't linear the way procedural code is. Formatting creates a visual hierarchy that mirrors the query's logical structure. When every JOIN is indented under FROM, and every WHERE condition starts a new indented line, a reviewer can scan the structure before reading the details. A missing JOIN condition or an overly broad WHERE clause becomes visually obvious.</p>
+
+<h2>Core Formatting Rules</h2>
+<pre><code class="language-sql">-- ❌ Unformatted: structure invisible, logic hidden in a wall of text
+SELECT id,name,email FROM users WHERE active=1 ORDER BY name ASC
+
+-- ✅ Formatted: structure visible at a glance, logic in visual hierarchy
+SELECT id, name, email
+FROM users
+WHERE active = 1
+ORDER BY name ASC</code></pre>
+
+<h3>Capitalize Keywords</h3>
+<p>Capitalize all SQL keywords: SELECT, FROM, WHERE, JOIN, ON, GROUP BY, HAVING, ORDER BY, LIMIT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP. This visually separates the query's skeleton (the keywords that define its structure) from its organs (your table names, column names, and values). Most SQL engines are case-insensitive for keywords, so this is purely a readability convention. Some teams also capitalize function names (COUNT, SUM, COALESCE, CAST); others leave them lowercase to distinguish built-in functions from keywords. Either approach works. Mixing them doesn't.</p>
+
+<h3>One Major Clause Per Line</h3>
+<p>Each major clause starts at the left margin on its own line. This creates a vertical spine down the left side of the query: SELECT → FROM → WHERE → GROUP BY → HAVING → ORDER BY → LIMIT. A reader can scan this spine in half a second and understand the query's overall shape before reading any details. Sub-clauses, conditions, and column lists are indented under their parent clause — typically 2 or 4 spaces. Never tabs. Tabs render at different widths in different editors, breaking the visual alignment that makes indentation meaningful.</p>
+
+<h3>Comma Placement: Leading vs. Trailing</h3>
+<p>Two camps, both with valid arguments. Trailing commas (at the end of each line) are traditional and match programming language conventions. Leading commas (at the start of each line) make it trivially easy to comment out, reorder, or add columns without introducing syntax errors — the comma before a line is independent of the line after it. Pick one and enforce it. A query mixing both styles within the same SELECT clause is harder to scan because the reader's eye has to switch between two patterns. Our <a href="/tools/sql-formatter/">SQL Formatter</a> uses trailing commas by default.</p>
+
+<h2>Formatting Complex Queries</h2>
+<pre><code class="language-sql">SELECT u.id, u.name, o.order_date, o.total
+FROM users u
+  INNER JOIN orders o ON u.id = o.user_id
+  LEFT JOIN payments p ON o.id = p.order_id
+    AND p.status = 'completed'
+WHERE u.active = 1
+  AND u.created_at > '2024-01-01'
+  AND o.status IN ('completed', 'processing')
+GROUP BY u.id, u.name, o.order_date, o.total
+HAVING SUM(o.total) > 100
+ORDER BY o.order_date DESC
+LIMIT 50</code></pre>
+<p>Each JOIN on its own line, indented under FROM. The ON conditions stay on the same line for simple equality, or get their own indented line for compound conditions. The AND in multi-condition ON clauses goes at the start of the additional lines for visual alignment. Multiple WHERE conditions each get their own indented line, with AND at the start. GROUP BY columns align with SELECT columns. HAVING follows GROUP BY. ORDER BY and LIMIT close the query.</p>
+
+<h2>Subqueries and CTEs</h2>
+<pre><code class="language-sql">WITH recent_users AS (
+  SELECT id, name, created_at
+  FROM users
+  WHERE created_at > '2024-01-01'
+),
+user_orders AS (
+  SELECT u.id, u.name, COUNT(o.id) AS order_count
+  FROM recent_users u
+    LEFT JOIN orders o ON u.id = o.user_id
+  GROUP BY u.id, u.name
+)
+SELECT *
+FROM user_orders
+WHERE order_count > 5
+ORDER BY order_count DESC</code></pre>
+<p>CTEs (Common Table Expressions, the WITH clause) make complex queries readable by breaking them into named, sequential steps. Each CTE gets its own indented block. The final SELECT references the CTEs by name. This is far more readable than nested subqueries, where the innermost query is the first one executed but the last one encountered when reading top-to-bottom. When a subquery is unavoidable (a correlated subquery, for example), indent its content one level deeper than the surrounding query.</p>
+
+<h2>Format vs. Minify</h2>
+<p>Format SQL when writing, reviewing, or debugging — whitespace makes the logic visible. Minify SQL when embedding queries as string literals in application code, or when sending them over a network where every byte counts. Minification strips all unnecessary whitespace to a single line. Both operations are lossless: formatting and minification change only the presentation, never the query's behavior or the database's execution plan. Our <a href="/tools/sql-formatter/">SQL Formatter</a> handles both operations.</p>
+
+<h2>Establishing Team Conventions</h2>
+<p>The most important formatting rule: pick conventions and enforce them automatically. A team where every query looks different wastes time on formatting debates in code review and misreads each other's SQL during incidents. Add SQL formatting to your CI pipeline — a linter like SQLFluff or a formatter integrated into your build process catches inconsistencies before human reviewers need to. A consistent SQL codebase is one where any team member can read any query written by any other team member, at any hour, without asking which convention this particular file uses. The conventions themselves matter less than the consistency. But if you're picking from scratch: capitalize keywords, one clause per line, trailing commas, 2-space indentation. This is what most formatters default to and what most developers expect to read.</p><h2>Quick Reference</h2>
+<table>
+<thead><tr><th>Rule</th><th>Example</th></tr></thead>
+<tbody>
+<tr><td>Keywords uppercase</td><td>SELECT, FROM, WHERE</td></tr>
+<tr><td>One clause per line</td><td>Each major clause at left margin</td></tr>
+<tr><td>Indent sub-clauses</td><td>2 spaces for JOIN, WHERE</td></tr>
+</tbody>
+</table>
+
+<h2>Anti-Patterns That Formatting Reveals</h2>
+<p>Consistent formatting makes structural problems visible. A SELECT * stands out because the * is alone on its indented line. A missing JOIN condition is obvious when every other JOIN has an ON clause. Nested subqueries that should be CTEs look visually awkward. If your formatting convention is consistent, structural problems become visually apparent the way a proofreader notices a misspelled word — you do not need to read the query to know something is wrong.</p>
+<h2>Formatting SQL in Code Reviews</h2>
+<p>During code review, formatted SQL reveals anti-patterns that unformatted SQL hides. A missing JOIN condition is obvious because the ON clause is empty or overly simple next to other JOINs with detailed conditions. A SELECT * becomes visible because the wildcard is the only token on its line. A WHERE clause using OR when AND was intended stands out because the indentation pattern changes. If your team formats SQL consistently, a reviewer can scan a query in seconds and spot structural problems without reading every line — the same way a proofreader catches misspelled words by the shape of the text, not by reading letter by letter.</p>
+<p>For ORMs that generate SQL, formatting helps you understand what queries the ORM is actually producing. Many ORMs have a logging mode that outputs the generated SQL. Format that output before reviewing it. An ORM that generates a five-table JOIN with a subquery in the WHERE clause might be doing something you did not intend — but you will not notice unless the formatted SQL makes the structure visible. ORMs are productivity tools, not magic. Verify their output.</p>
+</div>
+`
+---
+<GuideLayout title="SQL Formatting: Writing Clean, Readable Queries | DevTools Hub" description="A comprehensive guide to SQL formatting. Covers keyword capitalization, indentation rules, JOIN formatting, CTEs, comma placement styles, format vs minify, and team conventions." breadcrumb="SQL Formatting">
+  <Fragment slot="title">SQL Formatting:<br class="hidden sm:block" />Write Clean, Readable Queries</Fragment>
+  <Fragment slot="intro">SQL formatting makes bugs visible during code review and saves minutes during 3 AM incidents. From SELECT structure to CTE formatting to team conventions — write SQL that any developer can read.</Fragment>
+  <Fragment set:html={content} />
+</GuideLayout>

@@ -1,0 +1,69 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'number-base')!
+
+const steps = [
+  { name: 'Enter a Number', text: 'Type a number in any of the four input fields — Decimal (base 10), Hex (base 16), Binary (base 2), or Octal (base 8). The tool supports large integers using BigInt.' },
+  { name: 'View All Conversions', text: 'As you type, all other bases are automatically calculated and displayed. The conversion happens in real-time with no delay.' },
+  { name: 'Copy Any Value', text: 'Select and copy the converted value you need. Use it in your code, configuration files, or documentation.' },
+]
+
+const faq = [
+  { question: 'What are number bases?', answer: 'A number base (or radix) determines how many unique digits a numeral system uses. Decimal (base 10) uses 0-9, Binary (base 2) uses 0-1, Octal (base 8) uses 0-7, and Hexadecimal (base 16) uses 0-9 plus A-F. Each base represents the same number differently.' },
+  { question: 'When do developers use different number bases?', answer: 'Binary is used for bit manipulation and low-level programming. Hex is used for color codes, memory addresses, and encoding. Octal is used in Unix file permissions. Decimal is the standard for everyday use.' },
+  { question: 'How does Hex to Decimal conversion work?', answer: 'Each hex digit represents a power of 16. For example, 0xFF = (15 × 16¹) + (15 × 16⁰) = 240 + 15 = 255. Our tool handles this calculation automatically for any size number.' },
+  { question: 'What is the largest number I can convert?', answer: 'This tool uses JavaScript BigInt, which can handle arbitrarily large integers. There is no practical limit on the size of numbers you can convert between bases.' },
+]
+
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free online number base converter. Convert between Decimal, Hexadecimal, Binary, and Octal. Supports large integers. All processing happens locally in your browser." {steps} {faq}
+>
+  <div class="grid md:grid-cols-2 gap-6">
+    <div><label class="block font-medium text-gray-700 dark:text-gray-300 mb-2">Decimal (Base 10)</label><input type="text" id="decInput" class="form-input w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-4 py-3 font-mono dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100" placeholder="Decimal"></div>
+    <div><label class="block font-medium text-gray-700 dark:text-gray-300 mb-2">Hex (Base 16)</label><input type="text" id="hexInput" class="form-input w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-4 py-3 font-mono dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100" placeholder="Hex"></div>
+    <div><label class="block font-medium text-gray-700 dark:text-gray-300 mb-2">Binary (Base 2)</label><input type="text" id="binInput" class="form-input w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-4 py-3 font-mono dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100" placeholder="Binary"></div>
+    <div><label class="block font-medium text-gray-700 dark:text-gray-300 mb-2">Octal (Base 8)</label><input type="text" id="octInput" class="form-input w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-4 py-3 font-mono dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100" placeholder="Octal"></div>
+  </div>
+  <div class="mt-4"><button id="sampleBtn" class="btn btn-sm btn-secondary">Load Sample</button></div>
+
+  <section slot="examples" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Common Base Conversions</h2>
+    <div class="overflow-x-auto"><table class="w-full text-left"><thead><tr class="border-b border-gray-200 dark:border-gray-800"><th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">Decimal</th><th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">Hex</th><th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">Binary</th><th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">Octal</th></tr></thead><tbody class="text-gray-500 dark:text-gray-400 font-mono"><tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">255</td><td class="py-3 px-4">FF</td><td class="py-3 px-4">11111111</td><td class="py-3 px-4">377</td></tr><tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">16</td><td class="py-3 px-4">10</td><td class="py-3 px-4">10000</td><td class="py-3 px-4">20</td></tr><tr><td class="py-3 px-4">42</td><td class="py-3 px-4">2A</td><td class="py-3 px-4">101010</td><td class="py-3 px-4">52</td></tr></tbody></table></div>
+  </section>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Understanding Number Bases</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">Number bases are fundamental to computer science. While humans use decimal, computers operate in binary at the hardware level. Hex provides a more compact, human-readable way to represent binary data.</p>
+      <h3 class="text-lg font-semibold text-gray-900 mt-6 mb-3 dark:text-white">Common Developer Uses</h3>
+      <ul class="list-disc list-inside space-y-2 text-gray-500 dark:text-gray-400">
+        <li><strong>Hex</strong> — CSS colors (#FF5733), memory addresses, Unicode code points</li>
+        <li><strong>Binary</strong> — Bit flags, bitwise operations, network masks</li>
+        <li><strong>Octal</strong> — Unix file permissions (chmod 755)</li>
+      </ul>
+    </div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+      <a href="/guides/number-bases-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">Number Bases: Binary, Hex & Octal</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Understand and convert between all four number bases.</p></div></div></a>
+      <a href="/guides/number-bases-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">Number Bases: Binary, Hex & Octal</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Understand and convert between all four number bases.</p></div></div></a>
+    </div>
+  </section>
+
+  <script>
+    const decInput = document.getElementById('decInput'); const hexInput = document.getElementById('hexInput'); const binInput = document.getElementById('binInput'); const octInput = document.getElementById('octInput'); const sampleBtn = document.getElementById('sampleBtn')!
+    function updateFromDec() { const val = decInput.value; if (!val) return; try { const num = BigInt(val); hexInput.value = num.toString(16).toUpperCase(); binInput.value = num.toString(2); octInput.value = num.toString(8) } catch {} }
+    function updateFromHex() { const val = hexInput.value; if (!val) return; try { const num = BigInt('0x' + val.replace(/^0x/i, '')); decInput.value = num.toString(10); binInput.value = num.toString(2); octInput.value = num.toString(8) } catch {} }
+    function updateFromBin() { const val = binInput.value; if (!val) return; try { const num = BigInt('0b' + val.replace(/^0b/i, '')); decInput.value = num.toString(10); hexInput.value = num.toString(16).toUpperCase(); octInput.value = num.toString(8) } catch {} }
+    function updateFromOct() { const val = octInput.value; if (!val) return; try { const num = BigInt('0o' + val.replace(/^0o/i, '')); decInput.value = num.toString(10); hexInput.value = num.toString(16).toUpperCase(); binInput.value = num.toString(2) } catch {} }
+    decInput.addEventListener('input', updateFromDec); hexInput.addEventListener('input', updateFromHex); binInput.addEventListener('input', updateFromBin); octInput.addEventListener('input', updateFromOct)
+    sampleBtn.addEventListener('click', () => { decInput.value = '255'; updateFromDec() })
+  </script>
+</ToolLayout>

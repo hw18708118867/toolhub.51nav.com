@@ -1,0 +1,70 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'timestamp')!
+
+const steps = [
+  { name: 'View Current Time', text: 'The top panel shows the current Unix timestamp, UTC time, and your local time. These values update in real-time every second.' },
+  { name: 'Convert Timestamp to Date', text: 'Enter a Unix timestamp (in seconds) to convert it to a human-readable date in both UTC and local time.' },
+  { name: 'Convert Date to Timestamp', text: 'Use the date/time picker to select any date and time. The corresponding Unix timestamp is calculated automatically.' },
+]
+
+const faq = [
+  { question: 'What is a Unix timestamp?', answer: 'A Unix timestamp is the number of seconds that have elapsed since January 1, 1970 (UTC), not counting leap seconds. It\'s a simple, unambiguous way to represent time that is widely used in programming, databases, and APIs.' },
+  { question: 'Why do developers use Unix timestamps?', answer: 'Unix timestamps are timezone-independent, making them ideal for storing and transmitting time data. They avoid the complexity of date string parsing and timezone conversions. Most programming languages and databases have built-in support for Unix timestamps.' },
+  { question: 'What is the Year 2038 problem?', answer: 'On January 19, 2038, 32-bit Unix timestamps will overflow and wrap around to negative values, potentially causing date-related bugs in systems that still use 32-bit integers. Most modern systems now use 64-bit timestamps, which won\'t overflow for billions of years.' },
+  { question: 'Is the timestamp in seconds or milliseconds?', answer: 'This tool uses seconds (10-digit timestamps). However, many systems (including JavaScript) use milliseconds (13-digit timestamps). If you have a millisecond timestamp, divide by 1000 before entering it here.' },
+]
+
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free online Unix timestamp converter. Convert between Unix timestamps and human-readable dates. View current UTC and local time. All processing is local and private." {steps} {faq}
+>
+  <div class="code-panel mb-6"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Current Time</span></div><div class="p-4"><div class="space-y-3"><div class="flex items-center justify-between bg-gray-50 rounded-lg p-3 dark:bg-gray-800"><span class="font-medium text-blue-600 dark:text-blue-400">Timestamp</span><span class="font-mono text-gray-900 dark:text-gray-100" id="currentTs"></span><button id="copyTsBtn" class="btn btn-sm btn-secondary">Copy</button></div><div class="flex items-center justify-between bg-gray-50 rounded-lg p-3 dark:bg-gray-800"><span class="font-medium text-blue-600 dark:text-blue-400">UTC</span><span class="font-mono text-gray-900 dark:text-gray-100" id="currentUtc"></span></div><div class="flex items-center justify-between bg-gray-50 rounded-lg p-3 dark:bg-gray-800"><span class="font-medium text-blue-600 dark:text-blue-400">Local</span><span class="font-mono text-gray-900 dark:text-gray-100" id="currentLocal"></span></div></div></div></div>
+  <div class="mb-6"><label class="block font-medium text-gray-700 dark:text-gray-300 mb-2">Timestamp (seconds)</label><input type="text" id="tsInput" class="form-input w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-4 py-3 dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100" placeholder="Enter Unix timestamp..." oninput="convertFromTs()"><button id="sampleTsBtn" class="btn btn-sm btn-secondary mt-2">Load Sample</button></div>
+  <div class="code-panel mb-6"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Result</span></div><div class="p-4"><div class="space-y-3" id="tsResults"></div></div></div>
+  <div><label class="block font-medium text-gray-700 dark:text-gray-300 mb-2">Date/Time</label><input type="datetime-local" id="dtInput" class="form-input w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-4 py-3 dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100" oninput="convertFromDt()"></div>
+
+  <section slot="examples" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Common Timestamp Values</h2>
+    <div class="overflow-x-auto"><table class="w-full text-left"><thead><tr class="border-b border-gray-200 dark:border-gray-800"><th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">Timestamp</th><th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">Date (UTC)</th><th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">Description</th></tr></thead><tbody class="text-gray-500 dark:text-gray-400"><tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4 font-mono">0</td><td class="py-3 px-4">Jan 1, 1970</td><td class="py-3 px-4">Unix epoch</td></tr><tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4 font-mono">1000000000</td><td class="py-3 px-4">Sep 9, 2001</td><td class="py-3 px-4">1 billion seconds</td></tr><tr><td class="py-3 px-4 font-mono">2000000000</td><td class="py-3 px-4">May 18, 2033</td><td class="py-3 px-4">2 billion seconds</td></tr></tbody></table></div>
+  </section>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">About Unix Timestamps</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">The Unix epoch is January 1, 1970, 00:00:00 UTC. This date was chosen as a convenient reference point for early Unix systems. Every timestamp represents the number of seconds since this moment.</p>
+      <h3 class="text-lg font-semibold text-gray-900 mt-6 mb-3 dark:text-white">Common Uses</h3>
+      <ul class="list-disc list-inside space-y-2 text-gray-500 dark:text-gray-400">
+        <li>Database record timestamps (created_at, updated_at)</li>
+        <li>API authentication (JWT iat, exp claims)</li>
+        <li>Event logging and analytics</li>
+        <li>Cache expiration and TTL calculations</li>
+      </ul>
+    </div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+      <a href="/guides/unix-timestamps-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">Unix Timestamps & Timezone Handling</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Epoch time, seconds vs milliseconds, the 2038 problem.</p></div></div></a>
+      <a href="/guides/unix-timestamps-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">Unix Timestamps & Timezone Handling</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Epoch time, seconds vs milliseconds, the 2038 problem.</p></div></div></a>
+    </div>
+  </section>
+
+  <script>
+    import { copyToClipboard } from '../../../utils/copyToClipboard'
+    const currentTs = document.getElementById('currentTs')!; const currentUtc = document.getElementById('currentUtc')!; const currentLocal = document.getElementById('currentLocal')!
+    const tsInput = document.getElementById('tsInput'); const dtInput = document.getElementById('dtInput')
+    const tsResults = document.getElementById('tsResults')!; const copyTsBtn = document.getElementById('copyTsBtn')!; const sampleTsBtn = document.getElementById('sampleTsBtn')!
+    function updateCurrentTime() { const now = Date.now(); const ts = Math.floor(now / 1000); currentTs.textContent = ts.toString(); currentUtc.textContent = new Date(now).toUTCString(); currentLocal.textContent = new Date(now).toString() }
+    function convertFromTs() { const val = tsInput.value; if (!val) { tsResults.innerHTML = ''; return }; const num = parseInt(val, 10); const d = new Date(num * 1000); tsResults.innerHTML = `<div class="flex items-center justify-between bg-gray-50 rounded-lg p-3 dark:bg-gray-800"><span class="font-medium text-blue-600 dark:text-blue-400">UTC</span><span class="font-mono text-gray-900 dark:text-gray-100">${d.toUTCString()}</span></div><div class="flex items-center justify-between bg-gray-50 rounded-lg p-3 dark:bg-gray-800"><span class="font-medium text-blue-600 dark:text-blue-400">Local</span><span class="font-mono text-gray-900 dark:text-gray-100">${d.toString()}</span></div>` }
+    function convertFromDt() { const d = new Date(dtInput.value); tsInput.value = Math.floor(d.getTime() / 1000).toString(); convertFromTs() }
+    copyTsBtn.addEventListener('click', async () => { await copyToClipboard(currentTs.textContent || '') })
+    sampleTsBtn.addEventListener('click', () => { tsInput.value = '1700000000'; convertFromTs() })
+    updateCurrentTime(); setInterval(updateCurrentTime, 1000)
+  </script>
+</ToolLayout>

@@ -1,0 +1,56 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+const content = `
+<div class="prose prose-gray max-w-none dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-strong:text-gray-900 dark:prose-strong:text-white prose-code:text-blue-600 dark:prose-code:text-blue-400 prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-pre:bg-gray-50 dark:prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-gray-800">
+
+<h2>What a Diff Shows You</h2>
+<p>A diff is the output of comparing two versions of text and showing exactly what changed. Lines present in both versions appear as plain context. Lines in the original but not the modified version get a minus prefix and typically render in red. Lines in the modified but not the original get a plus prefix and render in green. This format — the unified diff — is the universal language of code review. Every pull request on GitHub, every commit in git, every patch file uses this same convention.</p>
+<p>The format was designed by Larry Wall (creator of Perl) for the Unix <code>diff</code> command in the early 1970s, but it was the <code>diff -u</code> (unified) format from Wayne Davison in 1990 that became the standard. The "unified" name comes from showing both the old and new versions in a single view with context lines, rather than as separate columns.</p>
+<pre><code class="language-diff">  This line is identical in both versions — it provides context
+- This line was removed from the original document
++ This line was added in the modified document
+  This line is also unchanged — more context around the change</code></pre>
+
+<h2>How Diff Algorithms Work</h2>
+<p>The algorithm that powers most diff tools is based on the longest common subsequence (LCS) problem: given two sequences, find the longest sequence that appears in both in the same order. The differences are everything not in the LCS. The classic solution is the Myers diff algorithm (1986), which runs in O(ND) time where N is the total length and D is the number of differences. When the two inputs are similar (most code changes), D is small and the algorithm is fast. When they're completely different, it degrades to O(N²).</p>
+<p>Modern diff tools use variations and optimizations of Myers' algorithm. Git uses a combination of Myers diff for line-level comparison and a histogram-based algorithm for better results on structured content. The "patience diff" algorithm (used by <code>git diff --patience</code>) does a better job of matching unique lines — like function signatures — before filling in the common lines between them. This often produces more readable diffs for code with moved blocks.</p>
+
+<h2>Reading Diffs: The Hunk Header</h2>
+<p>Every diff "hunk" (a block of changes with surrounding context) starts with a header showing the line ranges in both files:</p>
+<pre><code class="language-diff">@@ -10,7 +10,8 @@ function processData(items) {</code></pre>
+<p>This means: in the old file, starting at line 10, the next 7 lines are shown. In the new file, starting at line 10, the next 8 lines are shown. The text after @@ is the closest function or section heading — git tries to show you what function you're in, which is invaluable when scrolling through a large diff.</p>
+
+<h2>Line-by-Line vs. Character-Level Diffs</h2>
+<p>Line-by-line comparison treats each line as atomic. It's fast, it's what git uses, and it's what most code review tools display. The downside: a one-character change on a long line shows the entire line as modified, even though 99% of the characters are unchanged. Word-level and character-level diffs go deeper, highlighting exactly which characters or words within a line are different. GitHub added a "split diff" view option in 2021 that shows word-level highlighting within changed lines. For catching a single-character typo in a long configuration line, this is the difference between spotting the bug instantly and searching for it for minutes. Our <a href="/tools/diff-checker/">Diff Checker</a> uses line-by-line comparison, which covers most text comparison needs.</p>
+
+<h2>Common Diff Workflows</h2>
+<p><strong>Code review.</strong> The diff is the unit of code review. Before merging a PR, scan the diff for: logic changes that should be accompanied by test changes (are they?), new dependencies or imports (are they approved?), hardcoded values that should be configurable, debug logging that was accidentally committed, and changes to files you didn't expect to be modified. The size of the diff is itself a signal — a 500-line diff across 20 files warrants different scrutiny than a 3-line fix.</p>
+<p><strong>Configuration debugging.</strong> "The app works on staging but not production." Export both configurations, diff them. The culprit is often a single line — a database URL pointing to the wrong environment, a feature flag that's off, an API key that's missing, a memory limit that's lower. A diff makes the difference instantly visible, while manually comparing two config files side by side is an exercise in missing the one line that matters.</p>
+<p><strong>Test output comparison.</strong> Automated tests that fail with "expected X, got Y" are vastly improved by showing a diff of X vs Y. Every modern test framework does this for assertion failures. For custom test scripts that don't, piping output through <code>diff</code> is a one-line addition that saves hours of debugging.</p>
+<p><strong>Document versioning.</strong> Track changes between versions of contracts, policies, or specifications. Lawyers and compliance officers routinely use redline comparisons — a diff by another name. Understanding what changed between version 2.3 and 2.4 of a dependency's terms of service can be a legal requirement.</p>
+<p><strong>Log file analysis.</strong> Compare log output from a working run against a failing run. The diff immediately surfaces what's different — an extra error message, a missing initialization line, a different configuration value being loaded.</p>
+
+<h2>Tools Beyond git diff</h2>
+<p>Git's built-in diff is the standard, but several specialized tools exist for different workflows: <code>git diff --word-diff</code> highlights changed words within lines using inline markers. <code>git difftool</code> opens an external visual diff tool. <code>vimdiff</code> shows files side by side in Vim with color-coded differences — steep learning curve but extremely fast for Vim users. <code>meld</code> provides a GUI for directory-level comparison, useful for comparing entire project trees. GitHub, GitLab, and Bitbucket all have web-based diff viewers with syntax highlighting and inline comment threading. Our <a href="/tools/diff-checker/">Diff Checker</a> provides a no-setup, browser-based way to compare two blocks of text in seconds.</p><h2>Quick Reference</h2>
+<table>
+<thead><tr><th>Command</th><th>Purpose</th></tr></thead>
+<tbody>
+<tr><td>git diff</td><td>Unstaged working tree changes</td></tr>
+<tr><td>git diff --staged</td><td>Staged changes before commit</td></tr>
+<tr><td>git diff main...feature</td><td>Branch divergence from main</td></tr>
+</tbody>
+</table>
+
+<h2>When Diffs Are the Wrong Tool</h2>
+<p>Diffs work well for source code and structured text. They work poorly for binary files — the output is meaningless. They are semantically unaware: moving a function shows as deletion and addition with no indication the code is the same. Git can detect renamed files with --find-renames, but this is heuristic. For semantically meaningful comparisons — did this function behavior change? — you need tests, not diffs.</p>
+<h2>Diffing Non-Code Content</h2>
+<p>Diffs are useful for more than code. Compare two versions of a CSV export to find what changed between daily data dumps. Diff two log files from different servers to identify why one is behaving differently. Compare configuration files between environments to find the one setting that is different. Diff two SQL dump files to verify a migration produced identical schemas. In each case, the diff shows exactly what changed — and what did not change — in a format that is scannable and precise.</p>
+<p>For binary file formats, specialized diff tools exist. Image diff tools highlight visual differences between two screenshots (useful for visual regression testing). PDF diff tools compare text content between document versions. JSON diff tools compare structured data semantically, ignoring key order and whitespace differences. Use the right diff tool for the content type — a text diff of two binary files produces meaningless output.</p>
+</div>
+`
+---
+<GuideLayout title="Text Diffing: Comparing Code for Review & Debugging | DevTools Hub" description="A comprehensive guide to diff comparison. Learn how diff algorithms work, how to read diff output, and real-world workflows for code review, config debugging, and test comparison." breadcrumb="Text Diffing">
+  <Fragment slot="title">Text Diffing: Code Review<br class="hidden sm:block" />& Debug Comparison</Fragment>
+  <Fragment slot="intro">Diffs are the universal language of code review. From the Myers algorithm to reading hunk headers to real-world debugging workflows — everything you need to compare text like a pro.</Fragment>
+  <Fragment set:html={content} />
+</GuideLayout>

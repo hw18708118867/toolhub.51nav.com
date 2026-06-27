@@ -1,0 +1,81 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import StatusMessage from '../../../components/StatusMessage.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'json-yaml')!
+
+const steps = [
+  { name: 'Paste Your Data', text: 'Copy your JSON or YAML data and paste it into the input panel. The tool accepts both formats.' },
+  { name: 'Choose Conversion Direction', text: 'Click "JSON → YAML" to convert JSON to YAML format, or "YAML → JSON" to convert YAML to JSON format.' },
+  { name: 'Copy the Result', text: 'The converted output appears instantly in the right panel. All processing happens locally in your browser.' },
+]
+
+const faq = [
+  { question: 'What is the difference between JSON and YAML?', answer: 'JSON (JavaScript Object Notation) uses braces, brackets, and quotes. YAML (YAML Ain\'t Markup Language) uses indentation and is more human-readable. YAML supports comments, while JSON does not. YAML is commonly used for configuration files (Docker, Kubernetes, Ansible), while JSON is the standard for APIs.' },
+  { question: 'When should I use YAML instead of JSON?', answer: 'Use YAML for configuration files, CI/CD pipelines, and any scenario where humans will read and write the data. Use JSON for APIs, data interchange between services, and when you need strict parsing. YAML is more error-prone due to its indentation sensitivity.' },
+  { question: 'Can YAML do everything JSON can?', answer: 'YAML is a superset of JSON — every valid JSON file is also valid YAML. YAML adds features like comments, anchors, and references. However, YAML\'s indentation-based syntax can cause subtle errors, which is why JSON remains preferred for programmatic data exchange.' },
+  { question: 'Why does the YAML output look different from other YAML converters?', answer: 'This tool performs a basic conversion that preserves the structure of your data. Complex YAML features like anchors, references, and multi-line strings are not supported in this converter. For production YAML, consider using a dedicated YAML library.' },
+]
+
+const jsonExample = '{"name":"DevTools Hub","version":"1.0.0","active":true}'
+const yamlExample = `name: DevTools Hub
+version: 1.0.0
+active: true`
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free online JSON to YAML converter. Convert between JSON and YAML formats instantly. All processing happens locally in your browser for maximum privacy." {steps} {faq}
+>
+  <div class="flex flex-wrap gap-3 mb-6">
+    <button id="jsonToYamlBtn" class="btn btn-primary">JSON → YAML</button>
+    <button id="yamlToJsonBtn" class="btn btn-secondary">YAML → JSON</button>
+    <button id="sampleBtn" class="btn btn-secondary">Load Sample</button>
+    <button id="clearBtn" class="btn btn-secondary">Clear</button>
+  </div>
+  <div class="grid lg:grid-cols-2 gap-6">
+    <div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Input (JSON or YAML)</span></div><textarea id="yyInput" class="code-input" placeholder="Enter JSON or YAML..."></textarea></div>
+    <div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Output</span></div><pre id="yyOutput" class="code-output"></pre></div>
+  </div>
+  <StatusMessage id="yyStatus" />
+
+  <section slot="examples" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Examples</h2>
+    <div class="grid lg:grid-cols-2 gap-6">
+      <div><h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 dark:text-gray-400">JSON</h3><pre class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-700 overflow-x-auto dark:bg-gray-900 dark:border-gray-800 dark:text-gray-300"><code>{jsonExample}</code></pre></div>
+      <div><h3 class="text-sm font-semibold text-green-600 uppercase tracking-wider mb-3">YAML</h3><pre class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-700 overflow-x-auto dark:bg-gray-900 dark:border-gray-800 dark:text-gray-300"><code>{yamlExample}</code></pre></div>
+    </div>
+  </section>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">JSON vs YAML: When to Use Each</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">Both JSON and YAML are popular data serialization formats, but they serve different purposes. JSON is the universal language of web APIs, while YAML shines in DevOps and configuration management.</p>
+      <h3 class="text-lg font-semibold text-gray-900 mt-6 mb-3 dark:text-white">Comparison</h3>
+      <ul class="list-disc list-inside space-y-2 text-gray-500 dark:text-gray-400">
+        <li><strong>JSON</strong> — Strict syntax, no comments, great for APIs, universal support</li>
+        <li><strong>YAML</strong> — Human-readable, supports comments, indentation-based, great for config files</li>
+      </ul>
+    </div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+      <a href="/guides/json-debugging-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">JSON Debugging Guide</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Fix and prevent common JSON errors.</p></div></div></a>
+      <a href="/guides/json-debugging-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">JSON Debugging Guide</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Fix and prevent common JSON errors.</p></div></div></a>
+    </div>
+  </section>
+
+  <script>
+    import { copyToClipboard } from '../../../utils/copyToClipboard'
+    const jsonToYamlBtn = document.getElementById('jsonToYamlBtn')!; const yamlToJsonBtn = document.getElementById('yamlToJsonBtn')!; const clearBtn = document.getElementById('clearBtn')!; const sampleBtn = document.getElementById('sampleBtn')!; const yyInput = document.getElementById('yyInput'); const yyOutput = document.getElementById('yyOutput')!
+    function showStatus(message: string, type: 'success' | 'error') { const statusEl = document.getElementById('yyStatus')!; statusEl.textContent = message; statusEl.classList.remove('hidden'); statusEl.className = type === 'success' ? 'mt-4 px-4 py-3 rounded-lg bg-green-900/40 border border-green-800 text-green-400' : 'mt-4 px-4 py-3 rounded-lg bg-red-900/40 border border-red-800 text-red-400'; setTimeout(() => statusEl.classList.add('hidden'), 3000) }
+    function simpleJsonToYaml(obj: any, indent = 0): string { if (obj === null) return 'null'; if (typeof obj === 'boolean') return obj.toString(); if (typeof obj === 'number') return obj.toString(); if (typeof obj === 'string') return obj.includes(':') ? `"${obj}"` : obj; const spaces = ' '.repeat(indent * 2); if (Array.isArray(obj)) return obj.map(item => `${spaces}- ${simpleJsonToYaml(item, indent + 1)}`).join('\n'); if (typeof obj === 'object') return Object.keys(obj).map(key => { const val = obj[key]; if (typeof val === 'object' && val !== null) return `${spaces}${key}:\n${simpleJsonToYaml(val, indent + 1)}`; return `${spaces}${key}: ${simpleJsonToYaml(val, indent)}` }).join('\n'); return JSON.stringify(obj) }
+    function jsonToYaml() { try { const input = yyInput.value.trim(); if (!input) { showStatus('Enter some JSON first!', 'error'); return }; const obj = JSON.parse(input); yyOutput.textContent = simpleJsonToYaml(obj); showStatus('Converted to YAML!', 'success') } catch (e) { showStatus('Invalid JSON: ' + (e as Error).message, 'error') } }
+    function yamlToJson() { try { const input = yyInput.value.trim(); if (!input) { showStatus('Enter some YAML first!', 'error'); return }; const obj: any = {}; const lines = input.split('\n').filter(l => l.trim()); lines.forEach(line => { const match = line.match(/^\s*(\S+?)\s*:\s*(.*)$/); if (match) { const key = match[1].trim(); let val: any = match[2].trim(); if (val === 'true') val = true; else if (val === 'false') val = false; else if (val === 'null') val = null; else if (val.match(/^\d+$/)) val = parseInt(val); else if (val.match(/^\d+\.\d+$/)) val = parseFloat(val); obj[key] = val } }); yyOutput.textContent = JSON.stringify(obj, null, 2); showStatus('Converted to JSON!', 'success') } catch (e) { showStatus('Conversion error: ' + (e as Error).message, 'error') } }
+    jsonToYamlBtn.addEventListener('click', jsonToYaml); yamlToJsonBtn.addEventListener('click', yamlToJson); clearBtn.addEventListener('click', () => { yyInput.value = ''; yyOutput.textContent = '' })
+    sampleBtn.addEventListener('click', () => { yyInput.value = '{"name":"DevTools Hub","version":"1.0.0","features":["JSON","YAML","Base64"],"active":true}'; yyOutput.textContent = '' })
+  </script>
+</ToolLayout>

@@ -1,0 +1,33 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro'
+import Header from '../components/Header.astro'
+import Footer from '../components/Footer.astro'
+---
+
+<BaseLayout title="Privacy Policy | DevTools Hub" description="DevTools Hub privacy policy. Learn what data we collect and how we use it.">
+  <Header />
+  <main class="flex-1 py-16">
+    <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-4 dark:text-white">Privacy Policy</h1>
+      <p class="text-lg text-gray-500 mb-12 dark:text-gray-400">Last updated: June 2026</p>
+
+      <div class="prose prose-gray max-w-none dark:prose-invert space-y-6">
+        <h2 class="text-xl font-bold text-gray-900 dark:text-white">1. Tool Data</h2>
+        <p class="text-gray-500 dark:text-gray-400">All tools on DevTools Hub process data entirely in your browser. When you paste text into the JSON Formatter, generate a UUID, or convert Base64 — that data never leaves your computer. We do not collect, store, transmit, or have access to any data you enter into any tool.</p>
+
+        <h2 class="text-xl font-bold text-gray-900 dark:text-white">2. Analytics</h2>
+        <p class="text-gray-500 dark:text-gray-400">We use Google Analytics 4 (GA4) to collect anonymous usage data: which pages are visited, how users find the site, and basic device/browser information. This helps us understand which tools are most useful and how to improve the site. GA4 does not collect any data you enter into tools.</p>
+
+        <h2 class="text-xl font-bold text-gray-900 dark:text-white">3. Cookies</h2>
+        <p class="text-gray-500 dark:text-gray-400">We use a single cookie to remember your theme preference (light or dark mode). This is a functional cookie required for the site to work — it does not track you. GA4 may set additional cookies for analytics purposes.</p>
+
+        <h2 class="text-xl font-bold text-gray-900 dark:text-white">4. Data Sharing</h2>
+        <p class="text-gray-500 dark:text-gray-400">We do not sell, share, or transfer any user data to third parties. Anonymous analytics data is processed by Google Analytics and subject to Google's privacy policy.</p>
+
+        <h2 class="text-xl font-bold text-gray-900 dark:text-white">5. Contact</h2>
+        <p class="text-gray-500 dark:text-gray-400">Questions about this policy? Contact us at <a href="mailto:miraclehuang611@gmail.com" class="text-blue-600 dark:text-blue-400">miraclehuang611@gmail.com</a>.</p>
+      </div>
+    </div>
+  </main>
+  <Footer />
+</BaseLayout>

@@ -1,0 +1,236 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import StatusMessage from '../../../components/StatusMessage.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'json-formatter')!
+
+const steps = [
+  {
+    name: 'Paste Your JSON',
+    text: 'Copy your raw JSON data and paste it into the input panel on the left. You can also click "Load Sample" to try with example data.',
+  },
+  {
+    name: 'Choose an Action',
+    text: 'Click "Format" to beautify and indent your JSON, "Minify" to compress it to a single line, or "Validate" to check for syntax errors.',
+  },
+  {
+    name: 'Review the Output',
+    text: 'The processed result appears instantly in the output panel on the right. All processing happens locally in your browser.',
+  },
+  {
+    name: 'Copy and Use',
+    text: 'Click the "Copy" button above the output panel to copy the result to your clipboard. Paste it wherever you need it.',
+  },
+]
+
+const faq = [
+  {
+    question: 'What is a JSON Formatter?',
+    answer: 'A JSON Formatter takes raw, unformatted JSON data and adds proper indentation, line breaks, and spacing to make it human-readable. It also validates that the JSON syntax is correct and can optionally compress (minify) JSON by removing all unnecessary whitespace.',
+  },
+  {
+    question: 'Is my JSON data safe when using this tool?',
+    answer: 'Yes, absolutely. All processing happens entirely in your browser using JavaScript. Your JSON data is never uploaded to any server, never stored, and never seen by anyone. You can even disconnect from the internet after loading the page and the tool will continue to work.',
+  },
+  {
+    question: 'What is the difference between Format and Minify?',
+    answer: 'Format (also called "beautify" or "pretty-print") adds indentation and line breaks to make JSON readable. Minify (also called "compress" or "uglify") removes all unnecessary whitespace to create the smallest possible file size — useful for production deployments where every byte counts.',
+  },
+  {
+    question: 'Can I format very large JSON files?',
+    answer: 'Yes, the tool can handle large JSON files. However, since processing runs in your browser, performance depends on your device. For extremely large files (100MB+), you may experience a brief delay. Most typical JSON payloads (up to a few MB) process instantly.',
+  },
+  {
+    question: 'What happens if my JSON has errors?',
+    answer: 'If your JSON contains syntax errors (missing commas, unclosed brackets, trailing commas, etc.), the tool will display a specific error message pointing to the problem. This makes it useful not just for formatting but also for debugging invalid JSON.',
+  },
+]
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free online JSON Formatter — format, validate, and minify your JSON data instantly. All processing happens locally in your browser for maximum privacy." {steps} {faq}
+>
+  <!-- ========== TOOL AREA ========== -->
+  <div class="flex flex-wrap gap-3 mb-6">
+    <button id="formatBtn" class="btn btn-primary">Format</button>
+    <button id="minifyBtn" class="btn btn-secondary">Minify</button>
+    <button id="validateBtn" class="btn btn-secondary">Validate</button>
+    <button id="sampleBtn" class="btn btn-secondary">Load Sample</button>
+    <button id="clearBtn" class="btn btn-secondary">Clear</button>
+  </div>
+
+  <div class="grid lg:grid-cols-2 gap-6">
+    <div class="code-panel">
+      <div class="code-panel-header">
+        <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Input JSON</span>
+        <button id="copyInputBtn" class="btn btn-sm btn-secondary">Copy</button>
+      </div>
+      <textarea id="jsonInput" class="code-input" placeholder="Paste your JSON here..."></textarea>
+    </div>
+
+    <div class="code-panel">
+      <div class="code-panel-header">
+        <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Output</span>
+        <button id="copyOutputBtn" class="btn btn-sm btn-secondary">Copy</button>
+      </div>
+      <pre id="jsonOutput" class="code-output"></pre>
+    </div>
+  </div>
+
+  <StatusMessage id="jsonStatus" />
+
+  <!-- ========== EXAMPLES ========== -->
+  <section slot="examples" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Examples</h2>
+
+    <div class="grid lg:grid-cols-2 gap-6 mb-6">
+      <div>
+        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 dark:text-gray-400">Before (Unformatted)</h3>
+        <pre class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-700 overflow-x-auto dark:bg-gray-900 dark:border-gray-800 dark:text-gray-300"><code>&#123;'&#123;"name":"DevTools Hub","version":"1.0.0","features":["JSON Formatter","Base64 Converter","UUID Generator"],"active":true&#125;'&#125;</code></pre>
+      </div>
+      <div>
+        <h3 class="text-sm font-semibold text-green-600 uppercase tracking-wider mb-3">After (Formatted)</h3>
+        <pre class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-700 overflow-x-auto dark:bg-gray-900 dark:border-gray-800 dark:text-gray-300"><code>&#123;`&#123;
+  "name": "DevTools Hub",
+  "version": "1.0.0",
+  "features": [
+    "JSON Formatter",
+    "Base64 Converter",
+    "UUID Generator"
+  ],
+  "active": true
+&#125;`&#125;</code></pre>
+      </div>
+    </div>
+
+    <div class="grid lg:grid-cols-2 gap-6">
+      <div>
+        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 dark:text-gray-400">Before (Formatted)</h3>
+        <pre class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-700 overflow-x-auto dark:bg-gray-900 dark:border-gray-800 dark:text-gray-300"><code>&#123;`&#123;
+  "name": "DevTools Hub",
+  "version": "1.0.0",
+  "active": true
+&#125;`&#125;</code></pre>
+      </div>
+      <div>
+        <h3 class="text-sm font-semibold text-green-600 uppercase tracking-wider mb-3">After (Minified)</h3>
+        <pre class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-700 overflow-x-auto dark:bg-gray-900 dark:border-gray-800 dark:text-gray-300"><code>&#123;'&#123;"name":"DevTools Hub","version":"1.0.0","active":true&#125;'&#125;</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== TUTORIAL ========== -->
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">What is JSON?</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">
+        <strong class="text-gray-900 dark:text-white">JSON</strong> (JavaScript Object Notation) is a lightweight data-interchange format that is easy for humans to read and write, and easy for machines to parse and generate. It is the most widely used data format for APIs, configuration files, and data storage on the web.
+      </p>
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">
+        JSON is built on two universal data structures: a collection of <strong class="text-gray-900 dark:text-white">key/value pairs</strong> (objects) and an <strong class="text-gray-900 dark:text-white">ordered list of values</strong> (arrays). This simplicity is why JSON has become the de facto standard for web APIs — virtually every programming language has built-in JSON support.
+      </p>
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">
+        Our JSON Formatter helps you work with JSON data efficiently. Whether you're debugging an API response, inspecting a configuration file, or preparing data for production, the tool gives you instant, private formatting without any server dependency.
+      </p>
+      <h3 class="text-lg font-semibold text-gray-900 mt-6 mb-3 dark:text-white">Common Use Cases</h3>
+      <ul class="list-disc list-inside space-y-2 text-gray-500 dark:text-gray-400">
+        <li>Debugging REST API responses</li>
+        <li>Formatting configuration files (package.json, tsconfig.json, etc.)</li>
+        <li>Inspecting webhook payloads</li>
+        <li>Minifying JSON before deployment</li>
+        <li>Validating JSON syntax before committing to a codebase</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ========== RELATED ARTICLES (Placeholder) ========== -->
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+      <a href="/guides/json-debugging-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">JSON Debugging Guide</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Fix and prevent common JSON errors.</p></div></div></a>
+      <a href="/guides/json-debugging-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">JSON Debugging Guide</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Fix and prevent common JSON errors.</p></div></div></a>
+    </div>
+  </section>
+
+  <script>
+    import { copyToClipboard } from '../../../utils/copyToClipboard'
+
+    const sampleJson = {
+      name: 'DevTools Hub',
+      version: '1.0.0',
+      features: ['JSON Formatter', 'Base64 Converter', 'UUID Generator'],
+      active: true
+    }
+
+    const formatBtn = document.getElementById('formatBtn')!
+    const minifyBtn = document.getElementById('minifyBtn')!
+    const validateBtn = document.getElementById('validateBtn')!
+    const sampleBtn = document.getElementById('sampleBtn')!
+    const clearBtn = document.getElementById('clearBtn')!
+    const copyInputBtn = document.getElementById('copyInputBtn')!
+    const copyOutputBtn = document.getElementById('copyOutputBtn')!
+    const jsonInput = document.getElementById('jsonInput')
+    const jsonOutput = document.getElementById('jsonOutput')!
+
+    function showStatus(message: string, type: 'success' | 'error') {
+      const statusEl = document.getElementById('jsonStatus')!
+      statusEl.textContent = message
+      statusEl.classList.remove('hidden')
+      statusEl.className = type === 'success'
+        ? 'mt-4 px-4 py-3 rounded-lg bg-green-900/40 border border-green-800 text-green-400'
+        : 'mt-4 px-4 py-3 rounded-lg bg-red-900/40 border border-red-800 text-red-400'
+      setTimeout(() => statusEl.classList.add('hidden'), 3000)
+    }
+
+    formatBtn.addEventListener('click', () => {
+      try {
+        const obj = JSON.parse(jsonInput.value)
+        jsonOutput.textContent = JSON.stringify(obj, null, 2)
+        showStatus('JSON formatted successfully!', 'success')
+      } catch (e) {
+        showStatus('Invalid JSON: ' + (e as Error).message, 'error')
+      }
+    })
+
+    minifyBtn.addEventListener('click', () => {
+      try {
+        const obj = JSON.parse(jsonInput.value)
+        jsonOutput.textContent = JSON.stringify(obj)
+        showStatus('JSON minified successfully!', 'success')
+      } catch (e) {
+        showStatus('Invalid JSON: ' + (e as Error).message, 'error')
+      }
+    })
+
+    validateBtn.addEventListener('click', () => {
+      try {
+        JSON.parse(jsonInput.value)
+        showStatus('✓ Valid JSON!', 'success')
+      } catch (e) {
+        showStatus('✗ Invalid JSON: ' + (e as Error).message, 'error')
+      }
+    })
+
+    sampleBtn.addEventListener('click', () => {
+      jsonInput.value = JSON.stringify(sampleJson, null, 2)
+      jsonOutput.textContent = ''
+    })
+
+    clearBtn.addEventListener('click', () => {
+      jsonInput.value = ''
+      jsonOutput.textContent = ''
+    })
+
+    copyInputBtn.addEventListener('click', async () => {
+      const success = await copyToClipboard(jsonInput.value)
+      showStatus(success ? 'Copied!' : 'Failed to copy', success ? 'success' : 'error')
+    })
+
+    copyOutputBtn.addEventListener('click', async () => {
+      const success = await copyToClipboard(jsonOutput.textContent || '')
+      showStatus(success ? 'Copied!' : 'Failed to copy', success ? 'success' : 'error')
+    })
+  </script>
+</ToolLayout>

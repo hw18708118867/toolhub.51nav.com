@@ -1,0 +1,83 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import StatusMessage from '../../../components/StatusMessage.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'sql-formatter')!
+
+const steps = [
+  { name: 'Paste Your SQL', text: 'Type or paste your SQL query into the input panel. The tool accepts SELECT, INSERT, UPDATE, DELETE, CREATE, and other SQL statements.' },
+  { name: 'Choose an Action', text: 'Click "Format" to beautify and indent your SQL with proper keyword capitalization and line breaks. Click "Minify" to compress it to a single line.' },
+  { name: 'Copy the Result', text: 'The output appears in the right panel. Copy it and paste it into your database client, code editor, or documentation.' },
+]
+
+const faq = [
+  { question: 'What is a SQL formatter?', answer: 'A SQL formatter takes raw, unformatted SQL and applies consistent indentation, capitalization, and line breaks to make it readable. It helps developers understand complex queries, debug issues, and maintain consistent code style across a team.' },
+  { question: 'Can this tool format any SQL dialect?', answer: 'Yes, this tool works with standard SQL syntax used by MySQL, PostgreSQL, SQLite, SQL Server, and other databases. It recognizes common SQL keywords and formats them consistently. For very complex database-specific syntax, results may vary.' },
+  { question: 'Does formatting change how my SQL works?', answer: 'No. SQL formatting only changes whitespace (spaces, tabs, newlines) and capitalization. It does not modify the actual SQL logic, table names, column names, or values. You can safely format your SQL without changing its behavior.' },
+  { question: 'When should I format vs minify SQL?', answer: 'Format SQL when you\'re reading, debugging, or sharing queries with your team. Minify SQL when you need to embed it in application code, send it over a network, or reduce storage space. Minified SQL is harder to read but more compact.' },
+]
+
+const before = 'SELECT id,name,email FROM users WHERE active=1 ORDER BY name ASC'
+const after = `SELECT id, name, email
+FROM users
+WHERE active = 1
+ORDER BY name ASC`
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free online SQL formatter. Format, beautify, and minify SQL queries instantly. Works with MySQL, PostgreSQL, SQLite, and more. All processing is local and private." {steps} {faq}
+>
+  <div class="flex flex-wrap gap-3 mb-6">
+    <button id="formatBtn" class="btn btn-primary">Format</button>
+    <button id="minifyBtn" class="btn btn-secondary">Minify</button>
+    <button id="sampleBtn" class="btn btn-secondary">Load Sample</button>
+    <button id="clearBtn" class="btn btn-secondary">Clear</button>
+  </div>
+  <div class="grid lg:grid-cols-2 gap-6">
+    <div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Input SQL</span></div><textarea id="sqlInput" class="code-input" placeholder="Paste SQL..."></textarea></div>
+    <div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Output</span></div><pre id="sqlOutput" class="code-output"></pre></div>
+  </div>
+  <StatusMessage id="sqlStatus" />
+
+  <section slot="examples" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Examples</h2>
+    <div class="grid lg:grid-cols-2 gap-6">
+      <div><h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 dark:text-gray-400">Before (Unformatted)</h3><pre class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-700 overflow-x-auto dark:bg-gray-900 dark:border-gray-800 dark:text-gray-300"><code>{before}</code></pre></div>
+      <div><h3 class="text-sm font-semibold text-green-600 uppercase tracking-wider mb-3">After (Formatted)</h3><pre class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-700 overflow-x-auto dark:bg-gray-900 dark:border-gray-800 dark:text-gray-300"><code>{after}</code></pre></div>
+    </div>
+  </section>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">SQL Formatting Best Practices</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">Consistent SQL formatting improves code readability, makes code reviews easier, and helps catch bugs. Here are some formatting conventions:</p>
+      <ul class="list-disc list-inside space-y-2 text-gray-500 dark:text-gray-400">
+        <li>Capitalize SQL keywords (SELECT, FROM, WHERE, JOIN)</li>
+        <li>Put each major clause on its own line</li>
+        <li>Indent subqueries and JOIN conditions</li>
+        <li>Use consistent comma placement</li>
+      </ul>
+    </div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+      <a href="/guides/sql-formatting-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">SQL Formatting Guide</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Write clean, readable SQL queries.</p></div></div></a>
+      <a href="/guides/sql-formatting-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">SQL Formatting Guide</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Write clean, readable SQL queries.</p></div></div></a>
+    </div>
+  </section>
+
+  <script>
+    import { copyToClipboard } from '../../../utils/copyToClipboard'
+    const formatBtn = document.getElementById('formatBtn')!; const minifyBtn = document.getElementById('minifyBtn')!; const clearBtn = document.getElementById('clearBtn')!; const sampleBtn = document.getElementById('sampleBtn')!; const sqlInput = document.getElementById('sqlInput'); const sqlOutput = document.getElementById('sqlOutput')!
+    function showStatus(message: string, type: 'success' | 'error') { const statusEl = document.getElementById('sqlStatus')!; statusEl.textContent = message; statusEl.classList.remove('hidden'); statusEl.className = type === 'success' ? 'mt-4 px-4 py-3 rounded-lg bg-green-900/40 border border-green-800 text-green-400' : 'mt-4 px-4 py-3 rounded-lg bg-red-900/40 border border-red-800 text-red-400'; setTimeout(() => statusEl.classList.add('hidden'), 3000) }
+    const keywords = ['SELECT','FROM','WHERE','JOIN','LEFT','RIGHT','OUTER','INNER','ON','GROUP','BY','HAVING','ORDER','LIMIT','INSERT','INTO','VALUES','UPDATE','SET','DELETE','CREATE','TABLE','ALTER','DROP','AND','OR','NOT','IN','IS','NULL','ASC','DESC','NULLS','FIRST','LAST']
+    function formatSql() { let sql = sqlInput.value; if (!sql.trim()) { showStatus('Enter some SQL first!', 'error'); return }; let result = sql.replace(/\s+/g, ' ').trim(); keywords.forEach(kw => { result = result.replace(new RegExp(`\\b${kw}\\b`, 'gi'), kw) }); let indent = 0; let output = ''; const lines = result.split(/(?=\b(?:SELECT|FROM|WHERE|JOIN|INNER|LEFT|RIGHT|OUTER|ON|GROUP|BY|HAVING|ORDER|LIMIT|INSERT|INTO|VALUES|UPDATE|SET|DELETE|CREATE|TABLE|ALTER|DROP)\b)/i); lines.forEach(line => { line = line.trim(); if (line) { if (/^(SELECT|FROM|WHERE|JOIN|INNER|LEFT|RIGHT|OUTER|INSERT|INTO|UPDATE|CREATE|TABLE|ALTER|DROP)/i.test(line)) indent = 0; output += ' '.repeat(indent * 2) + line + '\n'; if (/^(SELECT|FROM|WHERE|JOIN|INNER|LEFT|RIGHT|OUTER|INSERT|INTO|UPDATE|CREATE|TABLE|ALTER|DROP)/i.test(line)) indent++ } }); sqlOutput.textContent = output.trim(); showStatus('SQL formatted!', 'success') }
+    function minifySql() { const sql = sqlInput.value; if (!sql.trim()) { showStatus('Enter some SQL first!', 'error'); return }; sqlOutput.textContent = sql.replace(/\s+/g, ' ').trim(); showStatus('SQL minified!', 'success') }
+    formatBtn.addEventListener('click', formatSql); minifyBtn.addEventListener('click', minifySql); clearBtn.addEventListener('click', () => { sqlInput.value = ''; sqlOutput.textContent = '' })
+    sampleBtn.addEventListener('click', () => { sqlInput.value = 'SELECT id,name,email FROM users WHERE active=1 ORDER BY name ASC'; sqlOutput.textContent = '' })
+  </script>
+</ToolLayout>

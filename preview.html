@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DevTools Hub - Preview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --color-bg: #0d1117;
+      --color-bg-secondary: #161b22;
+      --color-bg-tertiary: #21262d;
+      --color-text: #e6edf3;
+      --color-text-secondary: #8b949e;
+      --color-text-muted: #6e7681;
+      --color-border: #30363d;
+      --color-primary: #58a6ff;
+      --color-primary-hover: #79c0ff;
+      --color-success: #3fb950;
+      --color-warning: #d29922;
+      --color-error: #f85149;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+    }
+
+    body.light-mode {
+      --color-bg: #ffffff;
+      --color-bg-secondary: #f6f8fa;
+      --color-bg-tertiary: #eaeef2;
+      --color-text: #1f2328;
+      --color-text-secondary: #656d76;
+      --color-text-muted: #818b98;
+      --color-border: #d0d7de;
+      --color-primary: #0969da;
+      --color-primary-hover: #0550ae;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      font-size: 1rem;
+      line-height: 1.6;
+      color: var(--color-text);
+      background-color: var(--color-bg);
+      min-height: 100vh;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    header {
+      background-color: var(--color-bg-secondary);
+      border-bottom: 1px solid var(--color-border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--color-text);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1.125rem;
+    }
+
+    .logo-svg {
+      width: 32px;
+      height: 32px;
+      background-color: var(--color-primary);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    nav a {
+      color: var(--color-text);
+      text-decoration: none;
+      font-weight: 500;
+      padding: 8px 12px;
+      border-radius: 8px;
+    }
+
+    nav a:hover {
+      background-color: var(--color-bg-tertiary);
+    }
+
+    .theme-toggle {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      color: var(--color-text);
+      cursor: pointer;
+    }
+
+    .theme-toggle:hover {
+      background-color: var(--color-bg-tertiary);
+    }
+
+    main {
+      padding: 48px 0;
+    }
+
+    .hero {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .hero h1 {
+      font-size: 2.5rem;
+      margin-bottom: 16px;
+    }
+
+    .hero p {
+      font-size: 1.25rem;
+      color: var(--color-text-secondary);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-bottom: 48px;
+    }
+
+    @media (max-width: 1024px) {
+      .tools-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 640px) {
+      .tools-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .tool-card {
+      display: block;
+      background-color: var(--color-bg-secondary);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      color: var(--color-text);
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .tool-card:hover {
+      border-color: var(--color-primary);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .tool-icon {
+      width: 48px;
+      height: 48px;
+      background-color: var(--color-bg-tertiary);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+      color: var(--color-primary);
+    }
+
+    .tool-card h3 {
+      font-size: 1.125rem;
+      margin-bottom: 8px;
+    }
+
+    .tool-card p {
+      color: var(--color-text-secondary);
+      font-size: 0.9375rem;
+    }
+
+    footer {
+      background-color: var(--color-bg-secondary);
+      border-top: 1px solid var(--color-border);
+      padding: 48px 0 24px;
+      margin-top: auto;
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 2fr repeat(3, 1fr);
+      gap: 32px;
+      margin-bottom: 32px;
+    }
+
+    @media (max-width: 768px) {
+      .footer-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .footer-col h4 {
+      font-size: 1rem;
+      margin-bottom: 16px;
+    }
+
+    .footer-col ul {
+      list-style: none;
+    }
+
+    .footer-col ul li {
+      margin-bottom: 8px;
+    }
+
+    .footer-col ul li a {
+      color: var(--color-text-secondary);
+      text-decoration: none;
+    }
+
+    .footer-col ul li a:hover {
+      color: var(--color-primary);
+    }
+
+    .footer-bottom {
+      padding-top: 24px;
+      border-top: 1px solid var(--color-border);
+      text-align: center;
+      color: var(--color-text-muted);
+    }
+
+    .notice {
+      background: var(--color-bg-secondary);
+      border: 1px solid var(--color-primary);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 32px;
+      text-align: center;
+    }
+
+    .notice h2 {
+      font-size: 1.25rem;
+      margin-bottom: 8px;
+      color: var(--color-primary);
+    }
+
+    .notice p {
+      color: var(--color-text-secondary);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="header-inner">
+        <a href="#" class="logo">
+          <div class="logo-svg">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+              <path d="M4 4h16v16H4z"/>
+              <path d="M12 4v16M4 12h16"/>
+            </svg>
+          </div>
+          <span class="logo-text">DevTools Hub</span>
+        </a>
+        <nav>
+          <a href="#">Home</a>
+          <a href="#">Blog</a>
+          <a href="#">About</a>
+        </nav>
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark/light mode">
+          <svg id="iconMoon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+          <svg id="iconSun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;">
+            <circle cx="12" cy="12" r="5"/>
+            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <div class="notice">
+        <h2>👋 Preview Version</h2>
+        <p>This is a static preview. To see all tools, run the full Jekyll site.</p>
+      </div>
+
+      <div class="hero">
+        <h1>Free Online Developer Tools</h1>
+        <p>Fast, easy-to-use tools for programmers. No ads, no tracking, just pure functionality.</p>
+      </div>
+
+      <h2 style="font-size: 1.5rem; margin-bottom: 24px;">All Tools</h2>
+      <div class="tools-grid">
+        <div class="tool-card">
+          <div class="tool-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 4h16v16H4z"/>
+              <path d="M12 4v16M4 12h16"/>
+            </svg>
+          </div>
+          <h3>JSON Formatter</h3>
+          <p>Format, validate, and beautify JSON</p>
+        </div>
+
+        <div class="tool-card">
+          <div class="tool-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 4h16v16H4z"/>
+              <path d="M8 12h8M12 8v8"/>
+            </svg>
+          </div>
+          <h3>Base64 Converter</h3>
+          <p>Encode and decode Base64 strings</p>
+        </div>
+
+        <div class="tool-card">
+          <div class="tool-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <path d="M9 12h6M12 9v6"/>
+            </svg>
+          </div>
+          <h3>UUID Generator</h3>
+          <p>Generate UUIDs instantly</p>
+        </div>
+
+        <div class="tool-card">
+          <div class="tool-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 12h6M12 9v6"/>
+              <circle cx="12" cy="12" r="9"/>
+            </svg>
+          </div>
+          <h3>Regex Tester</h3>
+          <p>Test and debug regular expressions</p>
+        </div>
+
+        <div class="tool-card">
+          <div class="tool-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <path d="M3 8h18M3 16h18"/>
+            </svg>
+          </div>
+          <h3>CSS Gradient</h3>
+          <p>Create beautiful gradients</p>
+        </div>
+
+        <div class="tool-card">
+          <div class="tool-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="9"/>
+              <circle cx="12" cy="12" r="5"/>
+            </svg>
+          </div>
+          <h3>Color Picker</h3>
+          <p>Pick and convert colors</p>
+        </div>
+      </div>
+
+      <h2 style="font-size: 1.5rem; margin-bottom: 24px;">Why Choose DevTools Hub?</h2>
+      <div class="tools-grid">
+        <div class="tool-card">
+          <div class="tool-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+            </svg>
+          </div>
+          <h3>Lightning Fast</h3>
+          <p>All tools run locally in your browser, no server delays</p>
+        </div>
+
+        <div class="tool-card">
+          <div class="tool-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+          </div>
+          <h3>100% Private</h3>
+          <p>Your data never leaves your browser</p>
+        </div>
+
+        <div class="tool-card">
+          <div class="tool-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 6v6l4 2"/>
+            </svg>
+          </div>
+          <h3>Always Free</h3>
+          <p>No subscriptions, no paywalls</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-col">
+          <h4>DevTools Hub</h4>
+          <p style="color: var(--color-text-secondary);">Free, fast, and easy-to-use online developer tools for programmers.</p>
+        </div>
+
+        <div class="footer-col">
+          <h4>Tools</h4>
+          <ul>
+            <li><a href="#">JSON Formatter</a></li>
+            <li><a href="#">Base64 Converter</a></li>
+            <li><a href="#">UUID Generator</a></li>
+            <li><a href="#">Regex Tester</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>More</h4>
+          <ul>
+            <li><a href="#">CSS Gradient</a></li>
+            <li><a href="#">Color Picker</a></li>
+            <li><a href="#">Blog</a></li>
+            <li><a href="#">About</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Legal</h4>
+          <ul>
+            <li><a href="#">Privacy Policy</a></li>
+            <li><a href="#">Terms of Service</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>&copy; 2026 DevTools Hub. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function() {
+      const themeToggle = document.getElementById('themeToggle');
+      const iconMoon = document.getElementById('iconMoon');
+      const iconSun = document.getElementById('iconSun');
+
+      function setTheme(isDark) {
+        if (isDark) {
+          document.body.classList.remove('light-mode');
+          iconMoon.style.display = 'block';
+          iconSun.style.display = 'none';
+        } else {
+          document.body.classList.add('light-mode');
+          iconMoon.style.display = 'none';
+          iconSun.style.display = 'block';
+        }
+      }
+
+      themeToggle.addEventListener('click', () => {
+        const isLight = document.body.classList.contains('light-mode');
+        setTheme(isLight);
+        localStorage.setItem('theme', isLight ? 'dark' : 'light');
+      });
+
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme) {
+        setTheme(savedTheme === 'dark');
+      }
+    })();
+  </script>
+</body>
+</html>

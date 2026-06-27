@@ -1,0 +1,60 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import { tools } from '../../../data/tools'
+const tool = tools.find(t => t.id === 'color-contrast')!
+const steps = [
+  { name: 'Enter Colors', text: 'Pick a text color and background color using the color pickers or type HEX values directly.' },
+  { name: 'Check the Result', text: 'The contrast ratio is calculated instantly. See if your colors pass WCAG AA and AAA standards.' },
+]
+const faq = [
+  { question: 'What is WCAG contrast ratio?', answer: 'WCAG defines minimum contrast ratios for text readability. AA requires 4.5:1 for normal text and 3:1 for large text. AAA requires 7:1 and 4.5:1. Higher ratios mean better readability.' },
+  { question: 'How is contrast ratio calculated?', answer: 'Contrast ratio = (L1 + 0.05) / (L2 + 0.05), where L1 and L2 are the relative luminance of lighter and darker colors. Luminance is calculated from sRGB values.' },
+  { question: 'What counts as large text?', answer: 'Large text: 18pt (24px) or larger, or 14pt (18.66px) or larger if bold. Large text is easier to read so has lower contrast requirements.' },
+]
+---
+<ToolLayout tool={tool} description="Free WCAG color contrast checker. Check if your text and background colors meet accessibility standards." {steps} {faq}>
+  <div class="grid md:grid-cols-2 gap-6 mb-6">
+    <div><label class="block font-medium text-gray-700 dark:text-gray-300 mb-2">Text Color</label><div class="flex gap-3"><input type="color" id="fgColor" value="#ffffff" class="h-12 w-20 rounded-lg border-0 cursor-pointer" oninput="check()"><input type="text" id="fgHex" class="form-input flex-1 bg-white border border-gray-200 text-gray-900 rounded-lg px-4 py-3 font-mono dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100" placeholder="#ffffff" oninput="check()"></div></div>
+    <div><label class="block font-medium text-gray-700 dark:text-gray-300 mb-2">Background Color</label><div class="flex gap-3"><input type="color" id="bgColor" value="#3b82f6" class="h-12 w-20 rounded-lg border-0 cursor-pointer" oninput="check()"><input type="text" id="bgHex" class="form-input flex-1 bg-white border border-gray-200 text-gray-900 rounded-lg px-4 py-3 font-mono dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100" placeholder="#3b82f6" oninput="check()"></div></div>
+  </div>
+  <div class="bg-gray-50 border border-gray-200 rounded-xl p-6 mb-6 dark:bg-gray-900 dark:border-gray-800" id="preview"><p class="text-2xl font-bold text-center" id="previewText">Sample Text</p></div>
+  <div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Results</span></div><div class="p-4 space-y-3" id="contrastResult"><p class="text-gray-400">Pick colors to calculate contrast.</p></div></div>
+  <section slot="tutorial" class="mb-10"><h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">About WCAG Contrast</h2><div class="text-gray-500 dark:text-gray-400 leading-relaxed space-y-3"><p>WCAG (Web Content Accessibility Guidelines) defines three levels: A (minimum), AA (mid-range), and AAA (highest). Most websites target AA compliance. For text, AA requires 4.5:1 contrast for normal text and 3:1 for large text.</p><p>Insufficient contrast is one of the most common accessibility issues on the web. Use this tool during design and development to catch contrast problems early.</p></div></section>
+  <script is:inline>
+    var fgColor = document.getElementById('fgColor');
+    var bgColor = document.getElementById('bgColor');
+    var fgHex = document.getElementById('fgHex');
+    var bgHex = document.getElementById('bgHex');
+    var preview = document.getElementById('preview');
+    var previewText = document.getElementById('previewText');
+    var contrastResult = document.getElementById('contrastResult');
+    function hexToRgb(h) { var r = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(h); return r ? { r: parseInt(r[1],16), g: parseInt(r[2],16), b: parseInt(r[3],16) } : null; }
+    function luminance(r, g, b) { var rs, gs, bs; rs = r/255; gs = g/255; bs = b/255; rs = rs <= 0.03928 ? rs / 12.92 : Math.pow((rs + 0.055) / 1.055, 2.4); gs = gs <= 0.03928 ? gs / 12.92 : Math.pow((gs + 0.055) / 1.055, 2.4); bs = bs <= 0.03928 ? bs / 12.92 : Math.pow((bs + 0.055) / 1.055, 2.4); return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs; }
+    function contrast(l1, l2) { var bright = Math.max(l1, l2); var dark = Math.min(l1, l2); return (bright + 0.05) / (dark + 0.05); }
+    function check() {
+      var fg = fgColor.value; var bg = bgColor.value;
+      fgHex.value = fg; bgHex.value = bg;
+      preview.style.backgroundColor = bg; previewText.style.color = fg;
+      var fgRgb = hexToRgb(fg); var bgRgb = hexToRgb(bg);
+      if (!fgRgb || !bgRgb) return;
+      var l1 = luminance(fgRgb.r, fgRgb.g, fgRgb.b); var l2 = luminance(bgRgb.r, bgRgb.g, bgRgb.b);
+      var ratio = contrast(l1, l2);
+      var aaN = ratio >= 4.5, aaL = ratio >= 3, aaaN = ratio >= 7, aaaL = ratio >= 4.5;
+      contrastResult.innerHTML = '<div class="flex justify-between bg-gray-50 rounded-lg p-3 dark:bg-gray-800"><span class="text-gray-500 dark:text-gray-400">Contrast Ratio</span><span class="font-mono font-bold text-lg text-gray-900 dark:text-white">' + ratio.toFixed(2) + ':1</span></div>' +
+        '<div class="grid grid-cols-2 gap-3">' +
+        '<div class="bg-gray-50 rounded-lg p-3 dark:bg-gray-800"><p class="text-sm text-gray-500 dark:text-gray-400 mb-1">AA Normal</p><span class="font-bold ' + (aaN ? 'text-green-500' : 'text-red-400') + '">' + (aaN ? 'Pass' : 'Fail') + ' (4.5:1)</span></div>' +
+        '<div class="bg-gray-50 rounded-lg p-3 dark:bg-gray-800"><p class="text-sm text-gray-500 dark:text-gray-400 mb-1">AA Large</p><span class="font-bold ' + (aaL ? 'text-green-500' : 'text-red-400') + '">' + (aaL ? 'Pass' : 'Fail') + ' (3:1)</span></div>' +
+        '<div class="bg-gray-50 rounded-lg p-3 dark:bg-gray-800"><p class="text-sm text-gray-500 dark:text-gray-400 mb-1">AAA Normal</p><span class="font-bold ' + (aaaN ? 'text-green-500' : 'text-red-400') + '">' + (aaaN ? 'Pass' : 'Fail') + ' (7:1)</span></div>' +
+        '<div class="bg-gray-50 rounded-lg p-3 dark:bg-gray-800"><p class="text-sm text-gray-500 dark:text-gray-400 mb-1">AAA Large</p><span class="font-bold ' + (aaaL ? 'text-green-500' : 'text-red-400') + '">' + (aaaL ? 'Pass' : 'Fail') + ' (4.5:1)</span></div></div>';
+    }
+    check();
+  </script>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+      <a href="/guides/css-color-gradient-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">CSS Colors & Gradients Guide</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">HEX, RGB, HSL explained. Build palettes and gradients.</p></div></div></a>
+      <a href="/guides/css-color-gradient-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">CSS Colors & Gradients Guide</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">HEX, RGB, HSL explained. Build palettes and gradients.</p></div></div></a>
+    </div>
+  </section>
+</ToolLayout>

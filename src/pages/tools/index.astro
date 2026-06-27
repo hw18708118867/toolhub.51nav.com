@@ -1,0 +1,95 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import Header from '../../components/Header.astro'
+import Footer from '../../components/Footer.astro'
+import ToolCard from '../../components/ToolCard.astro'
+import { tools, categories } from '../../data/tools'
+
+const toolsByCategory = Object.entries(categories).map(([key, category]) => ({
+  ...category,
+  id: key,
+  count: tools.filter(t => t.category === key).length,
+  tools: tools.filter(t => t.category === key),
+})).sort((a, b) => a.order - b.order)
+---
+
+<BaseLayout title="All Tools - DevTools Hub">
+  <Header />
+  <main class="flex-1">
+    <section class="bg-gradient-to-br from-blue-900 via-gray-900 to-gray-950 py-12 sm:py-16">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center">
+          <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4 leading-tight">
+            All Developer Tools ({tools.length})
+          </h1>
+          <p class="text-lg text-gray-400 max-w-2xl mx-auto">
+            Fast, private, and easy-to-use tools for developers.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="py-12 sm:py-16">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-wrap gap-3 mb-10 justify-center" id="filterBtns">
+          {[
+            { id: 'all', name: 'All Tools', count: tools.length },
+            ...toolsByCategory.map(c => ({ id: c.id, name: c.name, count: c.count }))
+          ].map((cat, idx) => (
+            <button
+              data-category={cat.id}
+              class={`filter-btn px-5 py-2.5 rounded-lg font-medium transition-all duration-200${idx === 0 ? ' filter-btn-active' : ''}`}
+            >
+              {cat.name} <span class="opacity-50">({cat.count})</span>
+            </button>
+          ))}
+        </div>
+        <div id="tools-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {tools.map(tool => (
+            <div data-category={tool.category}>
+              <ToolCard tool={tool} />
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  </main>
+  <Footer />
+  <script is:inline>
+    (function() {
+      const ACTIVE_BG = '#2563eb';
+      const ACTIVE_TEXT = '#fff';
+      const INACTIVE_BG = '#1f2937';
+      const INACTIVE_TEXT = '#e5e7eb';
+      const INACTIVE_BORDER = '#374151';
+
+      const btns = document.querySelectorAll('.filter-btn');
+      const cards = document.querySelectorAll('#tools-grid > [data-category]');
+
+      function setBtnStyle(b, active) {
+        if (active) {
+          b.style.backgroundColor = ACTIVE_BG;
+          b.style.color = ACTIVE_TEXT;
+          b.style.borderColor = ACTIVE_BG;
+        } else {
+          b.style.backgroundColor = INACTIVE_BG;
+          b.style.color = INACTIVE_TEXT;
+          b.style.borderColor = INACTIVE_BORDER;
+        }
+      }
+
+      // Init: first button active
+      btns.forEach((b, i) => setBtnStyle(b, i === 0));
+
+      btns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const cat = btn.dataset.category;
+          btns.forEach(b => setBtnStyle(b, false));
+          setBtnStyle(btn, true);
+          cards.forEach(c => {
+            c.style.display = (cat === 'all' || c.dataset.category === cat) ? 'block' : 'none';
+          });
+        });
+      });
+    })();
+  </script></BaseLayout>

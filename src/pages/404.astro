@@ -1,0 +1,20 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro'
+import Header from '../components/Header.astro'
+import Footer from '../components/Footer.astro'
+---
+
+<BaseLayout title="Page Not Found | DevTools Hub" description="The page you're looking for doesn't exist.">
+  <Header />
+  <main class="flex-1 flex items-center justify-center py-20">
+    <div class="text-center px-4">
+      <h1 class="text-6xl sm:text-8xl font-bold text-gray-200 mb-4 dark:text-gray-800">404</h1>
+      <p class="text-xl text-gray-500 mb-8 dark:text-gray-400">This page doesn't exist. It may have been moved or deleted.</p>
+      <div class="flex flex-wrap justify-center gap-4">
+        <a href="/" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-all">Go Home</a>
+        <a href="/tools/" class="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-all dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white">Browse Tools</a>
+      </div>
+    </div>
+  </main>
+  <Footer />
+</BaseLayout>

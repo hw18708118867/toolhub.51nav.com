@@ -1,0 +1,78 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import StatusMessage from '../../../components/StatusMessage.astro'
+import { tools } from '../../../data/tools'
+const tool = tools.find(t => t.id === 'csv-to-json')!
+const steps = [
+  { name: 'Paste CSV Data', text: 'Paste your CSV data into the input panel. The first row is treated as headers. Common delimiters are comma (,), tab, and semicolon (;).' },
+  { name: 'Convert to JSON', text: 'Click "CSV to JSON" to convert. Each row becomes a JSON object with keys from the header row.' },
+  { name: 'Copy the Result', text: 'The JSON output appears in the right panel. All processing happens locally.' },
+]
+const faq = [
+  { question: 'What CSV formats are supported?', answer: 'This tool supports comma-separated, tab-separated, and semicolon-separated CSV files. The first row is used as column headers. Values containing the delimiter or quotes should be properly quoted.' },
+  { question: 'Can I convert JSON back to CSV?', answer: 'This tool converts CSV to JSON. For the reverse conversion, you can use a JSON to CSV converter. The process is straightforward: JSON array of objects → CSV with headers from object keys.' },
+  { question: 'What happens if my CSV has empty cells?', answer: 'Empty cells are converted to empty strings in the JSON output. Null values are not supported by CSV natively — you would need to handle them in post-processing.' },
+]
+---
+<ToolLayout tool={tool} description="Free online CSV to JSON converter. Convert CSV data to JSON instantly. Supports custom delimiters. All processing is local." {steps} {faq}>
+  <div class="flex flex-wrap gap-3 mb-6">
+    <button id="convertBtn" class="btn btn-primary">CSV to JSON</button>
+    <button id="sampleBtn" class="btn btn-secondary">Load Sample</button>
+    <button id="clearBtn" class="btn btn-secondary">Clear</button>
+  </div>
+  <div class="grid lg:grid-cols-2 gap-6">
+    <div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">CSV Input</span></div><textarea id="csvInput" class="code-input" placeholder="name,age,city&#10;John,30,New York&#10;Jane,25,London"></textarea></div>
+    <div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">JSON Output</span></div><pre id="csvOutput" class="code-output"></pre></div>
+  </div>
+  <StatusMessage id="csvStatus" />
+  <section slot="examples" class="mb-10"><h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Example</h2><div class="grid md:grid-cols-2 gap-6"><div><h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 dark:text-gray-400">CSV</h3><pre class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-700 dark:bg-gray-900 dark:border-gray-800 dark:text-gray-300"><code>name,age,city
+John,30,New York
+Jane,25,London</code></pre></div><div><h3 class="text-sm font-semibold text-green-600 uppercase tracking-wider mb-3">JSON</h3><pre class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-700 dark:bg-gray-900 dark:border-gray-800 dark:text-gray-300"><code>[
+  &#123;"name":"John","age":"30","city":"New York"&#125;,
+  &#123;"name":"Jane","age":"25","city":"London"&#125;
+]</code></pre></div></div></section>
+  <script is:inline>
+    async function copyText(text) { try { await navigator.clipboard.writeText(text) } catch {} }
+    var convertBtn = document.getElementById('convertBtn');
+    var sampleBtn = document.getElementById('sampleBtn');
+    var clearBtn = document.getElementById('clearBtn');
+    var csvInput = document.getElementById('csvInput');
+    var csvOutput = document.getElementById('csvOutput');
+    function showStatus(m, t) {
+      var el = document.getElementById('csvStatus');
+      el.textContent = m;
+      el.classList.remove('hidden');
+      el.className = t === 'success' ? 'mt-4 px-4 py-3 rounded-lg bg-green-900/40 border border-green-800 text-green-400' : 'mt-4 px-4 py-3 rounded-lg bg-red-900/40 border border-red-800 text-red-400';
+      setTimeout(function() { el.classList.add('hidden') }, 3000);
+    }
+    function convert() {
+      var text = csvInput.value.trim();
+      if (!text) { showStatus('Enter CSV data first!', 'error'); return; }
+      try {
+        var lines = text.split('\n').filter(function(l) { return l.trim(); });
+        var delim = text.indexOf('\t') >= 0 ? '\t' : text.indexOf(';') >= 0 ? ';' : ',';
+        var headers = lines[0].split(delim).map(function(h) { return h.trim().replace(/^"|"$/g, ''); });
+        var rows = [];
+        for (var i = 1; i < lines.length; i++) {
+          var vals = lines[i].split(delim).map(function(v) { return v.trim().replace(/^"|"$/g, ''); });
+          var obj = {};
+          for (var j = 0; j < headers.length; j++) { obj[headers[j]] = vals[j] || ''; }
+          rows.push(obj);
+        }
+        csvOutput.textContent = JSON.stringify(rows, null, 2);
+        showStatus('Converted ' + rows.length + ' rows!', 'success');
+      } catch (e) { showStatus('Conversion error: ' + e.message, 'error'); }
+    }
+    convertBtn.addEventListener('click', convert);
+    clearBtn.addEventListener('click', function() { csvInput.value = ''; csvOutput.textContent = ''; });
+    sampleBtn.addEventListener('click', function() { csvInput.value = 'name,age,city\nJohn,30,New York\nJane,25,London\nBob,35,Paris'; csvOutput.textContent = ''; });
+  </script>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+      <a href="/guides/csv-json-conversion-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">CSV to JSON Conversion</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Handle delimiters, quoting, and data type conversion.</p></div></div></a>
+      <a href="/guides/csv-json-conversion-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">CSV to JSON Conversion</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Handle delimiters, quoting, and data type conversion.</p></div></div></a>
+    </div>
+  </section>
+</ToolLayout>

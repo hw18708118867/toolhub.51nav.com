@@ -1,0 +1,73 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import StatusMessage from '../../../components/StatusMessage.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'jwt-decoder')!
+
+const steps = [
+  { name: 'Paste Your JWT', text: 'Copy a JSON Web Token (JWT) and paste it into the input field. A JWT looks like three base64-encoded strings separated by dots: header.payload.signature.' },
+  { name: 'Click Decode', text: 'Click "Decode" to parse the JWT. The header and payload are decoded and displayed in separate panels. The signature is not decoded — it is used for verification only.' },
+  { name: 'Review the Contents', text: 'Examine the header (algorithm and token type) and payload (claims like sub, iat, exp). The data is presented as formatted JSON for easy reading.' },
+]
+
+const faq = [
+  { question: 'What is a JWT?', answer: 'JWT (JSON Web Token) is an open standard (RFC 7519) for securely transmitting information between parties as a JSON object. JWTs are commonly used for authentication and authorization in web applications. A JWT consists of three parts: a header, a payload, and a signature, all Base64-encoded and separated by dots.' },
+  { question: 'Is it safe to decode a JWT in a browser?', answer: 'Yes, decoding a JWT is completely safe. The header and payload are only Base64-encoded — not encrypted. Anyone can decode them. The signature is used to verify that the token hasn\'t been tampered with, but our tool only decodes the public parts and does not verify signatures.' },
+  { question: 'What information is in a JWT payload?', answer: 'A JWT payload contains claims — statements about the user or entity. Common claims include: sub (subject/user ID), iat (issued at time), exp (expiration time), iss (issuer), and aud (audience). Custom claims can also be included depending on the application.' },
+  { question: 'What does the signature part of a JWT do?', answer: 'The signature verifies that the token was created by a trusted source and hasn\'t been modified. It is created by signing the header and payload with a secret key or private key. Our tool does not verify signatures — it only decodes the readable parts of the token.' },
+]
+
+const exampleJwt = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free online JWT decoder. Decode JSON Web Token header and payload instantly. All processing happens locally in your browser for maximum security." {steps} {faq}
+>
+  <div class="code-panel mb-6"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">JWT Token</span><button id="sampleBtn" class="btn btn-sm btn-secondary ml-auto">Load Sample</button></div><textarea id="jwtInput" class="code-input" placeholder="Paste JWT..."></textarea>
+  </div>
+  <div class="mb-6"><button id="decodeBtn" class="btn btn-primary">Decode</button><button id="clearBtn" class="btn btn-secondary">Clear</button></div>
+  <StatusMessage id="jwtStatus" />
+  <div class="grid lg:grid-cols-2 gap-6">
+    <div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Header</span></div><pre id="jwtHeader" class="code-output"></pre></div>
+    <div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Payload</span></div><pre id="jwtPayload" class="code-output"></pre></div>
+  </div>
+
+  <section slot="examples" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Example JWT</h2>
+    <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 dark:bg-gray-900 dark:border-gray-800">
+      <p class="text-sm text-gray-500 mb-3 dark:text-gray-400">Paste this token to see the decoded header and payload:</p>
+      <pre class="text-xs text-gray-700 break-all font-mono dark:text-gray-300"><code>{exampleJwt}</code></pre>
+    </div>
+  </section>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Understanding JWT Structure</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">A JWT is composed of three Base64URL-encoded parts separated by dots:</p>
+      <h3 class="text-lg font-semibold text-gray-900 mt-6 mb-3 dark:text-white">The Three Parts</h3>
+      <ul class="list-disc list-inside space-y-2 text-gray-500 dark:text-gray-400">
+        <li><strong>Header</strong> — Contains the token type (JWT) and signing algorithm (HS256, RS256, etc.)</li>
+        <li><strong>Payload</strong> — Contains the claims (user data, expiration, issuer, etc.)</li>
+        <li><strong>Signature</strong> — Verifies the token's authenticity and integrity</li>
+      </ul>
+    </div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+      <a href="/guides/json-debugging-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">JSON Debugging Guide</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Fix and prevent common JSON errors.</p></div></div></a>
+      <a href="/guides/json-debugging-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">JSON Debugging Guide</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Fix and prevent common JSON errors.</p></div></div></a>
+    </div>
+  </section>
+
+  <script>
+    const jwtInput = document.getElementById('jwtInput'); const jwtHeader = document.getElementById('jwtHeader')!; const jwtPayload = document.getElementById('jwtPayload')!; const decodeBtn = document.getElementById('decodeBtn')!; const clearBtn = document.getElementById('clearBtn')!; const sampleBtn = document.getElementById('sampleBtn')!
+    function showStatus(message: string, type: 'success' | 'error') { const statusEl = document.getElementById('jwtStatus')!; statusEl.textContent = message; statusEl.classList.remove('hidden'); statusEl.className = type === 'success' ? 'mt-4 px-4 py-3 rounded-lg bg-green-900/40 border border-green-800 text-green-400' : 'mt-4 px-4 py-3 rounded-lg bg-red-900/40 border border-red-800 text-red-400'; setTimeout(() => statusEl.classList.add('hidden'), 3000) }
+    function decodeJwt() { const token = jwtInput.value.trim(); if (!token) { showStatus('Enter a JWT first!', 'error'); return }; try { const parts = token.split('.'); if (parts.length !== 3) throw new Error('Invalid JWT format'); function base64Decode(s: string) { s = s.replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; return JSON.parse(decodeURIComponent(escape(atob(s)))) }; const header = base64Decode(parts[0]); const payload = base64Decode(parts[1]); jwtHeader.textContent = JSON.stringify(header, null, 2); jwtPayload.textContent = JSON.stringify(payload, null, 2); showStatus('JWT decoded successfully!', 'success') } catch (e) { showStatus('Invalid JWT: ' + (e as Error).message, 'error') } }
+    decodeBtn.addEventListener('click', decodeJwt); clearBtn.addEventListener('click', () => { jwtInput.value = ''; jwtHeader.textContent = ''; jwtPayload.textContent = '' })
+    sampleBtn.addEventListener('click', () => { jwtInput.value = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'; jwtHeader.textContent = ''; jwtPayload.textContent = '' })
+  </script>
+</ToolLayout>

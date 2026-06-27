@@ -1,0 +1,69 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+const content = `
+<div class="prose prose-gray max-w-none dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-strong:text-gray-900 dark:prose-strong:text-white prose-code:text-blue-600 dark:prose-code:text-blue-400 prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-pre:bg-gray-50 dark:prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-gray-800">
+
+<h2>Why Strings Need Escaping</h2>
+<p>Every programming language reserves certain characters for its own syntax. In JavaScript, double quotes delimit string boundaries — the parser uses them to know where a string starts and ends. In JSON, backslashes introduce escape sequences. In HTML, angle brackets create element tags. In regular expressions, parentheses define capture groups. When your data contains these reserved characters, you need to tell the parser "this specific character is data, not syntax." That's what escaping does — it adds a marker that says the next character should be treated literally.</p>
+<p>Without escaping, a perfectly ordinary string like <code>She said "hello"</code> breaks when placed inside a double-quoted string literal. The parser encounters the inner quote, assumes the string ended, and chokes on whatever follows — probably a syntax error, possibly a security vulnerability if an attacker deliberately crafts input that breaks out of the string and injects code. This is the mechanism behind many injection attacks: unescaped data crossing a syntax boundary.</p>
+
+<h2>The Six Escape Sequences You Actually Use</h2>
+<pre><code class="language-javascript">// Building a JavaScript string with embedded special characters
+const message = "Line one\\nLine two\\t\\t\\"quoted text\\"\\nLine three";
+console.log(message);
+// Output:
+// Line one
+// Line two    "quoted text"
+// Line three
+
+// The essential escape sequences:
+// \\n  → newline (line feed, ASCII 10, moves cursor to next line)
+// \\t  → horizontal tab (ASCII 9, advances to next tab stop)
+// \\r  → carriage return (ASCII 13, moves cursor to start of line)
+// \\"  → double quote — use inside double-quoted strings
+// \\'  → single quote — use inside single-quoted strings
+// \\\\ → literal backslash — since \\ introduces escape sequences</code></pre>
+<p>These six cover 95% of real-world escaping. Less common sequences exist — <code>\\b</code> (backspace), <code>\\f</code> (form feed), <code>\\v</code> (vertical tab) — but you'll rarely encounter them outside of legacy protocols and printer control codes. Unicode escapes (<code>\\uXXXX</code>) let you embed any character by its code point, useful for non-ASCII characters in ASCII-only contexts. Our <a href="/tools/string-escaper/">String Escaper</a> handles all the common sequences — paste raw text and get a ready-to-use JavaScript string literal, or paste escaped text to see the original characters.</p>
+
+<h2>Escaping in Different Contexts</h2>
+<h3>JavaScript String Literals</h3>
+<p>Double-quoted strings and single-quoted strings have identical escape rules — the only difference is which quote character needs escaping. Template literals (backticks) reduce escaping: you can freely use single and double quotes inside them. But they create a new escaping problem: the <code>\${</code> sequence starts an expression interpolation, and backticks themselves need escaping. If your data contains dollar signs followed by curly braces — common in shell scripts or template syntax — you need <code>\\\${</code> in template literals.</p>
+<p>Most developers reflexively reach for template literals to avoid quote escaping, but this sometimes trades one escaping problem for another. The right choice depends on what characters your data actually contains. If the data has both double quotes and dollar-brace sequences, you're escaping something either way.</p>
+
+<h3>JSON Strings</h3>
+<p>JSON mandates double quotes for both keys and string values. Single quotes are not valid JSON. If your data contains double quotes or backslashes, they must be escaped — <code>JSON.stringify()</code> handles this automatically. Problems arise when developers build JSON by hand: <code>'{"name": "' + userName + '"}'</code>. If userName contains a double quote, backslash, or control character, the resulting JSON is invalid and will fail to parse. Never concatenate JSON strings — always use a serializer. If you're debugging broken JSON, use our <a href="/tools/json-formatter/">JSON Formatter</a> to validate it and pinpoint the exact error location.</p>
+
+<h3>Regular Expressions</h3>
+<p>Regex has its own meta-characters: <code>. * + ? ^ $ { } [ ] ( ) | \\ /</code>. When you need to match these characters literally, precede them with a backslash. Most languages provide an escape function: JavaScript doesn't have a built-in one, but <code>string.replace(/[.*+?^\${}()|[\\]\\\\]/g, '\\\\$&')</code> handles the common cases. If you're building regex patterns from user input, always escape — otherwise the user can inject regex syntax that changes the pattern's behavior, a form of ReDoS (Regular Expression Denial of Service) attack.</p>
+
+<h3>HTML Context</h3>
+<p>HTML escaping uses entities, not backslashes — a completely different system. <code>&lt;</code> becomes <code>&amp;lt;</code>, <code>&gt;</code> becomes <code>&amp;gt;</code>, <code>&amp;</code> becomes <code>&amp;amp;</code>. This is why XSS vulnerabilities are so common: a developer JS-escapes user input (protecting against JS injection) but then inserts it into innerHTML without HTML-escaping (leaving an XSS vector open). Each context — JavaScript strings, HTML body, HTML attributes, CSS, URLs — has its own escaping rules, and they don't compose. A value that's safe in a JavaScript string literal may not be safe when inserted into an HTML attribute. Use context-aware escaping: your templating library (React's JSX, Vue's templates, Handlebars) handles this automatically. Manual string building is where the bugs live.</p>
+
+<h2>Unescaping: The Reverse Journey</h2>
+<p>Unescaping converts escape sequences back to their literal characters. When you call <code>JSON.parse()</code>, the <code>\\n</code> sequences in the JSON string become actual newline characters in the resulting JavaScript object. When a programming language evaluates a string literal, it processes escape sequences before your code ever sees the string. You rarely need to unescape manually — but when debugging, knowing that the escaped and unescaped forms represent the same data helps trace where a string got corrupted in a pipeline.</p>
+
+<h2>Building Strings Safely</h2>
+<p>A few rules prevent most escaping-related bugs. Use serializers instead of string concatenation. Use parameterized queries for SQL instead of escaping quotes manually. Use your framework's template system for HTML instead of building HTML strings. When you must build strings by hand, know what context you're building for and apply the correct escaping. And when you receive a bug report about corrupted data or injection, check the escaping at every context boundary before looking anywhere else — 9 times out of 10, that's where the problem is.</p><h2>Quick Reference</h2>
+<table>
+<thead><tr><th>Sequence</th><th>Character</th></tr></thead>
+<tbody>
+<tr><td>\n</td><td>Newline (LF)</td></tr>
+<tr><td>\t</td><td>Horizontal tab</td></tr>
+<tr><td>\"</td><td>Double quote</td></tr>
+<tr><td>\\</td><td>Backslash</td></tr>
+</tbody>
+</table>
+
+<h2>Escaping in Template Systems</h2>
+<p>Modern frameworks handle escaping automatically until you bypass them. Reacts JSX escapes all string content. Vues templates auto-escape. Handlebars auto-escapes. The vulnerabilities come when developers bypass the framework with innerHTML, string concatenation, or custom render functions. Trust your framework; verify when you bypass it. The escaping is context-aware: HTML body gets HTML-escaped, attributes get attribute-escaped, URLs get URL-encoded.</p>
+<h2>Debugging Escaping Issues in Production</h2>
+<p>When a user reports "the text looks wrong" or "there are weird backslashes everywhere," the culprit is usually double-escaping or missing escaping. Double-escaping happens when data passes through two escaping functions: the string <code>hello</code> becomes <code>\"hello\"</code> (JS-escaped once), then becomes <code>\\\"hello\\\"</code> (JS-escaped again). Each layer of escaping adds more backslashes. To debug, trace the data through every transformation point — from database to API response to frontend state to DOM — and identify which layer is applying escaping that another layer also applies.</p>
+<p>A systematic approach: start at the final rendered output and work backwards. Look at the raw HTML source, not the rendered page. Compare it against the API response. Compare the API response against the database value. The escaping error will be visible as a difference at one of these boundaries. Fix the boundary where the error first appears. And add a test that asserts the data passes through all boundaries without corruption — an end-to-end test that catches escaping bugs before users do.</p>
+</div>
+`
+---
+<GuideLayout title="String Escaping: Safe Text Handling Across JS, JSON & HTML | DevTools Hub" description="A comprehensive guide to string escaping. Covers JavaScript escape sequences, JSON safety, regex escaping, HTML entity encoding, and preventing injection vulnerabilities across contexts." breadcrumb="String Escaping">
+  <Fragment slot="title">String Escaping: Safe Text<br class="hidden sm:block" />in JS, JSON, Regex & HTML</Fragment>
+  <Fragment slot="intro">Escaping prevents special characters from becoming security vulnerabilities. From JavaScript strings to JSON to HTML, each context has rules — and mixing them up is how injection attacks happen.</Fragment>
+  <Fragment set:html={content} />
+</GuideLayout>

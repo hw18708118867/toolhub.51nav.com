@@ -1,0 +1,67 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+const content = `
+<div class="prose prose-gray max-w-none dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-strong:text-gray-900 dark:prose-strong:text-white prose-code:text-blue-600 dark:prose-code:text-blue-400 prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-pre:bg-gray-50 dark:prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-gray-800">
+
+<h2>What Is a Unix Timestamp?</h2>
+<p>A Unix timestamp counts the number of seconds that have elapsed since January 1, 1970, at exactly 00:00:00 UTC — the Unix epoch. It's the reference point for virtually all modern computing. Database records carry created_at and updated_at as Unix timestamps. API authentication tokens encode their issuance and expiration as Unix timestamps (JWT's iat and exp claims). Log files tag every entry with a Unix timestamp. Cache entries track their TTL in seconds since the epoch. Cookie expirations, SSL certificate validity windows, file modification times — all of them, underneath, are just integers counting seconds from that single midnight in 1970.</p>
+<p>Why 1970? Because that's when Unix was being developed at Bell Labs. The engineers needed a reference point. They picked January 1, 1971 initially, then changed it to 1970 to make the numbers smaller. It stuck. "Epoch time" is now embedded in every operating system, programming language, database, and network protocol. Understanding it is not optional for a working developer.</p>
+
+<h2>Why Integers Beat Date Strings</h2>
+<p>A Unix timestamp like 1700000000 has no timezone, no locale, no format ambiguity. It's the same number in New York, London, and Tokyo. You can compare two timestamps with a simple <code>&gt;</code> operator — no date library, no parsing, no timezone conversion. You can calculate durations by subtracting. You can store them in a database INTEGER column, which indexes efficiently and sorts natively. Date strings ("2024-01-15T14:30:00Z", "January 15, 2024 2:30 PM", "15/01/2024 14:30") require parsing, locale awareness, and format negotiation between systems. Integers don't. This is why APIs, databases, and serialization formats overwhelmingly prefer Unix timestamps for machine-to-machine communication — and convert to formatted strings only at the display layer.</p>
+
+<h2>Seconds vs. Milliseconds: The 1000x Trap</h2>
+<p>This trips up developers constantly because two different conventions coexist. JavaScript's <code>Date.now()</code> returns milliseconds — a 13-digit number. Most backend systems (Python's <code>time.time()</code>, Go's <code>time.Now().Unix()</code>, database UNIX_TIMESTAMP functions) return seconds — a 10-digit number. The difference is exactly a factor of 1,000. If you pass a millisecond timestamp to a system expecting seconds, your date is 1,000 times too large and shows a year around 50000. If you pass a second timestamp to a system expecting milliseconds, your date is 1,000 times too small and shows sometime in 1970.</p>
+<pre><code class="language-javascript">// JavaScript returns milliseconds (13 digits)
+Date.now();                          // → 1700000000000
+
+// Convert to seconds for backend/API use
+Math.floor(Date.now() / 1000);       // → 1700000000
+
+// Convert seconds back to a JS Date
+new Date(1700000000 * 1000);         // → 2023-11-14T22:13:20.000Z
+
+// The rule: multiply when going seconds→JS, divide when going JS→seconds</code></pre>
+
+<h2>The Year 2038 Problem</h2>
+<p>On January 19, 2038, at 03:14:07 UTC, 32-bit signed integers storing Unix timestamps will overflow. The maximum value of a 32-bit signed integer is 2,147,483,647 — exactly the number of seconds from the epoch to that moment. The next second wraps around to -2,147,483,648, and dates jump back to December 13, 1901. This is structurally identical to the Y2K problem, but for Unix time.</p>
+<p>Most modern systems use 64-bit integers for timestamps, which won't overflow for approximately 292 billion years — longer than the universe has existed. But legacy systems persist: embedded controllers in industrial equipment, older router firmware, medical devices with decades-long certification cycles, databases with INT columns instead of BIGINT for timestamp storage, C code that still uses <code>time_t</code> on 32-bit platforms. If you maintain any system more than 10 years old, check your timestamp storage width. The fix is straightforward — use 64-bit integers — but finding every instance across a legacy codebase is not.</p>
+
+<h2>Time Zones: Store UTC, Display Local</h2>
+<p>Unix timestamps are always UTC. They don't encode a timezone — that's a feature. You store and transmit in UTC, convert to local time only for display. Any other approach creates bugs during Daylight Saving Time transitions, when servers in different timezones disagree about what time "2:30 AM" actually is, or when a user travels across timezones and their stored local times become incorrect.</p>
+<pre><code class="language-javascript">// ✅ Store in UTC (seconds)
+const createdAt = Math.floor(Date.now() / 1000);
+// Database: INSERT INTO events (created_at) VALUES (1700000000)
+
+// ✅ Display in user's local timezone
+const d = new Date(createdAt * 1000);
+d.toLocaleString();                 // User's timezone from browser
+d.toLocaleString('en-US', {         // Specific timezone
+  timeZone: 'Asia/Tokyo',
+  dateStyle: 'full',
+  timeStyle: 'long'
+});</code></pre>
+
+<h2>Common Timestamp Values</h2>
+<table>
+  <thead><tr><th>Timestamp</th><th>Date (UTC)</th><th>Significance</th></tr></thead>
+  <tbody>
+    <tr><td>0</td><td>Jan 1, 1970</td><td>Unix epoch — the reference point</td></tr>
+    <tr><td>1000000000</td><td>Sep 9, 2001</td><td>1 billion seconds. Celebrated by some engineers.</td></tr>
+    <tr><td>1234567890</td><td>Feb 13, 2009</td><td>Sequential digits — a common test value</td></tr>
+    <tr><td>2000000000</td><td>May 18, 2033</td><td>2 billion seconds. 32-bit danger zone approaching.</td></tr>
+    <tr><td>2147483647</td><td>Jan 19, 2038</td><td>32-bit signed integer maximum — the 2038 problem</td></tr>
+  </tbody>
+</table>
+<p>Use our <a href="/tools/timestamp/">Timestamp Converter</a> to convert between Unix timestamps and human-readable dates. It shows both UTC and local time and updates in real time every second.</p>
+<h2>Timestamps in Distributed Systems</h2>
+<p>In distributed systems, clock skew between servers makes timestamps unreliable for ordering events. Two servers can disagree about what time it is by seconds or even minutes. Network Time Protocol (NTP) keeps clocks synchronized to within tens of milliseconds on well-configured networks, but not all networks are well-configured. Cloud providers typically run NTP on their infrastructure, but container clocks can drift. For strict event ordering, use logical clocks (Lamport timestamps) or a distributed consensus system instead of relying on wall-clock timestamps.</p>
+<p>When designing APIs that accept or return timestamps, document the unit clearly. "timestamp" alone is ambiguous. Specify "Unix timestamp in seconds" or "Unix timestamp in milliseconds." Include the integer width if relevant. A timestamp field documented as "64-bit Unix timestamp in milliseconds" leaves no room for misinterpretation. If you are consuming a third-party API, check the actual values returned — documentation is sometimes wrong, and the magnitude of the number (10 digits vs 13 digits) tells you the unit.</p><h2>Timestamps in Databases and APIs</h2><p>Database timestamp handling varies by engine. MySQL's TIMESTAMP type is 32-bit and range-limited to 1970-2038; use DATETIME for dates outside that range. PostgreSQL's TIMESTAMP WITH TIME ZONE stores UTC internally and converts to the session's timezone on retrieval. SQLite has no native timestamp type — timestamps are stored as TEXT (ISO 8601 strings), INTEGER (Unix seconds), or REAL (Unix seconds with fractional part). Know your database, and test your timestamp handling with dates near epoch boundaries and DST transitions.</p><p>When designing an API, document the timestamp format explicitly. "created_at: 1700000000" is ambiguous without specifying "Unix timestamp in seconds." Better: created_at is an integer representing Unix timestamp in seconds (UTC). If your API returns timestamps in milliseconds, document it. If it returns ISO 8601 strings, specify whether they include timezone offsets. Ambiguity about timestamps in API documentation causes integration bugs that are hard to reproduce because they depend on the client's timezone and clock skew.</p>
+</div>
+`
+---
+<GuideLayout title="Unix Timestamps & Timezone Handling for Developers | DevTools Hub" description="A complete guide to Unix timestamps. Covers epoch time, seconds vs milliseconds, the 2038 problem, UTC storage strategy, timezone conversion, and why integers beat date strings." breadcrumb="Timestamps">
+  <Fragment slot="title">Unix Timestamps &<br class="hidden sm:block" />Timezone Handling</Fragment>
+  <Fragment slot="intro">Unix timestamps are the universal language of time in computing. From the 1970 epoch to the 2038 problem to practical UTC storage strategies — everything you need to handle time without the bugs.</Fragment>
+  <Fragment set:html={content} />
+</GuideLayout>
