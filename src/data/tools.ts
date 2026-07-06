@@ -33,6 +33,14 @@ export const tools: Tool[] = [
   { id: 'number-base', name: 'Number Base', description: 'Dec/Hex/Bin/Oct converter', icon: 'number', category: 'data' },
   { id: 'json-yaml', name: 'JSON ↔ YAML', description: 'Convert JSON/YAML', icon: 'yaml', category: 'data' },
   { id: 'csv-to-json', name: 'CSV to JSON', description: 'Convert CSV data to JSON', icon: 'qr', category: 'data' },
+  { id: 'json-compare', name: 'JSON Compare', description: 'Compare and diff two JSON objects', icon: 'diff', category: 'data' },
+  { id: 'json-escape', name: 'JSON Escape', description: 'Escape/unescape JSON strings', icon: 'escape', category: 'data' },
+  { id: 'json-sort', name: 'JSON Sort', description: 'Sort JSON object keys alphabetically', icon: 'json', category: 'data' },
+  { id: 'json-to-csv', name: 'JSON to CSV', description: 'Convert JSON array to CSV format', icon: 'json', category: 'data' },
+  { id: 'json-flatten', name: 'JSON Flatten', description: 'Flatten nested JSON to dot-notation keys', icon: 'json', category: 'data' },
+  { id: 'json-xml', name: 'JSON ↔ XML', description: 'Convert between JSON and XML formats', icon: 'html', category: 'data' },
+  { id: 'json-to-toml', name: 'JSON to TOML', description: 'Convert JSON to TOML config format', icon: 'yaml', category: 'data' },
+  { id: 'json-tree-viewer', name: 'JSON Tree Viewer', description: 'Visualize JSON structure as a tree', icon: 'json', category: 'data' },
 
   // ===== DEV =====
   { id: 'jwt-decoder', name: 'JWT Decoder', description: 'Decode JSON Web Tokens', icon: 'jwt', category: 'dev' },

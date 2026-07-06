@@ -1,0 +1,219 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import StatusMessage from '../../../components/StatusMessage.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'json-xml')!
+
+const steps = [
+  { name: 'Paste Your Data', text: 'Paste JSON or XML data into the input panel. The tool detects which format you have and suggests the conversion direction.' },
+  { name: 'Choose Direction', text: 'Click "JSON → XML" to convert JSON to XML, or "XML → JSON" to convert XML to JSON.' },
+  { name: 'Copy the Result', text: 'The converted output appears on the right. Copy it for use in your project.' },
+]
+
+const faq = [
+  { question: 'How does JSON map to XML?', answer: 'JSON objects become XML elements. Object keys become tag names, and primitive values (strings, numbers, booleans) become text content. Arrays produce repeated elements with the same tag name. JSON root must be a single object — XML requires a single root element. XML attributes are not used; everything becomes child elements for a clean 1:1 mapping.' },
+  { question: 'What about XML attributes?', answer: 'This converter uses an element-only mapping for simplicity and reliability. XML attributes are inherently order-independent and can\'t contain nested structures, which makes them a poor match for JSON\'s flexible data model. When converting XML → JSON, attributes are converted to child elements prefixed with "@".' },
+  { question: 'Can I convert any XML to JSON?', answer: 'Most XML can be converted, but there are edge cases. XML with mixed content (text interleaved with elements) and XML with namespaces may not map cleanly. For simple data-oriented XML (like RSS feeds, sitemaps, or config files), the conversion works well.' },
+]
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free online JSON ↔ XML converter. Convert between JSON and XML formats in either direction. All processing happens locally in your browser." {steps} {faq}
+>
+  <div class="flex flex-wrap gap-3 mb-6">
+    <button id="jsonToXmlBtn" class="btn btn-primary">JSON → XML</button>
+    <button id="xmlToJsonBtn" class="btn btn-secondary">XML → JSON</button>
+    <button id="sampleBtn" class="btn btn-secondary">Load Sample</button>
+    <button id="clearBtn" class="btn btn-secondary">Clear</button>
+  </div>
+
+  <div class="grid lg:grid-cols-2 gap-6">
+    <div class="code-panel">
+      <div class="code-panel-header">
+        <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Input</span>
+        <button id="copyInputBtn" class="btn btn-sm btn-secondary">Copy</button>
+      </div>
+      <textarea id="inputEl" class="code-input" placeholder="Enter JSON or XML..."></textarea>
+    </div>
+    <div class="code-panel">
+      <div class="code-panel-header">
+        <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Output</span>
+        <button id="copyOutputBtn" class="btn btn-sm btn-secondary">Copy</button>
+      </div>
+      <pre id="outputEl" class="code-output"></pre>
+    </div>
+  </div>
+  <StatusMessage id="statusEl" />
+
+  <section slot="examples" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Examples</h2>
+    <div class="grid lg:grid-cols-2 gap-6 mb-6">
+      <div>
+        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 dark:text-gray-400">JSON</h3>
+        <pre class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-700 overflow-x-auto dark:bg-gray-900 dark:border-gray-800 dark:text-gray-300"><code>&#123;
+  "book": &#123;
+    "title": "JSON Guide",
+    "author": "Jane",
+    "tags": ["json", "web"]
+  &#125;
+&#125;</code></pre>
+      </div>
+      <div>
+        <h3 class="text-sm font-semibold text-green-600 uppercase tracking-wider mb-3">XML</h3>
+        <pre class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-700 overflow-x-auto dark:bg-gray-900 dark:border-gray-800 dark:text-gray-300"><code>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;book&gt;
+  &lt;title&gt;JSON Guide&lt;/title&gt;
+  &lt;author&gt;Jane&lt;/author&gt;
+  &lt;tags&gt;json&lt;/tags&gt;
+  &lt;tags&gt;web&lt;/tags&gt;
+&lt;/book&gt;</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">JSON vs XML: Practical Considerations</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">
+        JSON has largely replaced XML for web APIs, but XML is still everywhere — RSS feeds, sitemaps, SOAP services, office document formats (OOXML), and many enterprise systems. If you're integrating with an older service or generating an RSS feed, you'll need to convert between the two.
+      </p>
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">
+        The conversion isn't lossless in either direction. XML has features JSON doesn't: attributes, namespaces, comments, and processing instructions. JSON has data types XML doesn't: proper number and boolean types, null. This converter makes pragmatic choices — XML attributes become child elements prefixed with "@", and JSON types are preserved as text in XML (you'll need to parse them on the other end).
+      </p>
+    </div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+      <a href="/guides/json-conversion-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">JSON Conversion Guide</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">CSV, XML, TOML — when and how to convert between formats.</p></div></div></a>
+      <a href="/guides/json-structure-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">JSON Structure Guide</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Flattening, tree views, and working with nested JSON.</p></div></div></a>
+    </div>
+  </section>
+
+  <script>
+    import { copyToClipboard } from '../../../utils/copyToClipboard'
+
+    const inputEl = document.getElementById('inputEl') as HTMLTextAreaElement
+    const outputEl = document.getElementById('outputEl')!
+
+    function showStatus(msg: string, type: 'success' | 'error') {
+      const el = document.getElementById('statusEl')!
+      el.textContent = msg; el.classList.remove('hidden')
+      el.className = type === 'success' ? 'mt-4 px-4 py-3 rounded-lg bg-green-900/40 border border-green-800 text-green-400' : 'mt-4 px-4 py-3 rounded-lg bg-red-900/40 border border-red-800 text-red-400'
+      setTimeout(() => el.classList.add('hidden'), 3000)
+    }
+
+    function escapeXml(s: string): string {
+      return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;')
+    }
+
+    function jsonToXml(obj: any, rootName: string, indent = 0): string {
+      const sp = '  '.repeat(indent)
+      if (obj === null || obj === undefined) return `${sp}<${rootName} />`
+      if (Array.isArray(obj)) {
+        return obj.map(item => jsonToXml(item, rootName, indent)).join('\n')
+      }
+      if (typeof obj === 'object') {
+        const keys = Object.keys(obj)
+        if (keys.length === 0) return `${sp}<${rootName} />`
+        let xml = `${sp}<${rootName}>\n`
+        keys.forEach(k => {
+          xml += jsonToXml(obj[k], k, indent + 1) + '\n'
+        })
+        xml += `${sp}</${rootName}>`
+        return xml
+      }
+      return `${sp}<${rootName}>${escapeXml(String(obj))}</${rootName}>`
+    }
+
+    function xmlToJson(xml: string): any {
+      const parser = new DOMParser()
+      const doc = parser.parseFromString(xml, 'text/xml')
+      const errNode = doc.querySelector('parsererror')
+      if (errNode) throw new Error(errNode.textContent || 'XML parse error')
+
+      function parseNode(node: Element): any {
+        const children = Array.from(node.children)
+        const attrs = Array.from(node.attributes)
+        const result: any = {}
+
+        // Handle attributes as @-prefixed keys
+        attrs.forEach(attr => { result['@' + attr.name] = attr.value })
+
+        if (children.length === 0) {
+          const text = node.textContent?.trim() ?? ''
+          if (attrs.length === 0) return text
+          if (text) result['#text'] = text
+          return result
+        }
+
+        // Group children by tag name
+        const groups: Record<string, Element[]> = {}
+        children.forEach(c => {
+          if (!groups[c.tagName]) groups[c.tagName] = []
+          groups[c.tagName].push(c)
+        })
+
+        Object.keys(groups).forEach(tag => {
+          const items = groups[tag]
+          if (items.length === 1) {
+            result[tag] = parseNode(items[0])
+          } else {
+            result[tag] = items.map(item => parseNode(item))
+          }
+        })
+
+        // If only text content
+        const text = node.textContent?.trim() ?? ''
+        if (Object.keys(result).length === 0) return text
+
+        return result
+      }
+
+      const root = doc.documentElement
+      const parsed = parseNode(root)
+      return { [root.tagName]: parsed }
+    }
+
+    document.getElementById('jsonToXmlBtn')!.addEventListener('click', () => {
+      const v = inputEl.value.trim()
+      if (!v) { showStatus('Paste some JSON first', 'error'); return }
+      try {
+        const obj = JSON.parse(v)
+        const rootName = Object.keys(obj)[0] || 'root'
+        const xml = '<?xml version="1.0" encoding="UTF-8"?>\n' + jsonToXml(obj[rootName] ?? obj, rootName)
+        outputEl.textContent = xml
+        showStatus('Converted to XML!', 'success')
+      } catch (e) { showStatus('Invalid JSON: ' + (e as Error).message, 'error') }
+    })
+
+    document.getElementById('xmlToJsonBtn')!.addEventListener('click', () => {
+      const v = inputEl.value.trim()
+      if (!v) { showStatus('Paste some XML first', 'error'); return }
+      try {
+        const result = xmlToJson(v)
+        outputEl.textContent = JSON.stringify(result, null, 2)
+        showStatus('Converted to JSON!', 'success')
+      } catch (e) { showStatus('Invalid XML: ' + (e as Error).message, 'error') }
+    })
+
+    document.getElementById('sampleBtn')!.addEventListener('click', () => {
+      inputEl.value = '{"book":{"title":"JSON Guide","author":{"name":"Jane","email":"jane@example.com"},"tags":["json","web","tutorial"],"active":true,"price":29.99}}'
+      outputEl.textContent = ''
+    })
+
+    document.getElementById('clearBtn')!.addEventListener('click', () => { inputEl.value = ''; outputEl.textContent = '' })
+
+    document.getElementById('copyInputBtn')!.addEventListener('click', async () => {
+      const ok = await copyToClipboard(inputEl.value)
+      showStatus(ok ? 'Copied!' : 'Copy failed', ok ? 'success' : 'error')
+    })
+    document.getElementById('copyOutputBtn')!.addEventListener('click', async () => {
+      const ok = await copyToClipboard(outputEl.textContent || '')
+      showStatus(ok ? 'Copied!' : 'Copy failed', ok ? 'success' : 'error')
+    })
+  </script>
+</ToolLayout>

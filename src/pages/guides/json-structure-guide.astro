@@ -1,0 +1,69 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+
+const content = `
+<h2>When JSON Gets Deep, Reading It Gets Hard</h2>
+<p>A flat JSON object with ten keys is easy. A JSON object nested six levels deep with mixed arrays and objects — that's the one that makes you scroll up and down, lose track of which closing brace matches which opening brace, and eventually copy the whole thing into a text editor just to fold sections.</p>
+<p>Deeply nested JSON is everywhere. API responses from GraphQL, configuration files for complex tools, geospatial data, e-commerce product catalogs. The data has structure — meaningful structure — but seeing that structure in a wall of indented text is hard. This guide covers three techniques for working with nested JSON: flattening it into key-value pairs, visualizing it as a collapsible tree, and sorting keys to impose order on chaos.</p>
+
+<h2>Flattening: Turn Deep Nests into Flat Maps</h2>
+<p>Flattening converts nested JSON into a single-level object where keys are dot-notation paths. So <code>{"user":{"address":{"city":"NYC"}}}</code> becomes <code>{"user.address.city":"NYC"}</code>. Each leaf value gets a unique path-based key, and the nesting structure is preserved in the key names rather than the object hierarchy.</p>
+
+<h3>When Flattening Helps</h3>
+<p>The most common use case is preparing JSON for systems that only understand flat data. SQL databases work with rows and columns — a flat map of <code>column_name</code> → <code>value</code> maps directly to an INSERT statement. CSV files are inherently flat. Key-value stores like Redis or etcd use flat namespaces.</p>
+<p>Flattening also makes it easier to search for values. If you're debugging and need to find every occurrence of a specific value, a flat structure lets you scan keys and values in O(n) time. In a nested structure, you'd need recursive traversal — doable, but harder to do in your head while staring at a screen.</p>
+<p>Use the <a href="/tools/json-flatten/">JSON Flatten</a> tool for this. Paste your nested JSON, click Flatten, and you get a clean flat map. The reverse direction — Unflatten — takes flat key-value pairs and reconstructs the nested structure. This is useful when you're loading data from a CSV or database back into an application that expects nested JSON objects.</p>
+
+<h3>How Arrays Are Handled</h3>
+<p>Arrays in flattened JSON use bracket notation: <code>items[0].name</code>, <code>items[1].name</code>. This preserves the index and structure. If your array contains objects, each object's keys become individual flat paths. If your array contains primitives, the index alone is the key path.</p>
+<p>One limitation: if your data has varying array lengths or sparse arrays, the flat representation can become verbose. An array with 500 items will produce 500 times the number of keys. For large arrays, consider whether flattening the entire object is the right approach, or whether you should flatten only the header-level metadata and keep the array as a serialized JSON string.</p>
+
+<h2>Tree View: See the Structure at a Glance</h2>
+<p>A tree view is a collapsible visual representation of your JSON. Instead of reading indented text, you see nodes connected by lines, with expand/collapse arrows next to every object and array. You drill into the parts you care about and collapse everything else.</p>
+<p>The <a href="/tools/json-tree-viewer/">JSON Tree Viewer</a> renders your JSON as an interactive tree. Each node shows its key, type, and a preview of its value. Objects show their key count, arrays show their length, and you can click to expand any branch. Clicking a value copies it to your clipboard.</p>
+
+<h3>Why Trees Beat Indentation</h3>
+<p>Indentation tells you depth. A tree shows you structure. Those are different things. When you scan an indented text block, you're doing mental bracket-matching: "this <code>}</code> on line 47 closes the object that opened on line 12." A tree view eliminates that cognitive load — the lines and expand/collapse arrows make the parent-child relationships visually obvious.</p>
+<p>This matters most when you're exploring unfamiliar JSON. You don't know the structure yet. You need to build a mental model of what's where. A tree view lets you expand one section at a time, building understanding incrementally, rather than being confronted with 500 lines of formatted text all at once.</p>
+
+<h3>Type Coloring: Spot Inconsistencies Instantly</h3>
+<p>The tree viewer color-codes values by type: strings in green, numbers in blue, booleans in orange, null in gray, keys in purple. This seems like a minor visual touch, but it catches real bugs. A field that should be a number rendering in green tells you it's actually a string <code>"42"</code> not the number <code>42</code>. A boolean <code>false</code> vs the string <code>"false"</code> — invisible in plain text, immediately obvious with color coding.</p>
+<p>API documentation often gets types wrong, or the API returns types that differ from what the docs claim. Type coloring is a quick visual check: do the colors match what you expected? If not, dig deeper.</p>
+
+<h2>Sorting: Impose Order on Key Chaos</h2>
+<p>JSON objects are unordered by specification, but in practice, most parsers preserve insertion order. Two developers working on the same config file will produce different key orderings — not because the data is different, but because they added keys in a different sequence.</p>
+<p>The <a href="/tools/json-sort/">JSON Sort</a> tool recursively alphabetizes every object's keys. After sorting, two structurally identical JSON files will have the same key ordering, making them trivially comparable with any diff tool.</p>
+
+<h3>Where Sorting Helps</h3>
+<ul>
+  <li><strong>Git diffs.</strong> Sorted keys produce clean, minimal diffs when config files change. You see the added and removed keys, not the reordering noise.</li>
+  <li><strong>Code review.</strong> When reviewing a PR that touches a JSON config, sort first, then diff. You'll find actual changes in seconds instead of scanning through formatting noise.</li>
+  <li><strong>Translation files.</strong> i18n JSON files with hundreds of translation keys benefit enormously from sorting. Adding a new translation key is a one-line diff; without sorting, the entire file might show as changed if the developer's editor reorders keys on save.</li>
+  <li><strong>Configuration consistency.</strong> If your project has multiple JSON config files (one per environment, or per service), sorting them all creates a consistent standard. New team members know exactly where to find a given key.</li>
+</ul>
+
+<h3>What Sorting Doesn't Do</h3>
+<p>Sorting doesn't change the meaning of your JSON. It doesn't reorder arrays, flatten nested structures, or modify values. It purely reorders object keys. The output is semantically identical to the input — just more organized.</p>
+
+<h2>Putting It All Together: A Workflow for Complex JSON</h2>
+<p>When you're dropped into a project with deeply nested, unfamiliar JSON data, here's a systematic approach:</p>
+<ol>
+  <li><strong>Validate first.</strong> Run it through the <a href="/tools/json-formatter/">JSON Formatter</a>. If it doesn't parse, nothing else matters.</li>
+  <li><strong>Tree view the structure.</strong> Paste into the <a href="/tools/json-tree-viewer/">JSON Tree Viewer</a>. Expand the top few levels to understand the overall shape. How many top-level keys? Where are the arrays? How deep does it go?</li>
+  <li><strong>Flatten if needed.</strong> If you need to export to CSV or a database, use the <a href="/tools/json-flatten/">JSON Flatten</a> tool to get a flat key-value map.</li>
+  <li><strong>Sort for consistency.</strong> If this JSON will be committed to version control, run it through the <a href="/tools/json-sort/">JSON Sort</a> tool first.</li>
+  <li><strong>Compare versions.</strong> If you have multiple versions of this data, use the <a href="/tools/json-compare/">JSON Compare</a> tool to see exactly what differs.</li>
+</ol>
+<p>Each tool does one thing well. Combined, they turn a confusing deeply nested JSON file into something you can understand, export, version-control, and compare.</p>
+`
+---
+
+<GuideLayout
+  title="Working with Nested JSON: Flattening, Tree Views, and Key Sorting | DevTools Hub"
+  description="Learn how to handle deeply nested JSON data. Covers flattening to key-value pairs, interactive tree visualization, recursive key sorting, and a systematic workflow for complex JSON structures."
+  breadcrumb="JSON Structure"
+>
+  <Fragment slot="title">Working with Nested JSON:<br class="hidden sm:block" />Flattening, Tree Views & Key Sorting</Fragment>
+  <Fragment slot="intro">Deeply nested JSON doesn't have to be a headache. Three techniques — flattening, tree visualization, and key sorting — turn confusing hierarchies into something you can actually work with.</Fragment>
+  <Fragment set:html={content} />
+</GuideLayout>

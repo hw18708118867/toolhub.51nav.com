@@ -1,0 +1,78 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+
+const content = `
+<h2>You're Probably Using JSON. But the Other Side Wants Something Else.</h2>
+<p>JSON is the default data format for modern web development. APIs speak JSON. Config files are JSON. Your frontend state is probably JSON-shaped even if you don't think about it that way. But eventually, you'll hit a situation where the other system — a database, a spreadsheet, a legacy SOAP service, a Rust build tool — expects something different. CSV. XML. TOML. YAML.</p>
+<p>Each of these formats fills a different niche, and knowing when to reach for which one saves hours of fighting with data that's in the wrong shape. This guide walks through converting JSON to and from these formats, the tradeoffs of each, and the practical scenarios where each conversion makes sense.</p>
+
+<h2>JSON to CSV: When You Need a Spreadsheet</h2>
+<p>CSV is the universal format for tabular data. Every spreadsheet application, every database import tool, every data analysis platform — they all understand CSV. If you've got a JSON array of objects from an API and someone says "can you put this in Excel?", CSV is your answer.</p>
+<p>The conversion is straightforward: each object in the array becomes a row, and the object keys become column headers. But real-world JSON often has complications that the naive converter misses.</p>
+
+<h3>Nested Objects</h3>
+<p>A flat JSON array like <code>[{"name":"John","age":30}]</code> converts cleanly. But what about <code>[{"name":"John","address":{"city":"NYC","zip":"10001"}}]</code>? The nested <code>address</code> object can't be a single CSV cell — at least not in a way that Excel will display meaningfully.</p>
+<p>Approach 1: flatten the JSON first. Use the <a href="/tools/json-flatten/">JSON Flatten</a> tool to convert <code>address.city</code> into a top-level key. Then convert to CSV. You get columns like <code>name</code>, <code>address.city</code>, <code>address.zip</code>.</p>
+<p>Approach 2: serialize the nested object as a JSON string in the CSV cell. Excel won't parse it, but your downstream code can.</p>
+
+<h3>Inconsistent Keys</h3>
+<p>When objects in your JSON array have different keys — some have <code>phone</code>, some don't — the CSV output should still work. The header row should include the union of all keys across all objects, and missing values become empty cells. The <a href="/tools/json-to-csv/">JSON to CSV</a> and <a href="/tools/csv-to-json/">CSV to JSON</a> converters handle this correctly.</p>
+
+<h3>Values with Commas and Quotes</h3>
+<p>CSV uses commas as delimiters and double quotes for escaping. A value like <code>New York, NY</code> needs to be wrapped in double quotes: <code>"New York, NY"</code>. And a value that itself contains double quotes needs them doubled: <code>"He said ""hello"""</code>. A good converter handles this automatically; a hand-rolled regex usually gets it wrong.</p>
+
+<h2>JSON to XML: When the Legacy System Calls</h2>
+<p>XML was the standard before JSON took over. It still runs large parts of the enterprise world — SOAP APIs, RSS feeds, sitemaps, office document formats, and government data exchanges. If you're integrating with a system built before 2010, there's a good chance it speaks XML.</p>
+<p>The <a href="/tools/json-xml/">JSON ↔ XML</a> converter handles the translation. JSON objects become XML elements, keys become tag names, and arrays produce repeated elements. But the conversion isn't lossless in either direction.</p>
+
+<h3>What XML Has That JSON Doesn't</h3>
+<p>XML supports attributes, comments, namespaces, processing instructions, and mixed content (text and elements interleaved). None of these have natural JSON equivalents. A JSON→XML→JSON round trip will lose XML attributes unless the converter explicitly preserves them (ours converts attributes to <code>@attrname</code> child elements).</p>
+
+<h3>What JSON Has That XML Doesn't</h3>
+<p>JSON has proper data types: numbers are numbers, booleans are booleans, null is null. XML treats everything as text. When converting XML to JSON, a value of <code>42</code> could be the number 42 or the string "42" — the converter has to guess based on context, and sometimes it guesses wrong.</p>
+
+<h3>When the Conversion Works Well</h3>
+<p>For data-oriented XML — configuration files, RSS feeds, sitemap XML, API responses — the conversion is clean and reliable. For document-oriented XML — XHTML, DocBook, anything with mixed content — expect to do manual cleanup after conversion.</p>
+
+<h2>JSON to TOML: Configuration Files Done Right</h2>
+<p>TOML (Tom's Obvious, Minimal Language) was designed for one purpose: configuration files. It's the standard format for Rust projects (Cargo.toml), Python packaging (pyproject.toml), and a growing number of other tools. It's cleaner than JSON for config because it supports comments, and less error-prone than YAML because it uses explicit syntax rather than meaningful indentation.</p>
+<p>The <a href="/tools/json-to-toml/">JSON to TOML</a> converter maps JSON objects to TOML tables. Top-level keys become key-value pairs; nested objects become <code>[section]</code> tables. The result is readable, commentable, and ready for use in any TOML-compatible tool.</p>
+<p>Why migrate a config file from JSON to TOML?</p>
+<ul>
+  <li><strong>Comments.</strong> JSON doesn't support comments. TOML does. When your config file has 50 settings and you need to explain why each one has its value, comments matter.</li>
+  <li><strong>Readability.</strong> TOML's <code>[section]</code> syntax creates clear visual separation between groups of related settings. JSON's nested braces require careful bracket-matching.</li>
+  <li><strong>Explicit types.</strong> TOML has explicit date, time, and datetime types. JSON treats dates as strings and relies on the parser to interpret them correctly.</li>
+</ul>
+
+<h2>JSON to YAML: Human-Readable Config</h2>
+<p>YAML is the dominant format for DevOps — Docker Compose, Kubernetes manifests, Ansible playbooks, GitHub Actions. It's a superset of JSON, meaning any valid JSON is also valid YAML. But YAML adds features that make it better for human-written config files: comments, anchors and aliases for deduplication, and multi-line string support.</p>
+<p>The <a href="/tools/json-yaml/">JSON ↔ YAML</a> converter handles both directions. JSON to YAML is straightforward — braces become indentation, quotes become optional. YAML to JSON requires more care, especially with YAML's type inference (the Norway problem: writing <code>no</code> as a country code gets interpreted as boolean <code>false</code>).</p>
+
+<h2>Choosing the Right Format: A Decision Framework</h2>
+<table>
+  <thead><tr><th>Scenario</th><th>Use</th><th>Why</th></tr></thead>
+  <tbody>
+    <tr><td>REST API response</td><td>JSON</td><td>Universal support, native parsing in every language</td></tr>
+    <tr><td>Spreadsheet import</td><td>CSV</td><td>Direct import into Excel, Sheets, database tools</td></tr>
+    <tr><td>Enterprise integration</td><td>XML</td><td>SOAP services, government data, legacy systems</td></tr>
+    <tr><td>Application config</td><td>TOML or YAML</td><td>Comments, readability, industry convention</td></tr>
+    <tr><td>DevOps / CI/CD</td><td>YAML</td><td>Standard for Docker, Kubernetes, GitHub Actions</td></tr>
+    <tr><td>Rust project config</td><td>TOML</td><td>Cargo.toml is universal in the Rust ecosystem</td></tr>
+  </tbody>
+</table>
+
+<h2>The Conversion Toolchain</h2>
+<p>Here's a common workflow: you get JSON from an API, but you need it in three different formats. Flatten it first (for CSV compatibility), convert it to CSV for the data analyst, to XML for the legacy reporting system, and to TOML for the deployment config. All of these conversions happen locally in your browser with the tools linked below — no data leaves your machine.</p>
+<p>For deeply nested JSON, flatten first, then convert. The flat representation is always easier to map to CSV, XML, or TOML than the nested original. Use the <a href="/tools/json-flatten/">JSON Flatten</a> tool as a pre-processing step before any format conversion.</p>
+`
+---
+
+<GuideLayout
+  title="JSON Conversion Guide: CSV, XML, TOML, and When to Use Each Format | DevTools Hub"
+  description="A practical guide to converting JSON to CSV, XML, TOML, and YAML. Covers nested objects, special characters, format tradeoffs, and real-world integration scenarios."
+  breadcrumb="JSON Conversion"
+>
+  <Fragment slot="title">JSON Conversion Guide:<br class="hidden sm:block" />CSV, XML, TOML, and When to Use Each</Fragment>
+  <Fragment slot="intro">JSON is the universal format, but the real world runs on CSV spreadsheets, XML enterprise services, and TOML config files. Here's how to convert between them without losing data — and which format to choose for your specific scenario.</Fragment>
+  <Fragment set:html={content} />
+</GuideLayout>

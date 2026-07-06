@@ -1,0 +1,86 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+
+const content = `
+<h2>The Problem</h2>
+<p>You've got two JSON files open side by side. They look similar — same general shape, same kind of data — but you need to know if they're actually the same. Maybe you're comparing staging vs production API responses. Maybe a teammate updated a config file and you're reviewing the diff. Or you're writing a test that checks if your function output matches the expected result.</p>
+<p>Comparing JSON isn't as straightforward as running <code>diff</code> on two text files. JSON objects are unordered collections — <code>{"a":1,"b":2}</code> and <code>{"b":2,"a":1}</code> mean exactly the same thing, but a text diff will flag every line as changed. And when you're dealing with deeply nested objects, hundreds of keys, or values that differ in subtle ways, you need more than a line-by-line comparison.</p>
+<p>This guide covers the three ways to compare JSON — text diff, structural comparison, and semantic diff — and which one to use depending on what you're trying to accomplish.</p>
+
+<h2>Why Plain Text Diff Falls Short</h2>
+<p>Most developers reach for <code>diff</code> or a visual diff tool first. It works great for source code. For JSON, not so much. Here's why.</p>
+<p>Text diff compares files line by line. It doesn't understand JSON structure. Two identical JSON objects with different key ordering will produce a messy diff showing every line as added, removed, and added again. That's useless when what you actually want to know is: "did any values change?"</p>
+<p>The same problem occurs with whitespace. Formatted JSON with 2-space indentation and the same JSON with 4-space indentation will produce a diff on every line, even though the data is identical. A text diff also can't tell you that <code>1</code> and <code>1.0</code> are numerically equal, or that <code>null</code> and a missing key might be treated differently by your application.</p>
+<p>Use a text diff when: you need a quick visual of where two JSON strings differ in raw form, or you're comparing JSON schemas where key order is part of the spec. For everything else, use a structural approach.</p>
+
+<h2>Deep Equality: Are These Two Objects the Same?</h2>
+<p>Deep equality comparison answers a simple question: do these two JSON objects have the same structure and the same values? It doesn't care about key order, whitespace, or formatting — it cares about the actual data.</p>
+<p>A proper deep comparison walks both objects recursively and checks:</p>
+<ul>
+  <li><strong>Same keys</strong> — both objects have the same set of keys at every level, regardless of order</li>
+  <li><strong>Same types</strong> — <code>42</code> vs <code>"42"</code> is a difference (number vs string)</li>
+  <li><strong>Same values</strong> — primitive values match exactly; nested objects and arrays are compared recursively</li>
+  <li><strong>Same array elements</strong> — arrays are compared by position, so <code>[1,2,3]</code> ≠ <code>[3,2,1]</code></li>
+</ul>
+<p>This is the right tool for test assertions. You expected <code>{"status":"ok","data":[...]}</code> and you got <code>{"data":[...],"status":"ok"}</code> — deep equality says they match. Your test passes.</p>
+<p>The <a href="/tools/json-compare/">JSON Compare</a> tool does exactly this. Paste your two JSON objects, click Deep Compare, and you get an immediate yes or no. If they don't match, switch to Diff mode to find out why.</p>
+
+<h2>Semantic Diff: Finding What Actually Changed</h2>
+<p>Deep equality tells you <em>if</em> two objects differ. A semantic diff tells you <em>where</em> and <em>how</em>. It walks both objects and reports every key that exists in one but not the other, every value that changed, and every type mismatch.</p>
+<p>This is the tool for code review. When someone updates a JSON config file, you want to see: "they added a <code>timeout</code> key under <code>server</code>, changed <code>port</code> from 3000 to 8080, and removed <code>debug</code> entirely." Not 47 lines of re-indented noise.</p>
+<p>For the <a href="/tools/json-compare/">JSON Compare</a> tool's Diff mode, the output uses a clear notation:</p>
+<ul>
+  <li><code>+ server.timeout: 5000</code> — key added in B</li>
+  <li><code>- server.debug: true</code> — key removed from A</li>
+  <li><code>server.port: 3000 → 8080</code> — value changed</li>
+</ul>
+<p>This is also helpful for comparing API responses across environments. Your staging server returns slightly different data than production — the diff shows you exactly which fields, so you can decide if the differences are expected or a bug.</p>
+
+<h2>Sorting Keys Before Comparison</h2>
+<p>A quick trick that makes diff tools work better: sort your JSON keys first. If both files have keys in the same alphabetical order, a plain text diff becomes much more useful. The structural differences stand out because you've eliminated the ordering noise.</p>
+<p>The <a href="/tools/json-sort/">JSON Sort</a> tool does this recursively — every object at every nesting level gets its keys sorted A→Z. Run it on both files, then compare the sorted versions. This won't catch all semantic differences (it still can't tell you that <code>1</code> and <code>1.0</code> are the same), but it's fast and works with any diff tool.</p>
+<p>Many teams add key sorting to pre-commit hooks. Before a JSON config file is committed, its keys are sorted automatically. This eliminates the most common source of diff noise: two developers saving the same file with different key ordering.</p>
+
+<h2>Comparing Large JSON Files</h2>
+<p>When you're comparing JSON files with thousands of keys, the approach changes. Loading both files into a comparison tool and scrolling through the results doesn't scale.</p>
+<p>For large datasets, consider:</p>
+<ul>
+  <li><strong>Normalize first.</strong> Sort keys, format consistently. This eliminates false positives before comparison starts.</li>
+  <li><strong>Focus on structure, not values.</strong> Check that both files have the same keys at the same paths. If the structure matches, you can spot-check individual values.</li>
+  <li><strong>Use checksums for equality.</strong> If you just need to know whether two large JSON files are identical, compute a hash of the sorted, minified version. Identical hashes mean identical content.</li>
+  <li><strong>Sample for differences.</strong> If the files are too large for a full comparison, spot-check representative sections — the first 10 records in an array, the deepest nested objects, any sections known to vary between environments.</li>
+</ul>
+
+<h2>Common Comparison Pitfalls</h2>
+<h3>NaN, Infinity, and Undefined</h3>
+<p>JSON doesn't support <code>NaN</code>, <code>Infinity</code>, or <code>undefined</code>. If your comparison tool is processing raw JavaScript objects (not JSON strings), these values can appear and cause confusing results. Always work from the JSON string — parse it, then compare the parsed result.</p>
+
+<h3>Date Strings vs Date Objects</h3>
+<p>JSON has no date type. Dates are strings like <code>"2024-01-15T10:30:00Z"</code>. Two date strings with different timezone formats might represent the same moment but won't match in a string comparison. Before comparing, decide whether you're comparing the string representation or the underlying timestamp.</p>
+
+<h3>Numeric Precision</h3>
+<p>JSON numbers are double-precision floats. <code>0.1 + 0.2</code> equals <code>0.30000000000000004</code> in JavaScript, and two JSON files might contain slightly different floating-point representations of the same logical value. For numeric comparisons, consider whether exact equality or approximate equality is appropriate.</p>
+
+<h2>Quick Reference</h2>
+<table>
+  <thead><tr><th>What You Need</th><th>Approach</th><th>Tool</th></tr></thead>
+  <tbody>
+    <tr><td>Are these equal? (yes/no)</td><td>Deep Compare</td><td><a href="/tools/json-compare/">JSON Compare</a></td></tr>
+    <tr><td>What changed? (specific keys/values)</td><td>Diff mode</td><td><a href="/tools/json-compare/">JSON Compare</a></td></tr>
+    <tr><td>Keys in consistent order</td><td>Sort before comparing</td><td><a href="/tools/json-sort/">JSON Sort</a></td></tr>
+    <tr><td>Visual line-by-line diff</td><td>Text diff</td><td><a href="/tools/diff-checker/">Diff Checker</a></td></tr>
+    <tr><td>Validate before comparing</td><td>Format + Validate</td><td><a href="/tools/json-formatter/">JSON Formatter</a></td></tr>
+  </tbody>
+</table>
+`
+---
+
+<GuideLayout
+  title="Comparing JSON Data: Deep Equality, Semantic Diff, and Best Practices | DevTools Hub"
+  description="Learn the right way to compare JSON objects. Covers deep equality vs text diff, semantic comparison, key sorting, and handling edge cases like NaN, dates, and floating-point precision."
+  breadcrumb="JSON Comparison"
+>
+  <Fragment slot="title">Comparing JSON Data:<br class="hidden sm:block" />Deep Equality & Semantic Diff</Fragment>
+  <Fragment slot="intro">Two JSON objects can look different as text but be semantically identical. Here's how to compare them the right way — whether you're writing tests, reviewing config changes, or debugging API responses.</Fragment>
+  <Fragment set:html={content} />
+</GuideLayout>

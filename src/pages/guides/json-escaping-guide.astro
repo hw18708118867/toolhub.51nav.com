@@ -1,0 +1,92 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+
+const content = `
+<h2>The Invisible Bug That Breaks Your JSON</h2>
+<p>You're building a JSON string in code — maybe you're serializing some data, maybe you're hand-crafting a config file, maybe you're embedding JSON inside another JSON object. You test it, it works. Then a user types a double quote in a form field. Or a file path contains backslashes. Or someone copies text with an em-dash from Word into your data. Your JSON breaks, and the error message — <code>Unexpected token</code> at line 1, column 3942 — points somewhere in the middle of a minified string. Good luck finding the actual problem.</p>
+<p>JSON escaping is the process of converting special characters into their safe, backslash-prefixed representations so they can live inside a JSON string without breaking the parser. It's conceptually simple — there are only a handful of characters to escape — but it trips up developers constantly because the failure mode is silent until it isn't. This guide covers what needs escaping, when, common scenarios where escaping matters, and how to avoid the most frequent mistakes.</p>
+
+<h2>What Gets Escaped and Why</h2>
+<p>The JSON spec defines a small set of characters that must be escaped when they appear inside a string value. If you don't escape them, the JSON parser will misinterpret your string and either fail to parse or (worse) parse incorrectly.</p>
+
+<h3>The Required Escapes</h3>
+<table>
+  <thead><tr><th>Character</th><th>Escape Sequence</th><th>Why It Needs Escaping</th></tr></thead>
+  <tbody>
+    <tr><td>Double quote <code>"</code></td><td><code>\\"</code></td><td>Without escaping, the parser thinks the string ended.</td></tr>
+    <tr><td>Backslash <code>\\</code></td><td><code>\\\\</code></td><td>Backslash starts an escape sequence. A literal backslash must itself be escaped.</td></tr>
+    <tr><td>Newline</td><td><code>\\n</code></td><td>Literal newlines aren't allowed in JSON strings.</td></tr>
+    <tr><td>Carriage return</td><td><code>\\r</code></td><td>Same as newline — control characters must be escaped.</td></tr>
+    <tr><td>Tab</td><td><code>\\t</code></td><td>Literal tabs are valid in some JSON parsers but not all. Escaping is safer.</td></tr>
+    <tr><td>Backspace</td><td><code>\\b</code></td><td>Control character — rarely needed, but must be escaped if present.</td></tr>
+    <tr><td>Form feed</td><td><code>\\f</code></td><td>Control character — very rare in modern data.</td></tr>
+  </tbody>
+</table>
+<p>Forward slashes <code>/</code> can optionally be escaped as <code>\\/</code>. This isn't required by the JSON spec, but it's useful when embedding JSON inside HTML <code>&lt;script&gt;</code> tags — the sequence <code>&lt;/script&gt;</code> inside a JSON string will close the script tag, so escaping the slash to <code>&lt;\\/script&gt;</code> prevents that.</p>
+
+<h3>Unicode Escapes</h3>
+<p>Any Unicode character can be escaped as <code>\\uXXXX</code> where XXXX is the four-digit hex code point. This is how you handle characters that your text encoding might not support, or characters that are invisible or ambiguous. For example, <code>\\u00A0</code> is a non-breaking space — visually identical to a regular space but semantically different and capable of causing hard-to-diagnose parsing issues.</p>
+
+<h2>Scenario 1: Embedding JSON Inside JSON</h2>
+<p>This is the most common real-world scenario. You have a JSON object, and one of its values is itself a JSON string. Maybe you're storing a serialized configuration blob in a database record. Or you're building a nested data structure where one field contains serialized JSON.</p>
+<pre><code class="language-json">// The inner JSON — what you want to store
+{"message": "He said \\"hello\\"", "path": "C:\\\\files"}
+
+// How it looks embedded inside another JSON object
+{
+  "id": 1234,
+  "payload": "{\\"message\\": \\"He said \\\\\\"hello\\\\\\"\\", \\"path\\": \\"C:\\\\\\\\files\\"}"
+}</code></pre>
+<p>Notice how the escaping compounds. The inner JSON's <code>\\"</code> becomes <code>\\\\\\"</code> when embedded — the backslash gets escaped, and the quote gets escaped again. Each level of nesting multiplies the backslashes. This is why embedding JSON inside JSON by hand is error-prone — use the <a href="/tools/json-escape/">JSON Escape</a> tool to do the escaping layer by layer.</p>
+<p>The safer approach is to avoid embedding JSON strings inside JSON altogether. Store the inner data as a proper nested object, not a serialized string. If you must serialize, use Base64 encoding for the inner payload and decode it in your application layer — no escaping needed at the JSON level.</p>
+
+<h2>Scenario 2: File Paths on Windows</h2>
+<p>Windows file paths use backslashes: <code>C:\\Users\\john\\documents\\file.json</code>. In a JSON string, each backslash must be escaped: <code>"C:\\\\Users\\\\john\\\\documents\\\\file.json"</code>. If you're building JSON that contains file paths (for a build tool, a deployment config, or a log aggregator), forgetting to escape the backslashes produces invalid JSON.</p>
+<p>The error is particularly confusing because the broken JSON often <em>looks</em> correct at a glance — the backslashes are there, they just aren't doubled. And since the backslash is an escape character in JSON, the parser will try to interpret <code>\\U</code> as a Unicode escape, find that <code>sers</code> isn't a valid hex sequence, and report an error at a position that has nothing to do with the actual problem.</p>
+<p>Use the <a href="/tools/json-escape/">JSON Escape</a> tool's Escape function on the raw path string before inserting it into your JSON. It handles the backslash doubling correctly.</p>
+
+<h2>Scenario 3: User-Generated Content</h2>
+<p>Any text that comes from users — form inputs, chat messages, product reviews, bios — can contain characters that need escaping. Users type double quotes. They paste text from Word documents with curly quotes and em-dashes. They include line breaks in multi-line text fields. If any of this content ends up in a JSON string, it needs to be escaped.</p>
+<p>The right solution is to use your programming language's JSON serialization library. <code>JSON.stringify()</code> in JavaScript, <code>json.dumps()</code> in Python, <code>json.Marshal()</code> in Go — they all handle escaping correctly. The problem arises when developers bypass the library and build JSON by concatenating strings:</p>
+<pre><code class="language-javascript">// ❌ Dangerous — user input may contain quotes, backslashes, newlines
+const json = '{"message": "' + userInput + '"}';
+
+// ✅ Safe — JSON.stringify handles escaping
+const json = JSON.stringify({ message: userInput });</code></pre>
+<p>If you must build JSON strings manually (you almost never should), use the <a href="/tools/json-escape/">JSON Escape</a> tool to pre-process any dynamic values before concatenation.</p>
+
+<h2>Scenario 4: Debugging Escaped JSON</h2>
+<p>Sometimes you're on the receiving end of escaped JSON. You're looking at a log line, a database field, or an API response, and it's full of <code>\\"</code> and <code>\\\\</code>. You can't read it. That's where unescaping comes in.</p>
+<p>The <a href="/tools/json-escape/">JSON Escape</a> tool's Unescape button converts escape sequences back to literal characters. Paste the escaped string, click Unescape, and you get the human-readable version. This is particularly useful when inspecting serialized data in a database — a field that stores JSON as a string will look like gibberish until you unescape it.</p>
+
+<h2>Prevention: Build It Right the First Time</h2>
+<ul>
+  <li><strong>Always use a serialization library.</strong> Never build JSON by concatenating strings. This single rule prevents 95% of escaping bugs.</li>
+  <li><strong>Validate after generation.</strong> Run generated JSON through a validator, even if you used a library. Serialization libraries can have bugs, especially with Unicode edge cases.</li>
+  <li><strong>Escape at the boundary.</strong> When data enters your system from an external source, validate and escape it at the ingestion point. Don't defer escaping to the output layer — by then it's too late to know what the original data looked like.</li>
+  <li><strong>Test with malicious inputs.</strong> Include strings with double quotes, backslashes, newlines, emoji, and Unicode control characters in your test fixtures. If your JSON pipeline handles these correctly, it'll handle normal user input.</li>
+  <li><strong>Never nest serialized JSON.</strong> If you find yourself storing a JSON string inside another JSON string, reconsider your data model. This pattern multiplies escaping complexity with each nesting level.</li>
+</ul>
+
+<h2>Quick Reference</h2>
+<table>
+  <thead><tr><th>Task</th><th>Tool</th></tr></thead>
+  <tbody>
+    <tr><td>Escape a string for JSON</td><td><a href="/tools/json-escape/">JSON Escape</a></td></tr>
+    <tr><td>Unescape a JSON string</td><td><a href="/tools/json-escape/">JSON Escape</a> (Unescape button)</td></tr>
+    <tr><td>Validate the result</td><td><a href="/tools/json-formatter/">JSON Formatter</a></td></tr>
+    <tr><td>General string escaping (HTML, URL, etc.)</td><td><a href="/tools/string-escaper/">String Escaper</a></td></tr>
+  </tbody>
+</table>
+`
+---
+
+<GuideLayout
+  title="JSON String Escaping: When, Why, and How to Get It Right | DevTools Hub"
+  description="A practical guide to JSON string escaping. Covers the characters that need escaping, real scenarios like embedding JSON in JSON and Windows paths, user-generated content, and how to debug escaped data."
+  breadcrumb="JSON Escaping"
+>
+  <Fragment slot="title">JSON String Escaping:<br class="hidden sm:block" />When, Why, and How to Get It Right</Fragment>
+  <Fragment slot="intro">One unescaped double quote or backslash can break your entire JSON payload. Here's what needs escaping, four real-world scenarios where it matters, and how to prevent escaping bugs before they hit production.</Fragment>
+  <Fragment set:html={content} />
+</GuideLayout>

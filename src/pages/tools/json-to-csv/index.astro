@@ -1,0 +1,149 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import StatusMessage from '../../../components/StatusMessage.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'json-to-csv')!
+
+const steps = [
+  { name: 'Paste JSON Array', text: 'Paste a JSON array of objects into the input panel. Each object should have the same keys — these become the CSV column headers.' },
+  { name: 'Click Convert', text: 'Click "JSON to CSV" to transform your data. The first row of the output will be the headers from your object keys.' },
+  { name: 'Copy or Download', text: 'Copy the CSV output and paste it into Excel, Google Sheets, or any CSV-compatible tool.' },
+]
+
+const faq = [
+  { question: 'What JSON format does this tool expect?', answer: 'The input should be a JSON array of objects, like [{"name":"John","age":30}, {"name":"Jane","age":25}]. Each object becomes a CSV row, and the keys of the first object become the column headers. If later objects have extra keys, they will appear as additional columns.' },
+  { question: 'What about commas and quotes in my data?', answer: 'Values containing commas, double quotes, or line breaks are automatically wrapped in double quotes and any internal quotes are escaped — this is standard CSV behavior and works correctly with Excel, Google Sheets, and most CSV parsers.' },
+  { question: 'Can I convert nested JSON objects to CSV?', answer: 'Nested objects and arrays are serialized as JSON strings in the CSV cell. For deeply nested data, you might want to use the JSON Flatten tool first, then convert the flattened result to CSV.' },
+]
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free online JSON to CSV converter. Transform JSON arrays into CSV format instantly. Works with Excel, Google Sheets, and database imports." {steps} {faq}
+>
+  <div class="flex flex-wrap gap-3 mb-6">
+    <button id="convertBtn" class="btn btn-primary">JSON to CSV</button>
+    <button id="sampleBtn" class="btn btn-secondary">Load Sample</button>
+    <button id="clearBtn" class="btn btn-secondary">Clear</button>
+  </div>
+
+  <div class="grid lg:grid-cols-2 gap-6">
+    <div class="code-panel">
+      <div class="code-panel-header">
+        <span class="text-sm font-medium text-gray-500 dark:text-gray-400">JSON Input</span>
+        <button id="copyInputBtn" class="btn btn-sm btn-secondary">Copy</button>
+      </div>
+      <textarea id="inputEl" class="code-input" placeholder='[{"name":"John","age":30},{"name":"Jane","age":25}]'></textarea>
+    </div>
+    <div class="code-panel">
+      <div class="code-panel-header">
+        <span class="text-sm font-medium text-gray-500 dark:text-gray-400">CSV Output</span>
+        <button id="copyOutputBtn" class="btn btn-sm btn-secondary">Copy</button>
+      </div>
+      <pre id="outputEl" class="code-output"></pre>
+    </div>
+  </div>
+  <StatusMessage id="statusEl" />
+
+  <section slot="examples" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Example</h2>
+    <div class="grid lg:grid-cols-2 gap-6">
+      <div>
+        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 dark:text-gray-400">JSON</h3>
+        <pre class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-700 overflow-x-auto dark:bg-gray-900 dark:border-gray-800 dark:text-gray-300"><code>[
+  &#123;"name":"John","age":30,"city":"New York"&#125;,
+  &#123;"name":"Jane","age":25,"city":"London"&#125;,
+  &#123;"name":"Bob","age":35,"city":"Paris"&#125;
+]</code></pre>
+      </div>
+      <div>
+        <h3 class="text-sm font-semibold text-green-600 uppercase tracking-wider mb-3">CSV</h3>
+        <pre class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-700 overflow-x-auto dark:bg-gray-900 dark:border-gray-800 dark:text-gray-300"><code>name,age,city
+John,30,New York
+Jane,25,London
+Bob,35,Paris</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">JSON to CSV: Practical Uses</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">
+        JSON is the standard format for web APIs, but when you need to analyze data in a spreadsheet or import it into a database, CSV is what you want. This converter bridges that gap — take an API response, convert to CSV, and open it directly in Excel or Google Sheets.
+      </p>
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">
+        A typical workflow: you call a REST API, get back a JSON array of records, run it through this converter, then import the CSV into a database with <code class="bg-gray-100 dark:bg-gray-800 px-1 rounded">COPY</code> (PostgreSQL) or <code class="bg-gray-100 dark:bg-gray-800 px-1 rounded">LOAD DATA</code> (MySQL). It's often the fastest way to get API data into a SQL database.
+      </p>
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">
+        If your JSON has nested objects, the nested values will appear as JSON strings in the CSV cells. For flat data (like most API responses), the conversion is clean and 1:1.
+      </p>
+    </div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+      <a href="/guides/json-conversion-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">JSON Conversion Guide</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">CSV, XML, TOML — when and how to convert between formats.</p></div></div></a>
+      <a href="/guides/csv-json-conversion-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">CSV to JSON Conversion Guide</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Handle delimiters, quoting, and data type conversion.</p></div></div></a>
+    </div>
+  </section>
+
+  <script>
+    import { copyToClipboard } from '../../../utils/copyToClipboard'
+
+    const inputEl = document.getElementById('inputEl') as HTMLTextAreaElement
+    const outputEl = document.getElementById('outputEl')!
+
+    function showStatus(msg: string, type: 'success' | 'error') {
+      const el = document.getElementById('statusEl')!
+      el.textContent = msg; el.classList.remove('hidden')
+      el.className = type === 'success' ? 'mt-4 px-4 py-3 rounded-lg bg-green-900/40 border border-green-800 text-green-400' : 'mt-4 px-4 py-3 rounded-lg bg-red-900/40 border border-red-800 text-red-400'
+      setTimeout(() => el.classList.add('hidden'), 3000)
+    }
+
+    function escapeCSV(val: any): string {
+      const s = val === null || val === undefined ? '' : typeof val === 'object' ? JSON.stringify(val) : String(val)
+      if (s.includes(',') || s.includes('"') || s.includes('\n') || s.includes('\r')) {
+        return '"' + s.replace(/"/g, '""') + '"'
+      }
+      return s
+    }
+
+    document.getElementById('convertBtn')!.addEventListener('click', () => {
+      const v = inputEl.value.trim()
+      if (!v) { showStatus('Paste a JSON array first', 'error'); return }
+      try {
+        const arr = JSON.parse(v)
+        if (!Array.isArray(arr)) { showStatus('Input must be a JSON array [...]', 'error'); return }
+        if (arr.length === 0) { showStatus('Array is empty', 'error'); return }
+        const headers = Object.keys(arr[0])
+        const lines = [headers.join(',')]
+        arr.forEach((row: any) => {
+          lines.push(headers.map(h => escapeCSV(row[h])).join(','))
+        })
+        outputEl.textContent = lines.join('\n')
+        showStatus(`Converted ${arr.length} rows`, 'success')
+      } catch (e) {
+        showStatus('Invalid JSON: ' + (e as Error).message, 'error')
+      }
+    })
+
+    document.getElementById('sampleBtn')!.addEventListener('click', () => {
+      inputEl.value = '[{"name":"John","age":30,"city":"New York"},{"name":"Jane","age":25,"city":"London"},{"name":"Bob","age":35,"city":"Paris, France"}]'
+      outputEl.textContent = ''
+    })
+
+    document.getElementById('clearBtn')!.addEventListener('click', () => { inputEl.value = ''; outputEl.textContent = '' })
+
+    document.getElementById('copyInputBtn')!.addEventListener('click', async () => {
+      const ok = await copyToClipboard(inputEl.value)
+      showStatus(ok ? 'Copied!' : 'Copy failed', ok ? 'success' : 'error')
+    })
+    document.getElementById('copyOutputBtn')!.addEventListener('click', async () => {
+      const ok = await copyToClipboard(outputEl.textContent || '')
+      showStatus(ok ? 'Copied!' : 'Copy failed', ok ? 'success' : 'error')
+    })
+  </script>
+</ToolLayout>

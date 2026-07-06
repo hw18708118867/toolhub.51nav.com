@@ -14,7 +14,7 @@ const toolsByCategory = Object.entries(categories).map(([key, cat]) => ({
 }))
 ---
 
-<BaseLayout title="DevTools Hub - 40+ Free Developer Tools">
+<BaseLayout title={`DevTools Hub - ${tools.length}+ Free Developer Tools`}>
   <Header />
   <main class="flex-1">
     <!-- Hero Section (with integrated stats) -->
@@ -25,7 +25,7 @@ const toolsByCategory = Object.entries(categories).map(([key, cat]) => ({
             <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M13 2 L3 14 H12 L11 22 L21 10 H12 L13 2Z"/>
             </svg>
-            <span class="text-blue-700 text-sm font-medium dark:text-blue-300">40+ Free Developer Tools</span>
+            <span class="text-blue-700 text-sm font-medium dark:text-blue-300">{tools.length}+ Free Developer Tools</span>
           </div>
           <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight dark:text-white">
             Make your work
@@ -49,7 +49,7 @@ const toolsByCategory = Object.entries(categories).map(([key, cat]) => ({
           <!-- Stats Row -->
           <div class="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto">
             <div class="bg-white border border-gray-200 rounded-xl p-4 dark:bg-gray-900/50 dark:border-gray-800">
-              <div class="text-3xl font-bold text-blue-600 mb-1 dark:text-blue-400">42</div>
+              <div class="text-3xl font-bold text-blue-600 mb-1 dark:text-blue-400">{tools.length}</div>
               <div class="text-sm text-gray-400 dark:text-gray-500">Free Tools</div>
             </div>
             <div class="bg-white border border-gray-200 rounded-xl p-4 dark:bg-gray-900/50 dark:border-gray-800">

@@ -1,0 +1,147 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import StatusMessage from '../../../components/StatusMessage.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'json-sort')!
+
+const steps = [
+  { name: 'Paste Your JSON', text: 'Paste the JSON object you want to sort into the input panel. The tool works with any valid JSON — objects, nested objects, and arrays of objects.' },
+  { name: 'Click Sort', text: 'Click "Sort Keys" to recursively sort all object keys in alphabetical order (A-Z). Nested objects are sorted too.' },
+  { name: 'Copy the Result', text: 'The sorted JSON appears in the output panel. Use the Copy button to grab it.' },
+]
+
+const faq = [
+  { question: 'Why would I need to sort JSON keys?', answer: 'Sorted keys make it easier to compare two JSON files with diff tools, read configuration files where keys are in a predictable order, and reduce unnecessary git diffs when multiple team members edit the same JSON config. It also helps when searching for a specific key in a large file.' },
+  { question: 'Does key order matter in JSON?', answer: 'Technically, no. The JSON spec says objects are unordered collections of key/value pairs. In practice, most JSON parsers preserve insertion order (including JavaScript\'s JSON.parse), so sorting can make files more readable and diff-friendly. But your application should never rely on a specific key order.' },
+  { question: 'Does this sort nested objects too?', answer: 'Yes. The sorter works recursively — all nested objects at any depth get their keys sorted. Arrays maintain their original element order; only object keys are sorted.' },
+]
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free online JSON key sorter. Sort JSON object keys alphabetically with recursive nested sorting. Useful for comparing config files and reducing git diffs." {steps} {faq}
+>
+  <div class="flex flex-wrap gap-3 mb-6">
+    <button id="sortBtn" class="btn btn-primary">Sort Keys (A→Z)</button>
+    <button id="sampleBtn" class="btn btn-secondary">Load Sample</button>
+    <button id="clearBtn" class="btn btn-secondary">Clear</button>
+  </div>
+
+  <div class="grid lg:grid-cols-2 gap-6">
+    <div class="code-panel">
+      <div class="code-panel-header">
+        <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Input JSON</span>
+        <button id="copyInputBtn" class="btn btn-sm btn-secondary">Copy</button>
+      </div>
+      <textarea id="inputEl" class="code-input" placeholder="Paste JSON here..."></textarea>
+    </div>
+    <div class="code-panel">
+      <div class="code-panel-header">
+        <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Sorted Output</span>
+        <button id="copyOutputBtn" class="btn btn-sm btn-secondary">Copy</button>
+      </div>
+      <pre id="outputEl" class="code-output"></pre>
+    </div>
+  </div>
+  <StatusMessage id="statusEl" />
+
+  <section slot="examples" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Example</h2>
+    <div class="grid lg:grid-cols-2 gap-6">
+      <div>
+        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 dark:text-gray-400">Before (Unsorted)</h3>
+        <pre class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-700 overflow-x-auto dark:bg-gray-900 dark:border-gray-800 dark:text-gray-300"><code>&#123;
+  "name": "DevTools Hub",
+  "active": true,
+  "version": "1.0.0",
+  "author": &#123; "email": "dev@example.com", "name": "John" &#125;
+&#125;</code></pre>
+      </div>
+      <div>
+        <h3 class="text-sm font-semibold text-green-600 uppercase tracking-wider mb-3">After (Sorted)</h3>
+        <pre class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-700 overflow-x-auto dark:bg-gray-900 dark:border-gray-800 dark:text-gray-300"><code>&#123;
+  "active": true,
+  "author": &#123; "email": "dev@example.com", "name": "John" &#125;,
+  "name": "DevTools Hub",
+  "version": "1.0.0"
+&#125;</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Why JSON Key Sorting Is Useful</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">
+        If you work with JSON configuration files in a team, you've likely seen a pull request where someone added a new field and unintentionally reordered every key in the file because their editor auto-formatted it. Sorting keys to a consistent order eliminates this noise — the diff shows only the actual data changes, not formatting churn.
+      </p>
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">
+        This is especially valuable for <code class="bg-gray-100 dark:bg-gray-800 px-1 rounded">package.json</code>, <code class="bg-gray-100 dark:bg-gray-800 px-1 rounded">tsconfig.json</code>, ESLint configs, and i18n translation files that multiple developers touch. Many teams add a pre-commit hook to sort JSON keys automatically.
+      </p>
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">
+        Another practical use: when you're eyeball-comparing two JSON responses from different API environments (staging vs production, for example), having keys in the same order makes scanning for differences much faster.
+      </p>
+    </div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+      <a href="/guides/json-comparison-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">JSON Comparison Guide</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Deep equality, semantic diff, and key sorting strategies.</p></div></div></a>
+      <a href="/guides/json-structure-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">JSON Structure Guide</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Flattening, tree views, and working with nested JSON.</p></div></div></a>
+    </div>
+  </section>
+
+  <script>
+    import { copyToClipboard } from '../../../utils/copyToClipboard'
+
+    const inputEl = document.getElementById('inputEl') as HTMLTextAreaElement
+    const outputEl = document.getElementById('outputEl')!
+
+    function showStatus(msg: string, type: 'success' | 'error') {
+      const el = document.getElementById('statusEl')!
+      el.textContent = msg; el.classList.remove('hidden')
+      el.className = type === 'success' ? 'mt-4 px-4 py-3 rounded-lg bg-green-900/40 border border-green-800 text-green-400' : 'mt-4 px-4 py-3 rounded-lg bg-red-900/40 border border-red-800 text-red-400'
+      setTimeout(() => el.classList.add('hidden'), 3000)
+    }
+
+    function sortKeys(obj: any): any {
+      if (Array.isArray(obj)) return obj.map(sortKeys)
+      if (obj !== null && typeof obj === 'object') {
+        const sorted: any = {}
+        Object.keys(obj).sort().forEach(k => { sorted[k] = sortKeys(obj[k]) })
+        return sorted
+      }
+      return obj
+    }
+
+    document.getElementById('sortBtn')!.addEventListener('click', () => {
+      const v = inputEl.value.trim()
+      if (!v) { showStatus('Paste some JSON first', 'error'); return }
+      try {
+        const obj = JSON.parse(v)
+        outputEl.textContent = JSON.stringify(sortKeys(obj), null, 2)
+        showStatus('Keys sorted A→Z!', 'success')
+      } catch (e) {
+        showStatus('Invalid JSON: ' + (e as Error).message, 'error')
+      }
+    })
+
+    document.getElementById('sampleBtn')!.addEventListener('click', () => {
+      inputEl.value = '{"name":"DevTools Hub","active":true,"version":"1.0.0","author":{"email":"dev@example.com","name":"John"},"dependencies":{"zlib":"2.0.0","async":"3.0.0","lodash":"4.0.0"}}'
+      outputEl.textContent = ''
+    })
+
+    document.getElementById('clearBtn')!.addEventListener('click', () => { inputEl.value = ''; outputEl.textContent = '' })
+
+    document.getElementById('copyInputBtn')!.addEventListener('click', async () => {
+      const ok = await copyToClipboard(inputEl.value)
+      showStatus(ok ? 'Copied!' : 'Copy failed', ok ? 'success' : 'error')
+    })
+    document.getElementById('copyOutputBtn')!.addEventListener('click', async () => {
+      const ok = await copyToClipboard(outputEl.textContent || '')
+      showStatus(ok ? 'Copied!' : 'Copy failed', ok ? 'success' : 'error')
+    })
+  </script>
+</ToolLayout>

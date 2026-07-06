@@ -1,0 +1,294 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import StatusMessage from '../../../components/StatusMessage.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'json-tree-viewer')!
+
+const steps = [
+  { name: 'Paste Your JSON', text: 'Paste any valid JSON into the input area — an object, array, or even a single value. The tool will parse it and render a collapsible tree.' },
+  { name: 'Explore the Tree', text: 'Click the arrows (▶) to expand collapsed nodes and see nested objects and arrays. The tree shows data types with color coding for quick scanning.' },
+  { name: 'Copy What You Need', text: 'Click any value to copy it to your clipboard. The status bar at the bottom shows the total number of keys and the maximum nesting depth.' },
+]
+
+const faq = [
+  { question: 'How does the tree view help with debugging?', answer: 'When you get a large JSON response from an API, scrolling through thousands of lines of formatted text is inefficient. A collapsible tree lets you collapse the parts you don\'t need and drill into the specific section you\'re debugging. The type color coding also makes it easy to spot when a value is a string when you expected a number, or vice versa.' },
+  { question: 'Can I view very large JSON files?', answer: 'Yes, but performance depends on your browser. For JSON under a few megabytes, the tree renders almost instantly. For very large files (10MB+), the browser may pause briefly during parsing. The tree view renders lazily — only the top-level nodes are visible until you expand them, which helps with rendering performance.' },
+  { question: 'What do the colors mean?', answer: 'Object keys are purple, strings are green, numbers are blue, booleans are orange, and null is gray. Arrays show their length in brackets. This color scheme helps you quickly scan the structure and spot data type inconsistencies.' },
+]
+---
+
+<ToolLayout
+  tool={tool}
+  description="Visualize JSON data as an interactive collapsible tree. Color-coded by data type. Expand and collapse nodes to explore nested structures. All local." {steps} {faq}
+>
+  <div class="flex flex-wrap gap-3 mb-6">
+    <button id="renderBtn" class="btn btn-primary">Render Tree</button>
+    <button id="expandAllBtn" class="btn btn-secondary">Expand All</button>
+    <button id="collapseAllBtn" class="btn btn-secondary">Collapse All</button>
+    <button id="sampleBtn" class="btn btn-secondary">Load Sample</button>
+    <button id="clearBtn" class="btn btn-secondary">Clear</button>
+  </div>
+
+  <div class="grid lg:grid-cols-2 gap-6">
+    <div class="code-panel">
+      <div class="code-panel-header">
+        <span class="text-sm font-medium text-gray-500 dark:text-gray-400">JSON Input</span>
+        <button id="copyInputBtn" class="btn btn-sm btn-secondary">Copy</button>
+      </div>
+      <textarea id="inputEl" class="code-input" placeholder="Paste JSON to visualize as a tree..."></textarea>
+    </div>
+    <div class="code-panel">
+      <div class="code-panel-header flex items-center justify-between">
+        <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Tree View</span>
+        <span id="statsEl" class="text-xs text-gray-400"></span>
+      </div>
+      <div id="treeEl" class="w-full min-h-[400px] p-4 bg-white font-mono text-sm overflow-auto dark:bg-gray-900" style="max-height:600px">
+        <div class="text-gray-400 text-sm py-8 text-center">Paste JSON and click "Render Tree" to see the visualization</div>
+      </div>
+    </div>
+  </div>
+  <StatusMessage id="statusEl" />
+
+  <section slot="examples" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">What the Colors Mean</h2>
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 mb-6">
+      <div class="bg-white border border-gray-200 rounded-xl p-4 text-center dark:bg-gray-900 dark:border-gray-800">
+        <div class="text-lg font-bold" style="color:#a855f7">"key":</div>
+        <div class="text-xs text-gray-500 mt-1">Object Key</div>
+      </div>
+      <div class="bg-white border border-gray-200 rounded-xl p-4 text-center dark:bg-gray-900 dark:border-gray-800">
+        <div class="text-lg font-bold" style="color:#22c55e">"string"</div>
+        <div class="text-xs text-gray-500 mt-1">String</div>
+      </div>
+      <div class="bg-white border border-gray-200 rounded-xl p-4 text-center dark:bg-gray-900 dark:border-gray-800">
+        <div class="text-lg font-bold" style="color:#3b82f6">42</div>
+        <div class="text-xs text-gray-500 mt-1">Number</div>
+      </div>
+      <div class="bg-white border border-gray-200 rounded-xl p-4 text-center dark:bg-gray-900 dark:border-gray-800">
+        <div class="text-lg font-bold" style="color:#f59e0b">true</div>
+        <div class="text-xs text-gray-500 mt-1">Boolean</div>
+      </div>
+      <div class="bg-white border border-gray-200 rounded-xl p-4 text-center dark:bg-gray-900 dark:border-gray-800">
+        <div class="text-lg font-bold" style="color:#9ca3af">null</div>
+        <div class="text-xs text-gray-500 mt-1">Null</div>
+      </div>
+    </div>
+  </section>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Why a Tree View Beats Formatted JSON</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">
+        When you run <code class="bg-gray-100 dark:bg-gray-800 px-1 rounded">JSON.stringify(obj, null, 2)</code> and stare at the output, you're looking at a linear representation of a hierarchical structure. For a small object with 10 keys, that's fine. For an API response with 500 lines across 6 levels of nesting, scrolling back and forth trying to match brackets and follow the structure is slow and error-prone.
+      </p>
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">
+        A collapsible tree matches how the data is actually structured. Collapse the parts you've already checked; expand only the section you're currently investigating. The indentation and connecting lines make the parent-child relationships visually obvious in a way that flat indented text can't.
+      </p>
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">
+        The type coloring is the other big advantage. In a plain text dump, <code class="bg-gray-100 dark:bg-gray-800 px-1 rounded">"false"</code> and <code class="bg-gray-100 dark:bg-gray-800 px-1 rounded">false</code> look nearly identical, but one is a string and the other is a boolean — and that distinction matters when your code does strict type checking.
+      </p>
+    </div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+      <a href="/guides/json-structure-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">JSON Structure Guide</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Flattening, tree views, and working with nested JSON.</p></div></div></a>
+      <a href="/guides/json-debugging-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">JSON Debugging Guide</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Fix and prevent common JSON syntax errors.</p></div></div></a>
+    </div>
+  </section>
+
+  <script>
+    import { copyToClipboard } from '../../../utils/copyToClipboard'
+
+    const inputEl = document.getElementById('inputEl') as HTMLTextAreaElement
+    const treeEl = document.getElementById('treeEl')!
+    const statsEl = document.getElementById('statsEl')!
+
+    function showStatus(msg: string, type: 'success' | 'error') {
+      const el = document.getElementById('statusEl')!
+      el.textContent = msg; el.classList.remove('hidden')
+      el.className = type === 'success' ? 'mt-4 px-4 py-3 rounded-lg bg-green-900/40 border border-green-800 text-green-400' : 'mt-4 px-4 py-3 rounded-lg bg-red-900/40 border border-red-800 text-red-400'
+      setTimeout(() => el.classList.add('hidden'), 3000)
+    }
+
+    function getType(val: any): string {
+      if (val === null) return 'null'
+      if (Array.isArray(val)) return 'array'
+      return typeof val
+    }
+
+    function typeColor(type: string): string {
+      const colors: Record<string, string> = {
+        string: '#22c55e',
+        number: '#3b82f6',
+        boolean: '#f59e0b',
+        null: '#9ca3af',
+        key: '#a855f7',
+        bracket: '#6b7280',
+      }
+      return colors[type] || '#e5e7eb'
+    }
+
+    function countKeys(obj: any): number {
+      if (Array.isArray(obj)) return obj.reduce((s, v) => s + (typeof v === 'object' && v !== null ? countKeys(v) : 0), obj.length)
+      if (obj !== null && typeof obj === 'object') return Object.keys(obj).length + Object.values(obj).reduce((s: number, v) => s + (typeof v === 'object' && v !== null ? countKeys(v) : 0), 0)
+      return 0
+    }
+
+    function maxDepth(obj: any): number {
+      if (Array.isArray(obj)) return obj.length === 0 ? 1 : 1 + Math.max(...obj.map(v => typeof v === 'object' && v !== null ? maxDepth(v) : 0))
+      if (obj !== null && typeof obj === 'object') {
+        const vals = Object.values(obj) as any[]
+        return vals.length === 0 ? 1 : 1 + Math.max(...vals.map(v => typeof v === 'object' && v !== null ? maxDepth(v) : 0))
+      }
+      return 0
+    }
+
+    function renderTree(data: any): void {
+      treeEl.innerHTML = ''
+
+      function buildNode(key: string | null, val: any, depth: number, isLast: boolean, ancestors: boolean[]): HTMLElement {
+        const type = getType(val)
+        const container = document.createElement('div')
+        container.className = 'tree-node'
+
+        const line = document.createElement('div')
+        line.className = 'flex items-start hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded px-1 -mx-1 cursor-pointer min-w-0'
+        line.style.paddingLeft = (depth * 20) + 'px'
+
+        // Indent guides
+        let guideHtml = ''
+        for (let i = 0; i < depth; i++) {
+          guideHtml += `<span class="inline-block w-5 text-gray-300 dark:text-gray-700 select-none" style="min-width:20px">${ancestors[i] ? '│' : ' '}</span>`
+        }
+        if (depth > 0) {
+          guideHtml += `<span class="inline-block w-5 text-gray-300 dark:text-gray-700 select-none" style="min-width:20px">${isLast ? '└' : '├'}</span>`
+        }
+
+        // Toggle arrow for expandable types
+        const expandable = type === 'object' || type === 'array'
+        const arrow = expandable
+          ? `<span class="tree-arrow inline-block w-4 text-center cursor-pointer select-none text-gray-500 hover:text-gray-900 dark:hover:text-white mr-1" data-expanded="false">▶</span>`
+          : `<span class="inline-block w-4 mr-1"></span>`
+
+        // Key part
+        let keyHtml = ''
+        if (key !== null) {
+          keyHtml = `<span style="color:${typeColor('key')}" class="mr-1 select-none">${JSON.stringify(key)}</span><span class="text-gray-500 dark:text-gray-600 select-none mr-1">:</span>`
+        }
+
+        // Value part
+        let valHtml = ''
+        if (type === 'object') {
+          const count = Object.keys(val).length
+          valHtml = `<span style="color:${typeColor('bracket')}">{</span><span class="text-gray-400 text-xs ml-1">${count} key${count !== 1 ? 's' : ''}</span><span style="color:${typeColor('bracket')}">}</span>`
+        } else if (type === 'array') {
+          valHtml = `<span style="color:${typeColor('bracket')}">[</span><span class="text-gray-400 text-xs ml-1">${val.length} item${val.length !== 1 ? 's' : ''}</span><span style="color:${typeColor('bracket')}">]</span>`
+        } else if (type === 'string') {
+          valHtml = `<span class="cursor-pointer hover:underline" style="color:${typeColor('string')}" data-copy="${encodeURIComponent(val)}">${JSON.stringify(val)}</span>`
+        } else if (type === 'number') {
+          valHtml = `<span class="cursor-pointer hover:underline" style="color:${typeColor('number')}" data-copy="${val}">${val}</span>`
+        } else if (type === 'boolean') {
+          valHtml = `<span style="color:${typeColor('boolean')}">${val}</span>`
+        } else if (type === 'null') {
+          valHtml = `<span style="color:${typeColor('null')}">null</span>`
+        }
+
+        line.innerHTML = `<span class="whitespace-pre text-xs leading-6">${guideHtml}${arrow}${keyHtml}${valHtml}</span>`
+        container.appendChild(line)
+
+        // Child container for expandable types
+        if (expandable) {
+          const childContainer = document.createElement('div')
+          childContainer.className = 'tree-children hidden'
+
+          const entries = type === 'array'
+            ? val.map((v: any, i: number) => [String(i), v] as [string, any])
+            : Object.entries(val)
+
+          entries.forEach(([k, v]: [string, any], i: number) => {
+            const child = buildNode(type === 'array' ? null : k, v, depth + 1, i === entries.length - 1, [...ancestors, !isLast])
+            childContainer.appendChild(child)
+          })
+
+          // Toggle on click
+          line.addEventListener('click', (e) => {
+            const target = e.target as HTMLElement
+            // Don't toggle if clicking a copy-able value
+            if (target.hasAttribute('data-copy')) return
+            const isHidden = childContainer.classList.contains('hidden')
+            if (isHidden) {
+              childContainer.classList.remove('hidden')
+              const arr = line.querySelector('.tree-arrow')
+              if (arr) { arr.textContent = '▼'; arr.setAttribute('data-expanded', 'true') }
+            } else {
+              childContainer.classList.add('hidden')
+              const arr = line.querySelector('.tree-arrow')
+              if (arr) { arr.textContent = '▶'; arr.setAttribute('data-expanded', 'false') }
+            }
+          })
+
+          container.appendChild(childContainer)
+        }
+
+        // Click to copy values
+        line.querySelectorAll('[data-copy]').forEach(el => {
+          el.addEventListener('click', async (e) => {
+            e.stopPropagation()
+            const text = decodeURIComponent(el.getAttribute('data-copy')!)
+            const ok = await copyToClipboard(text)
+            showStatus(ok ? 'Copied: ' + text.substring(0, 50) : 'Copy failed', ok ? 'success' : 'error')
+          })
+        })
+
+        return container
+      }
+
+      const root = buildNode(null, data, 0, true, [])
+      treeEl.appendChild(root)
+
+      // Stats
+      const totalKeys = countKeys(data)
+      const depth = maxDepth(data)
+      statsEl.textContent = `${totalKeys} keys · max depth: ${depth}`
+    }
+
+    document.getElementById('renderBtn')!.addEventListener('click', () => {
+      const v = inputEl.value.trim()
+      if (!v) { showStatus('Paste some JSON first', 'error'); return }
+      try {
+        const data = JSON.parse(v)
+        renderTree(data)
+        showStatus('Tree rendered!', 'success')
+      } catch (e) { showStatus('Invalid JSON: ' + (e as Error).message, 'error') }
+    })
+
+    document.getElementById('expandAllBtn')!.addEventListener('click', () => {
+      treeEl.querySelectorAll('.tree-children').forEach(c => c.classList.remove('hidden'))
+      treeEl.querySelectorAll('.tree-arrow').forEach(a => { a.textContent = '▼'; a.setAttribute('data-expanded', 'true') })
+    })
+
+    document.getElementById('collapseAllBtn')!.addEventListener('click', () => {
+      treeEl.querySelectorAll('.tree-children').forEach(c => c.classList.add('hidden'))
+      treeEl.querySelectorAll('.tree-arrow').forEach(a => { a.textContent = '▶'; a.setAttribute('data-expanded', 'false') })
+    })
+
+    document.getElementById('sampleBtn')!.addEventListener('click', () => {
+      inputEl.value = '{"name":"DevTools Hub","version":"1.0.0","active":true,"port":3000,"author":{"name":"John","email":"john@example.com","roles":["admin","editor"]},"features":[{"id":1,"name":"JSON Formatter","enabled":true},{"id":2,"name":"Base64 Converter","enabled":false}],"metadata":null}'
+      treeEl.innerHTML = '<div class="text-gray-400 text-sm py-8 text-center">Click "Render Tree" to visualize</div>'
+    })
+
+    document.getElementById('clearBtn')!.addEventListener('click', () => {
+      inputEl.value = ''
+      treeEl.innerHTML = '<div class="text-gray-400 text-sm py-8 text-center">Paste JSON and click "Render Tree" to see the visualization</div>'
+      statsEl.textContent = ''
+    })
+
+    document.getElementById('copyInputBtn')!.addEventListener('click', async () => {
+      const ok = await copyToClipboard(inputEl.value)
+      showStatus(ok ? 'Copied!' : 'Copy failed', ok ? 'success' : 'error')
+    })
+  </script>
+</ToolLayout>
