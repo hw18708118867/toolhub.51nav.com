@@ -1,0 +1,261 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import StatusMessage from '../../../components/StatusMessage.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'morse-code')!
+
+const steps = [
+  { name: 'Enter Your Text', text: 'Type or paste text into the input panel. You can enter regular text to convert to Morse code, or Morse code (dots and dashes) to convert back to text.' },
+  { name: 'Choose Direction', text: 'Click "Text to Morse" to encode text as Morse code signals, or "Morse to Text" to decode dots and dashes back into readable characters.' },
+  { name: 'Copy and Use', text: 'The result appears on the right. Morse output uses "." for dots and "-" for dashes, with spaces between characters and "/" between words.' },
+]
+
+const faq = [
+  { question: 'What is Morse code?', answer: 'Morse code is a method of encoding text as sequences of short and long signals (dots and dashes). Developed in the 1830s for telegraph communication, it was the first practical method of electronic text transmission. Each letter and digit has a unique dot-dash pattern, with more common letters (like E = ".") getting shorter codes.' },
+  { question: 'How are letters separated in Morse code?', answer: 'In this converter, individual characters are separated by a single space, and words are separated by " / " (space-slash-space). When transmitted by sound or light, a dot is one unit, a dash is three units, the space between dots/dashes is one unit, between letters is three units, and between words is seven units.' },
+  { question: 'Does Morse code support numbers and punctuation?', answer: 'Yes, this converter handles A-Z, 0-9, and common punctuation marks (. , ? / ! @ &). Characters that don\'t have a standard Morse representation are left as-is in the output. Lowercase letters are automatically converted to uppercase, as Morse code is case-insensitive.' },
+]
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free online Morse code converter. Encode text to Morse code or decode dots and dashes back to readable text. Supports letters, numbers, and common punctuation." {steps} {faq}
+>
+  <div class="flex flex-wrap gap-3 mb-6">
+    <button id="encodeBtn" class="btn btn-primary">Text to Morse</button>
+    <button id="decodeBtn" class="btn btn-secondary">Morse to Text</button>
+    <button id="playBtn" class="btn btn-secondary" title="Play Morse code audio">🔊 Play</button>
+    <button id="sampleBtn" class="btn btn-secondary">Load Sample</button>
+    <button id="clearBtn" class="btn btn-secondary">Clear</button>
+  </div>
+
+  <div class="grid lg:grid-cols-2 gap-6">
+    <div class="code-panel">
+      <div class="code-panel-header">
+        <span class="text-sm font-medium text-gray-500 dark:text-gray-400" id="inputLabel">Text</span>
+        <button id="copyInputBtn" class="btn btn-sm btn-secondary">Copy</button>
+      </div>
+      <textarea id="inputEl" class="code-input" placeholder="Enter text or Morse code..."></textarea>
+    </div>
+    <div class="code-panel">
+      <div class="code-panel-header">
+        <span class="text-sm font-medium text-gray-500 dark:text-gray-400" id="outputLabel">Morse Code</span>
+        <button id="copyOutputBtn" class="btn btn-sm btn-secondary">Copy</button>
+      </div>
+      <pre id="outputEl" class="code-output"></pre>
+    </div>
+  </div>
+  <StatusMessage id="statusEl" />
+
+  <!-- Morse Reference Table -->
+  <section class="mt-10 mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Morse Code Reference</h2>
+    <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-7 gap-2">
+      <div id="morseTable" class="contents">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+  </section>
+
+  <section slot="examples" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Examples</h2>
+    <div class="grid lg:grid-cols-2 gap-6">
+      <div>
+        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 dark:text-gray-400">Text</h3>
+        <pre class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-700 overflow-x-auto dark:bg-gray-900 dark:border-gray-800 dark:text-gray-300"><code>SOS</code></pre>
+      </div>
+      <div>
+        <h3 class="text-sm font-semibold text-green-600 uppercase tracking-wider mb-3">Morse Code</h3>
+        <pre class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-700 overflow-x-auto dark:bg-gray-900 dark:border-gray-800 dark:text-gray-300"><code>... --- ...</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Why Morse Code Endures</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">
+        Morse code is nearly 200 years old, yet it remains in use today. Amateur radio operators use it worldwide, it\'s built into aviation navigation aids (VORs transmit their identifier in Morse), and it\'s used in assistive technology for people with limited mobility. The simplest possible encoding — just two states, on and off — makes it uniquely robust across any transmission medium.
+      </p>
+      <h3 class="text-lg font-semibold text-gray-900 mt-6 mb-3 dark:text-white">Famous Morse Signals</h3>
+      <ul class="list-disc list-inside space-y-2 text-gray-500 dark:text-gray-400">
+        <li><strong>··· --- ···</strong> (SOS) — International distress signal. Not actually an acronym; chosen for its simple, unmistakable pattern.</li>
+        <li><strong>··· — · —</strong> (CQ) — General call to any station. "Seek you."</li>
+        <li><strong>— · · · —</strong> (SK) — End of contact. Used to sign off.</li>
+        <li><strong>· — · — ·</strong> (AR) — End of message. "Out."</li>
+      </ul>
+    </div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+      <a href="/guides/ciphers-encoding-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">Ciphers & Classic Encoding</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">ROT13, Morse code — classic encoding deep-dive.</p></div></div></a>
+      <a href="/guides/string-escaping-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">String Escaping Guide</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Escape sequences in JSON, JS, and more.</p></div></div></a>
+    </div>
+  </section>
+
+  <script>
+    import { copyToClipboard } from '../../../utils/copyToClipboard'
+
+    const inputEl = document.getElementById('inputEl') as HTMLTextAreaElement
+    const outputEl = document.getElementById('outputEl')!
+    const inputLabel = document.getElementById('inputLabel')!
+    const outputLabel = document.getElementById('outputLabel')!
+
+    // Morse code mapping
+    const MORSE_TO_CHAR: Record<string, string> = {
+      '.-': 'A', '-...': 'B', '-.-.': 'C', '-..': 'D', '.': 'E',
+      '..-.': 'F', '--.': 'G', '....': 'H', '..': 'I', '.---': 'J',
+      '-.-': 'K', '.-..': 'L', '--': 'M', '-.': 'N', '---': 'O',
+      '.--.': 'P', '--.-': 'Q', '.-.': 'R', '...': 'S', '-': 'T',
+      '..-': 'U', '...-': 'V', '.--': 'W', '-..-': 'X', '-.--': 'Y',
+      '--..': 'Z',
+      '.----': '1', '..---': '2', '...--': '3', '....-': '4', '.....': '5',
+      '-....': '6', '--...': '7', '---..': '8', '----.': '9', '-----': '0',
+      '.-.-.-': '.', '--..--': ',', '..--..': '?', '-..-.': '/',
+      '-.-.--': '!', '.--.-.': '@', '.-...': '&',
+    }
+
+    const CHAR_TO_MORSE: Record<string, string> = {}
+    Object.entries(MORSE_TO_CHAR).forEach(([morse, char]) => {
+      CHAR_TO_MORSE[char] = morse
+    })
+
+    function showStatus(msg: string, type: 'success' | 'error') {
+      const el = document.getElementById('statusEl')!
+      el.textContent = msg; el.classList.remove('hidden')
+      el.className = type === 'success' ? 'mt-4 px-4 py-3 rounded-lg bg-green-900/40 border border-green-800 text-green-400' : 'mt-4 px-4 py-3 rounded-lg bg-red-900/40 border border-red-800 text-red-400'
+      setTimeout(() => el.classList.add('hidden'), 3000)
+    }
+
+    function textToMorse(text: string): string {
+      return text.toUpperCase().split('').map(ch => {
+        if (ch === ' ') return '/'
+        return CHAR_TO_MORSE[ch] || ch
+      }).join(' ')
+    }
+
+    function morseToText(morse: string): string {
+      // Split by spaces; "/" represents word boundary
+      const tokens = morse.trim().split(/\s+/)
+      return tokens.map(token => {
+        if (token === '/') return ' '
+        return MORSE_TO_CHAR[token] || token
+      }).join('')
+    }
+
+    // Render morse reference table
+    function renderTable() {
+      const container = document.getElementById('morseTable')!
+      const entries = Object.entries(MORSE_TO_CHAR).sort((a, b) => {
+        // Sort: letters first, then digits, then punctuation
+        const aIsLetter = /^[A-Z]$/.test(a[1])
+        const bIsLetter = /^[A-Z]$/.test(b[1])
+        const aIsDigit = /^[0-9]$/.test(a[1])
+        const bIsDigit = /^[0-9]$/.test(b[1])
+        if (aIsLetter && !bIsLetter) return -1
+        if (!aIsLetter && bIsLetter) return 1
+        if (aIsDigit && !bIsDigit) return -1
+        if (!aIsDigit && bIsDigit) return 1
+        return a[1].localeCompare(b[1])
+      })
+
+      container.innerHTML = entries.map(([morse, char]) =>
+        `<div class="bg-white border border-gray-200 rounded-lg p-3 text-center dark:bg-gray-900 dark:border-gray-800">
+          <div class="text-xs font-mono text-blue-600 dark:text-blue-400 mb-1">${morse}</div>
+          <div class="text-lg font-bold text-gray-900 dark:text-white">${char}</div>
+        </div>`
+      ).join('')
+    }
+
+    // Audio playback for Morse code
+    let audioCtx: AudioContext | null = null
+    function playMorse(morseText: string) {
+      if (!audioCtx) audioCtx = new AudioContext()
+      const tokens = morseText.trim().split(/\s+/)
+      let time = audioCtx.currentTime
+      const dotLen = 0.08 // seconds for a dot
+      const freq = 700 // Hz
+
+      tokens.forEach(token => {
+        if (token === '/') {
+          time += dotLen * 7 // word gap
+          return
+        }
+        for (const ch of token) {
+          if (ch === '.') {
+            const osc = audioCtx!.createOscillator()
+            const gain = audioCtx!.createGain()
+            osc.type = 'sine'
+            osc.frequency.value = freq
+            gain.gain.setValueAtTime(0.3, time)
+            gain.gain.exponentialRampToValueAtTime(0.001, time + dotLen)
+            osc.connect(gain); gain.connect(audioCtx!.destination)
+            osc.start(time); osc.stop(time + dotLen)
+            time += dotLen
+          } else if (ch === '-') {
+            const osc = audioCtx!.createOscillator()
+            const gain = audioCtx!.createGain()
+            osc.type = 'sine'
+            osc.frequency.value = freq
+            gain.gain.setValueAtTime(0.3, time)
+            gain.gain.exponentialRampToValueAtTime(0.001, time + dotLen * 3)
+            osc.connect(gain); gain.connect(audioCtx!.destination)
+            osc.start(time); osc.stop(time + dotLen * 3)
+            time += dotLen * 3
+          }
+          time += dotLen // inter-element gap
+        }
+        time += dotLen * 2 // inter-letter gap (3 total minus the 1 already added)
+      })
+    }
+
+    document.getElementById('encodeBtn')!.addEventListener('click', () => {
+      const v = inputEl.value
+      if (!v) { showStatus('Enter some text first', 'error'); return }
+      inputLabel.textContent = 'Text'
+      outputLabel.textContent = 'Morse Code'
+      outputEl.textContent = textToMorse(v)
+      showStatus('Converted to Morse code!', 'success')
+    })
+
+    document.getElementById('decodeBtn')!.addEventListener('click', () => {
+      const v = inputEl.value.trim()
+      if (!v) { showStatus('Enter Morse code first', 'error'); return }
+      inputLabel.textContent = 'Morse Code'
+      outputLabel.textContent = 'Text'
+      outputEl.textContent = morseToText(v)
+      showStatus('Decoded from Morse!', 'success')
+    })
+
+    document.getElementById('playBtn')!.addEventListener('click', () => {
+      const morseText = outputEl.textContent || textToMorse(inputEl.value)
+      if (!morseText.trim()) { showStatus('No Morse code to play', 'error'); return }
+      playMorse(morseText)
+      showStatus('Playing Morse code...', 'success')
+    })
+
+    document.getElementById('sampleBtn')!.addEventListener('click', () => {
+      inputEl.value = 'SOS'
+      outputEl.textContent = ''
+      inputLabel.textContent = 'Text'
+      outputLabel.textContent = 'Morse Code'
+    })
+
+    document.getElementById('clearBtn')!.addEventListener('click', () => { inputEl.value = ''; outputEl.textContent = '' })
+
+    document.getElementById('copyInputBtn')!.addEventListener('click', async () => {
+      const ok = await copyToClipboard(inputEl.value)
+      showStatus(ok ? 'Copied!' : 'Copy failed', ok ? 'success' : 'error')
+    })
+    document.getElementById('copyOutputBtn')!.addEventListener('click', async () => {
+      const ok = await copyToClipboard(outputEl.textContent || '')
+      showStatus(ok ? 'Copied!' : 'Copy failed', ok ? 'success' : 'error')
+    })
+
+    // Initial render
+    renderTable()
+  </script>
+</ToolLayout>

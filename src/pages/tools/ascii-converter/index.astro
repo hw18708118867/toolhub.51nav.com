@@ -1,0 +1,216 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import StatusMessage from '../../../components/StatusMessage.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'ascii-converter')!
+
+const steps = [
+  { name: 'Enter Your Text', text: 'Type or paste text into the input panel. You can enter regular characters to get their ASCII codes, or a series of ASCII numbers to convert back to text.' },
+  { name: 'Choose Direction', text: 'Click "Text to ASCII" to get the decimal ASCII codes for each character, or "ASCII to Text" to decode numbers back into characters.' },
+  { name: 'Copy and Use', text: 'The result appears on the right. ASCII codes are separated by spaces for readability. Use them for debugging, programming, or learning about character encoding.' },
+]
+
+const faq = [
+  { question: 'What is ASCII?', answer: 'ASCII (American Standard Code for Information Interchange) is a character encoding standard that maps 128 characters (letters, digits, symbols, and control characters) to numbers 0-127. It was developed in the 1960s and remains the foundation of modern text encoding — UTF-8 is backward-compatible with ASCII for the first 128 code points.' },
+  { question: 'What\'s the difference between ASCII and Unicode?', answer: 'ASCII only covers 128 characters (English letters, digits, basic symbols). Unicode covers over 140,000 characters from all writing systems. ASCII codes 0-127 are identical in Unicode (and UTF-8). Characters beyond ASCII (like Chinese, Arabic, emoji) don\'t have an ASCII code and will be shown as their Unicode code point instead.' },
+  { question: 'Why would I need ASCII codes?', answer: 'Knowing ASCII codes helps with: debugging serial/network protocols, understanding why "A" < "a" in string comparisons (65 vs 97), working with low-level file formats, writing character-based algorithms, and learning how computers represent text internally.' },
+]
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free online ASCII converter. Convert text to ASCII codes or decode ASCII numbers back to characters. See decimal, hex, and binary values for each character." {steps} {faq}
+>
+  <div class="flex flex-wrap gap-3 mb-6">
+    <button id="encodeBtn" class="btn btn-primary">Text to ASCII</button>
+    <button id="decodeBtn" class="btn btn-secondary">ASCII to Text</button>
+    <button id="sampleBtn" class="btn btn-secondary">Load Sample</button>
+    <button id="clearBtn" class="btn btn-secondary">Clear</button>
+  </div>
+
+  <div class="grid lg:grid-cols-2 gap-6">
+    <div class="code-panel">
+      <div class="code-panel-header">
+        <span class="text-sm font-medium text-gray-500 dark:text-gray-400" id="inputLabel">Text</span>
+        <button id="copyInputBtn" class="btn btn-sm btn-secondary">Copy</button>
+      </div>
+      <textarea id="inputEl" class="code-input" placeholder="Enter text or ASCII codes (space/comma separated)..."></textarea>
+    </div>
+    <div class="code-panel">
+      <div class="code-panel-header">
+        <span class="text-sm font-medium text-gray-500 dark:text-gray-400" id="outputLabel">ASCII Codes</span>
+        <button id="copyOutputBtn" class="btn btn-sm btn-secondary">Copy</button>
+      </div>
+      <pre id="outputEl" class="code-output"></pre>
+    </div>
+  </div>
+
+  <!-- Detail Table -->
+  <div id="detailArea" class="hidden mt-6">
+    <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 dark:text-gray-400">Character Details</h3>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-gray-200 dark:border-gray-700">
+            <th class="text-left py-2 px-3 text-gray-500 font-medium dark:text-gray-400">Char</th>
+            <th class="text-left py-2 px-3 text-gray-500 font-medium dark:text-gray-400">Decimal</th>
+            <th class="text-left py-2 px-3 text-gray-500 font-medium dark:text-gray-400">Hex</th>
+            <th class="text-left py-2 px-3 text-gray-500 font-medium dark:text-gray-400">Binary</th>
+            <th class="text-left py-2 px-3 text-gray-500 font-medium dark:text-gray-400">Description</th>
+          </tr>
+        </thead>
+        <tbody id="detailTable"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <StatusMessage id="statusEl" />
+
+  <section slot="examples" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Examples</h2>
+    <div class="grid lg:grid-cols-2 gap-6">
+      <div>
+        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 dark:text-gray-400">Text</h3>
+        <pre class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-700 overflow-x-auto dark:bg-gray-900 dark:border-gray-800 dark:text-gray-300"><code>Hello!</code></pre>
+      </div>
+      <div>
+        <h3 class="text-sm font-semibold text-green-600 uppercase tracking-wider mb-3">ASCII Codes</h3>
+        <pre class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-700 overflow-x-auto dark:bg-gray-900 dark:border-gray-800 dark:text-gray-300"><code>72 101 108 108 111 33</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">The ASCII Table in Practice</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">
+        The ASCII table is organized into several groups: control characters (0-31), printable characters (32-126), and DEL (127). The layout isn't random — uppercase letters start at 65, lowercase at 97 (exactly 32 apart), digits at 48. This design makes common operations like case conversion trivial: just flip bit 5 (add or subtract 32).
+      </p>
+      <h3 class="text-lg font-semibold text-gray-900 mt-6 mb-3 dark:text-white">Quick Reference</h3>
+      <ul class="list-disc list-inside space-y-2 text-gray-500 dark:text-gray-400">
+        <li><strong>48-57</strong> — Digits 0-9</li>
+        <li><strong>65-90</strong> — Uppercase A-Z</li>
+        <li><strong>97-122</strong> — Lowercase a-z</li>
+        <li><strong>32</strong> — Space</li>
+        <li><strong>10</strong> — Line Feed (newline)</li>
+        <li><strong>13</strong> — Carriage Return</li>
+      </ul>
+    </div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+      <a href="/guides/character-encoding-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">Character Encoding Guide</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Unicode, UTF-8, ASCII, hex — encoding fundamentals.</p></div></div></a>
+      <a href="/guides/number-bases-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">Number Bases Guide</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Binary, hex, decimal, octal conversions explained.</p></div></div></a>
+    </div>
+  </section>
+
+  <script>
+    import { copyToClipboard } from '../../../utils/copyToClipboard'
+
+    const inputEl = document.getElementById('inputEl') as HTMLTextAreaElement
+    const outputEl = document.getElementById('outputEl')!
+    const inputLabel = document.getElementById('inputLabel')!
+    const outputLabel = document.getElementById('outputLabel')!
+    const detailArea = document.getElementById('detailArea')!
+    const detailTable = document.getElementById('detailTable')!
+
+    function showStatus(msg: string, type: 'success' | 'error') {
+      const el = document.getElementById('statusEl')!
+      el.textContent = msg; el.classList.remove('hidden')
+      el.className = type === 'success' ? 'mt-4 px-4 py-3 rounded-lg bg-green-900/40 border border-green-800 text-green-400' : 'mt-4 px-4 py-3 rounded-lg bg-red-900/40 border border-red-800 text-red-400'
+      setTimeout(() => el.classList.add('hidden'), 3000)
+    }
+
+    function getCharDesc(code: number): string {
+      if (code < 32) return 'Control char'
+      if (code === 32) return 'Space'
+      if (code === 127) return 'DEL'
+      if (code >= 48 && code <= 57) return 'Digit'
+      if (code >= 65 && code <= 90) return 'Uppercase'
+      if (code >= 97 && code <= 122) return 'Lowercase'
+      if (code >= 33 && code <= 47) return 'Symbol'
+      if (code >= 58 && code <= 64) return 'Symbol'
+      if (code >= 91 && code <= 96) return 'Symbol'
+      if (code >= 123 && code <= 126) return 'Symbol'
+      return 'Non-ASCII'
+    }
+
+    function textToAscii(text: string): string {
+      return Array.from(text).map(ch => ch.codePointAt(0)?.toString() ?? '').join(' ')
+    }
+
+    function asciiToText(ascii: string): string {
+      // Split by commas or spaces
+      const numbers = ascii.split(/[,\s]+/).filter(Boolean).map(Number)
+      if (numbers.some(isNaN)) throw new Error('All values must be numbers')
+      return numbers.map(n => String.fromCodePoint(n)).join('')
+    }
+
+    function showDetailTable(text: string) {
+      const chars = Array.from(text)
+      if (chars.length === 0 || chars.length > 200) {
+        detailArea.classList.add('hidden')
+        return
+      }
+      detailTable.innerHTML = chars.map(ch => {
+        const code = ch.codePointAt(0) ?? 0
+        const isAscii = code <= 127
+        return `<tr class="border-b border-gray-100 dark:border-gray-800">
+          <td class="py-2 px-3 font-mono font-bold text-gray-900 dark:text-white">${ch === ' ' ? '␣' : (code < 32 ? '·' : ch)}</td>
+          <td class="py-2 px-3 font-mono ${isAscii ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400'}">${code}</td>
+          <td class="py-2 px-3 font-mono text-gray-500 dark:text-gray-400">0x${code.toString(16).toUpperCase().padStart(2, '0')}</td>
+          <td class="py-2 px-3 font-mono text-gray-500 dark:text-gray-400">${code.toString(2).padStart(8, '0')}</td>
+          <td class="py-2 px-3 text-gray-400 dark:text-gray-500">${getCharDesc(code)}</td>
+        </tr>`
+      }).join('')
+      detailArea.classList.remove('hidden')
+    }
+
+    document.getElementById('encodeBtn')!.addEventListener('click', () => {
+      const v = inputEl.value
+      if (!v) { showStatus('Enter some text first', 'error'); return }
+      inputLabel.textContent = 'Text'
+      outputLabel.textContent = 'ASCII Codes'
+      outputEl.textContent = textToAscii(v)
+      showDetailTable(v)
+      showStatus('Converted!', 'success')
+    })
+
+    document.getElementById('decodeBtn')!.addEventListener('click', () => {
+      const v = inputEl.value.trim()
+      if (!v) { showStatus('Enter ASCII codes first', 'error'); return }
+      try {
+        inputLabel.textContent = 'ASCII Codes'
+        outputLabel.textContent = 'Text'
+        const text = asciiToText(v)
+        outputEl.textContent = text
+        showDetailTable(text)
+        showStatus('Decoded!', 'success')
+      } catch (e) {
+        showStatus('Invalid input: ' + (e as Error).message, 'error')
+      }
+    })
+
+    document.getElementById('sampleBtn')!.addEventListener('click', () => {
+      inputEl.value = 'Hello, World!'
+      outputEl.textContent = ''
+      detailArea.classList.add('hidden')
+      inputLabel.textContent = 'Text'
+      outputLabel.textContent = 'ASCII Codes'
+    })
+
+    document.getElementById('clearBtn')!.addEventListener('click', () => { inputEl.value = ''; outputEl.textContent = ''; detailArea.classList.add('hidden') })
+
+    document.getElementById('copyInputBtn')!.addEventListener('click', async () => {
+      const ok = await copyToClipboard(inputEl.value)
+      showStatus(ok ? 'Copied!' : 'Copy failed', ok ? 'success' : 'error')
+    })
+    document.getElementById('copyOutputBtn')!.addEventListener('click', async () => {
+      const ok = await copyToClipboard(outputEl.textContent || '')
+      showStatus(ok ? 'Copied!' : 'Copy failed', ok ? 'success' : 'error')
+    })
+  </script>
+</ToolLayout>

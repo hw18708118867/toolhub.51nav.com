@@ -14,7 +14,7 @@ const toolsByCategory = Object.entries(categories).map(([key, cat]) => ({
 }))
 ---
 
-<BaseLayout title={`DevTools Hub - ${tools.length}+ Free Developer Tools`}>
+<BaseLayout title="DevTools Hub - Free Developer Tools">
   <Header />
   <main class="flex-1">
     <!-- Hero Section (with integrated stats) -->
@@ -418,4 +418,28 @@ const toolsByCategory = Object.entries(categories).map(([key, cat]) => ({
     </section>
   </main>
   <Footer />
+
+  <!-- Structured Data: WebSite + Organization -->
+  <script type="application/ld+json" set:html={JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'DevTools Hub',
+    url: 'https://toolhub.51nav.com',
+    description: 'Free online developer tools — JSON formatter, Base64 converter, UUID generator, and more. All processing happens locally in your browser.',
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: {
+        '@type': 'EntryPoint',
+        urlTemplate: 'https://toolhub.51nav.com/tools/?q={search_term_string}',
+      },
+      'query-input': 'required name=search_term_string',
+    },
+  })}></script>
+  <script type="application/ld+json" set:html={JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'DevTools Hub',
+    url: 'https://toolhub.51nav.com',
+    description: 'Free online developer tools — all processing happens locally in your browser.',
+  })}></script>
 </BaseLayout>

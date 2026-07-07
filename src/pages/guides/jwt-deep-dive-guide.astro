@@ -1,0 +1,112 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+
+const content = `
+<h2>JWTs Are Everywhere — Understanding Them Is Not Optional</h2>
+<p>JSON Web Tokens power authentication across the modern web. Every time you log into a single-page app, call a mobile API, or authenticate with a third-party service, there's a good chance a JWT is involved. They're compact, self-contained, and stateless — a signed JSON object that proves who you are without the server needing a session store.</p>
+<p>But JWTs are also a footgun when used incorrectly. Tokens that never expire. Secrets checked into git. Sensitive data in the payload. "None" algorithm attacks. This guide covers the full JWT lifecycle — how they're structured, how to create and inspect them, and the security practices that separate a secure implementation from a vulnerable one.</p>
+
+<h2>JWT Structure: Three Parts, One Token</h2>
+<h3>The Anatomy of a JWT</h3>
+<p>A JWT looks like three Base64URL-encoded strings separated by dots:</p>
+<pre><code class="language-text">eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c</code></pre>
+<p>Each part has a distinct role:</p>
+<ul>
+  <li><strong>Header</strong> (part 1, in red) — JSON object describing the token type and signing algorithm. Typically <code>{"alg":"HS256","typ":"JWT"}</code>. The alg field tells the verifier how to check the signature.</li>
+  <li><strong>Payload</strong> (part 2, in purple) — JSON object containing the claims. This is the actual data the token carries: user ID, expiration time, issuer, permissions. Anyone who has the token can decode and read the payload — it's only Base64URL-encoded, not encrypted.</li>
+  <li><strong>Signature</strong> (part 3, in blue) — Cryptographic signature over the first two parts. Created by hashing <code>header.payload</code> with a secret key (for HMAC) or private key (for RSA/ECDSA). This is what prevents tampering.</li>
+</ul>
+<p>The <a href="/tools/jwt-inspector/">JWT Inspector</a> decodes all three parts, analyzes each claim, checks expiration status with a visual indicator, and shows you the token's lifetime on a progress bar. It's the fastest way to understand an unfamiliar JWT.</p>
+
+<h3>Standard Claims You Should Know</h3>
+<p>JWT claims are divided into three categories: registered (standardized by the spec), public (defined by your application but registered to avoid collisions), and private (custom, unregistered). The registered claims are the ones you'll see in every well-formed JWT:</p>
+<table>
+  <thead><tr><th>Claim</th><th>Full Name</th><th>Meaning</th></tr></thead>
+  <tbody>
+    <tr><td><code>iss</code></td><td>Issuer</td><td>Who created the token — usually your auth server's URL</td></tr>
+    <tr><td><code>sub</code></td><td>Subject</td><td>Who the token is about — typically the user ID</td></tr>
+    <tr><td><code>aud</code></td><td>Audience</td><td>Who the token is intended for — the service that should accept it</td></tr>
+    <tr><td><code>exp</code></td><td>Expiration</td><td>Unix timestamp after which the token is invalid</td></tr>
+    <tr><td><code>nbf</code></td><td>Not Before</td><td>Unix timestamp before which the token is invalid</td></tr>
+    <tr><td><code>iat</code></td><td>Issued At</td><td>When the token was created</td></tr>
+    <tr><td><code>jti</code></td><td>JWT ID</td><td>Unique identifier — useful for preventing replay attacks</td></tr>
+  </tbody>
+</table>
+<p><strong>Always set exp.</strong> A token without an expiration is valid forever. If someone steals it, they have permanent access. Most production systems use short-lived access tokens (5-15 minutes) combined with longer-lived refresh tokens that can be revoked server-side.</p>
+
+<h2>Creating JWTs for Testing and Development</h2>
+<h3>Why You'd Generate a JWT Manually</h3>
+<p>In production, your authentication server generates JWTs after verifying user credentials. But during development and testing, you often need a valid JWT before the auth server exists: testing an API endpoint that requires authentication, debugging middleware that parses JWTs, simulating an expired token to test error handling, or verifying that your frontend correctly handles different JWT states.</p>
+<p>Here's what the creation process looks like (simplified):</p>
+<pre><code class="language-javascript">// 1. Define header and payload
+const header = { alg: 'HS256', typ: 'JWT' };
+const payload = {
+  sub: 'user-123',
+  name: 'Alice',
+  iat: Math.floor(Date.now() / 1000),
+  exp: Math.floor(Date.now() / 1000) + 3600  // 1 hour
+};
+
+// 2. Base64URL-encode both parts
+const b64 = (obj) => btoa(JSON.stringify(obj))
+  .replace(/=/g, '').replace(/\\+/g, '-').replace(/\\//g, '_');
+
+// 3. Sign with HMAC-SHA256
+const input = b64(header) + '.' + b64(payload);
+const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(input));
+// Convert signature to Base64URL...
+
+// 4. Concatenate
+const jwt = input + '.' + b64Signature;</code></pre>
+<p>The <a href="/tools/jwt-encoder/">JWT Encoder</a> does all of this in your browser using the Web Crypto API. Your secret key never leaves your computer. It supports HS256, HS384, and HS512 — the three HMAC-based algorithms. For testing, set a realistic expiration time and specific claims that match what your API expects.</p>
+
+<h2>Inspecting and Debugging JWTs</h2>
+<h3>Beyond Basic Decoding</h3>
+<p>Any Base64 decoder can show you the JWT header and payload. But understanding a token requires more than raw JSON. The <a href="/tools/jwt-inspector/">JWT Inspector</a> adds analysis layers that save debugging time:</p>
+<ul>
+  <li><strong>Visual expiration check</strong> — Green for valid, yellow for expiring within an hour, red for expired. No mental math converting Unix timestamps.</li>
+  <li><strong>Human-readable timestamps</strong> — iat, exp, and nbf displayed as local time with "issued 5m ago" style labels.</li>
+  <li><strong>Token lifetime bar</strong> — Shows how much of the token's valid window has elapsed. If it's 90% consumed, you know a refresh is imminent.</li>
+  <li><strong>Claim-by-claim breakdown</strong> — Each claim listed with its type, value, and description. Standard claims get human-readable explanations; custom claims are clearly marked.</li>
+</ul>
+
+<h3>Common Debugging Scenarios</h3>
+<dl>
+  <dt><strong>"401 Unauthorized" with a seemingly valid token</strong></dt>
+  <dd>Check the <code>exp</code> claim first. Expired tokens are the #1 cause. Then check <code>aud</code> — your token might be for a different service. Finally, verify the server accepts your algorithm (some servers reject HS256 and require RS256).</dd>
+  <dt><strong>"Invalid signature" errors</strong></dt>
+  <dd>This means the token has been modified after signing, or the server is using a different secret. If you're generating test tokens, make sure the secret in the JWT Encoder matches what your server expects.</dd>
+  <dt><strong>Missing claims</strong></dt>
+  <dd>Some frameworks require specific claims. Spring Security often expects <code>scope</code> or <code>authorities</code>. Auth0 includes <code>azp</code> and <code>gty</code>. Check your middleware documentation for required claims.</dd>
+</dl>
+
+<h2>JWT Security: What You Must Get Right</h2>
+<h3>The "None" Algorithm Attack</h3>
+<p>The JWT spec allows <code>"alg":"none"</code> — an unsigned token. In 2015-2016, researchers found that many JWT libraries would accept tokens with <code>"alg":"none"</code> and skip signature verification entirely. An attacker could modify the payload (change <code>"admin":false</code> to <code>"admin":true</code>), set the algorithm to "none", remove the signature, and the server would accept it.</p>
+<p>Modern libraries have fixed this, but only if you configure them correctly. Always whitelist allowed algorithms. Never let the token's header dictate the algorithm without verifying it's in your allowlist.</p>
+
+<h3>Where to Store JWTs</h3>
+<p>Storage is a contentious topic. Here's the pragmatic summary:</p>
+<ul>
+  <li><strong>HttpOnly cookies</strong> — Most secure option for web apps. JavaScript can't read them, so XSS can't steal them. Set <code>SameSite=Strict</code> or <code>Lax</code> and <code>Secure</code> in production. The downside: you need CSRF protection since cookies are sent automatically.</li>
+  <li><strong>localStorage / sessionStorage</strong> — Convenient but vulnerable to XSS. If your site has any XSS vulnerability, an attacker can read the token and impersonate the user. Many SPAs use this approach despite the risk because it's simpler than managing CSRF tokens.</li>
+  <li><strong>In-memory (JavaScript variable)</strong> — Most secure against XSS, but the token is lost on page refresh. Works well for SPAs that use refresh tokens stored in HttpOnly cookies.</li>
+</ul>
+
+<h3>Never Put Secrets in the Payload</h3>
+<p>The JWT payload is Base64URL-encoded — not encrypted. Anyone with the token can decode and read it. Never include passwords, credit card numbers, API keys, or personally identifiable information in JWT claims. The payload is public to anyone who intercepts the token. If you need to transmit sensitive data, encrypt it separately or use a JWE (JSON Web Encryption) — though JWE adoption is far lower than JWS (signed JWTs).</p>
+
+<h2>The JWT Toolchain</h2>
+<p>Three tools cover the complete JWT workflow: the <a href="/tools/jwt-decoder/">JWT Decoder</a> for quick header and payload extraction, the <a href="/tools/jwt-encoder/">JWT Encoder</a> for generating test tokens with any claims and secret, and the <a href="/tools/jwt-inspector/">JWT Inspector</a> for deep analysis with expiration checking and claim breakdowns. All three run locally in your browser — your tokens and secrets never leave your machine. Together they give you everything you need to build, debug, and understand JWT-based authentication.</p>
+`
+---
+
+<GuideLayout
+  title="JWT Deep-Dive Guide: Encode, Decode, Inspect & Security | DevTools Hub"
+  description="Complete JWT guide for developers. Learn JWT structure, how to create and inspect tokens, debug authentication errors, and avoid critical security mistakes. With practical code examples."
+  breadcrumb="JWT Deep-Dive"
+>
+  <Fragment slot="title">JWT Deep-Dive:<br class="hidden sm:block" />Encode, Decode, Inspect &amp; Security</Fragment>
+  <Fragment slot="intro">JWTs power authentication across the modern web. This guide covers their structure, how to create and inspect them, common debugging scenarios, and the security pitfalls that separate a safe implementation from a vulnerable one.</Fragment>
+  <Fragment set:html={content} />
+</GuideLayout>

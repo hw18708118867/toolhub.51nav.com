@@ -1,0 +1,159 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import StatusMessage from '../../../components/StatusMessage.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'unicode-converter')!
+
+const steps = [
+  { name: 'Enter Your Text', text: 'Type or paste text into the input panel. You can enter regular text to encode, or Unicode escape sequences to decode.' },
+  { name: 'Choose Direction', text: 'Click "Encode" to convert text to Unicode escape sequences (\\uXXXX format), or "Decode" to convert escape sequences back to readable text.' },
+  { name: 'Copy the Result', text: 'The output appears on the right. Copy it and use it in your JavaScript, JSON, or CSS code.' },
+]
+
+const faq = [
+  { question: 'What are Unicode escape sequences?', answer: 'Unicode escape sequences represent characters using the \\u prefix followed by a 4-digit hex code. For example, the Chinese character 中 becomes \\u4e2d. Characters outside the Basic Multilingual Plane (like emoji) use surrogate pairs: \\uD83D\\uDE00 for 😀.' },
+  { question: 'When do I need Unicode escaping?', answer: 'Unicode escaping is useful when: writing JavaScript/JSON strings that contain non-ASCII characters, debugging encoding issues, working with legacy systems that only support ASCII, and creating CSS content properties with special characters. It\'s also helpful for understanding what character a particular code point represents.' },
+  { question: 'What\'s the difference between \\uXXXX and \\u{XXXXX}?', answer: 'The \\uXXXX format (4 hex digits) is the classic JavaScript/JSON escape for BMP characters. The \\u{XXXXX} format (with braces) is ES6+ syntax that supports all Unicode code points directly. This tool uses the \\uXXXX format with surrogate pairs for characters above U+FFFF.' },
+]
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free online Unicode converter. Encode text to Unicode escape sequences or decode \\uXXXX back to readable text. Works with emoji, Chinese, and all Unicode characters." {steps} {faq}
+>
+  <div class="flex flex-wrap gap-3 mb-6">
+    <button id="encodeBtn" class="btn btn-primary">Encode to Unicode</button>
+    <button id="decodeBtn" class="btn btn-secondary">Decode from Unicode</button>
+    <button id="sampleBtn" class="btn btn-secondary">Load Sample</button>
+    <button id="clearBtn" class="btn btn-secondary">Clear</button>
+  </div>
+
+  <div class="grid lg:grid-cols-2 gap-6">
+    <div class="code-panel">
+      <div class="code-panel-header">
+        <span class="text-sm font-medium text-gray-500 dark:text-gray-400" id="inputLabel">Text</span>
+        <button id="copyInputBtn" class="btn btn-sm btn-secondary">Copy</button>
+      </div>
+      <textarea id="inputEl" class="code-input" placeholder="Enter text or Unicode escapes..."></textarea>
+    </div>
+    <div class="code-panel">
+      <div class="code-panel-header">
+        <span class="text-sm font-medium text-gray-500 dark:text-gray-400" id="outputLabel">Unicode Escapes</span>
+        <button id="copyOutputBtn" class="btn btn-sm btn-secondary">Copy</button>
+      </div>
+      <pre id="outputEl" class="code-output"></pre>
+    </div>
+  </div>
+  <StatusMessage id="statusEl" />
+
+  <section slot="examples" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Examples</h2>
+    <div class="grid lg:grid-cols-2 gap-6">
+      <div>
+        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 dark:text-gray-400">Plain Text</h3>
+        <pre class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-700 overflow-x-auto dark:bg-gray-900 dark:border-gray-800 dark:text-gray-300"><code>Hello 世界 🌍</code></pre>
+      </div>
+      <div>
+        <h3 class="text-sm font-semibold text-green-600 uppercase tracking-wider mb-3">Unicode Escapes</h3>
+        <pre class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-700 overflow-x-auto dark:bg-gray-900 dark:border-gray-800 dark:text-gray-300"><code>Hello 世界 🌍</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Understanding Unicode Escaping</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">
+        Unicode is the universal character encoding standard that covers virtually every writing system. When you need to represent non-ASCII characters in ASCII-only environments (like JSON, JavaScript source code, or CSS), you use Unicode escape sequences. Each escape takes the form <code>\\uXXXX</code> where XXXX is the hexadecimal code point.
+      </p>
+      <h3 class="text-lg font-semibold text-gray-900 mt-6 mb-3 dark:text-white">Common Use Cases</h3>
+      <ul class="list-disc list-inside space-y-2 text-gray-500 dark:text-gray-400">
+        <li>Writing internationalized JavaScript/JSON that stays ASCII-safe</li>
+        <li>Debugging character encoding issues in APIs and databases</li>
+        <li>Understanding what a mysterious \uXXXX sequence represents</li>
+        <li>Creating CSS content with special characters</li>
+        <li>Working with regex patterns that match Unicode ranges</li>
+      </ul>
+    </div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+      <a href="/guides/character-encoding-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">Character Encoding Guide</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Unicode, UTF-8, ASCII, hex — encoding fundamentals.</p></div></div></a>
+      <a href="/guides/string-escaping-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">String Escaping Guide</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Escape sequences in JSON, JavaScript, and more.</p></div></div></a>
+    </div>
+  </section>
+
+  <script>
+    import { copyToClipboard } from '../../../utils/copyToClipboard'
+
+    const inputEl = document.getElementById('inputEl') as HTMLTextAreaElement
+    const outputEl = document.getElementById('outputEl')!
+    const inputLabel = document.getElementById('inputLabel')!
+    const outputLabel = document.getElementById('outputLabel')!
+
+    function showStatus(msg: string, type: 'success' | 'error') {
+      const el = document.getElementById('statusEl')!
+      el.textContent = msg; el.classList.remove('hidden')
+      el.className = type === 'success' ? 'mt-4 px-4 py-3 rounded-lg bg-green-900/40 border border-green-800 text-green-400' : 'mt-4 px-4 py-3 rounded-lg bg-red-900/40 border border-red-800 text-red-400'
+      setTimeout(() => el.classList.add('hidden'), 3000)
+    }
+
+    function encodeUnicode(text: string): string {
+      let result = ''
+      for (let i = 0; i < text.length; i++) {
+        const code = text.charCodeAt(i)
+        if (code < 128 && code >= 32) {
+          result += text[i]
+        } else {
+          result += '\\u' + code.toString(16).toUpperCase().padStart(4, '0')
+        }
+      }
+      return result
+    }
+
+    function decodeUnicode(text: string): string {
+      return text.replace(/\\u([0-9a-fA-F]{4})/g, (_, hex) =>
+        String.fromCharCode(parseInt(hex, 16))
+      )
+    }
+
+    document.getElementById('encodeBtn')!.addEventListener('click', () => {
+      const v = inputEl.value
+      if (!v) { showStatus('Enter some text first', 'error'); return }
+      inputLabel.textContent = 'Text'
+      outputLabel.textContent = 'Unicode Escapes'
+      outputEl.textContent = encodeUnicode(v)
+      showStatus('Encoded!', 'success')
+    })
+
+    document.getElementById('decodeBtn')!.addEventListener('click', () => {
+      const v = inputEl.value.trim()
+      if (!v) { showStatus('Enter Unicode escapes first', 'error'); return }
+      inputLabel.textContent = 'Unicode Escapes'
+      outputLabel.textContent = 'Text'
+      outputEl.textContent = decodeUnicode(v)
+      showStatus('Decoded!', 'success')
+    })
+
+    document.getElementById('sampleBtn')!.addEventListener('click', () => {
+      inputEl.value = 'Hello 世界 🌍 — 你好，世界！'
+      outputEl.textContent = ''
+      inputLabel.textContent = 'Text'
+      outputLabel.textContent = 'Unicode Escapes'
+    })
+
+    document.getElementById('clearBtn')!.addEventListener('click', () => { inputEl.value = ''; outputEl.textContent = '' })
+
+    document.getElementById('copyInputBtn')!.addEventListener('click', async () => {
+      const ok = await copyToClipboard(inputEl.value)
+      showStatus(ok ? 'Copied!' : 'Copy failed', ok ? 'success' : 'error')
+    })
+    document.getElementById('copyOutputBtn')!.addEventListener('click', async () => {
+      const ok = await copyToClipboard(outputEl.textContent || '')
+      showStatus(ok ? 'Copied!' : 'Copy failed', ok ? 'success' : 'error')
+    })
+  </script>
+</ToolLayout>

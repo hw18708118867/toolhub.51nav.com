@@ -1,0 +1,85 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+
+const content = `
+<h2>Encoding That's Not Encryption</h2>
+<p>ROT13 and Morse code sit in a funny middle ground. They're not encryption — no keys, no security, trivial to reverse. But they're not quite data encoding either — you wouldn't use them to transmit binary data or make strings URL-safe. They're ciphers: simple, deterministic transformations of text that serve specific, often historical purposes.</p>
+<p>This guide covers ROT13 and Morse code not because you'll use them in production authentication systems (please don't), but because they appear in surprising places — legacy systems, ham radio, accessibility tools, CTF challenges, and internet culture. Understanding them takes ten minutes and might save you an hour of confusion someday.</p>
+
+<h2>ROT13: The Internet's Favorite Cipher</h2>
+<h3>How It Works</h3>
+<p>ROT13 ("rotate by 13 places") is a Caesar cipher with a fixed shift of 13. Each letter is replaced by the letter 13 positions ahead in the alphabet: A→N, B→O, C→P, and so on. Wrapping around at Z, the second half maps back: N→A, O→B, Z→M. Non-letter characters — numbers, spaces, punctuation, emoji — pass through unchanged.</p>
+<pre><code class="language-text">Original:  The quick brown fox jumps over the lazy dog.
+ROT13:     Gur dhvpx oebja sbk whzcf bire gur ynml qbt.</code></pre>
+<p>The number 13 is significant because there are 26 letters in the English alphabet. Applying ROT13 twice returns the original text — it's its own inverse. The same function both encodes and decodes. This is a deliberate feature, not a coincidence. A Caesar cipher with any other shift would need a separate decode function (subtract the shift instead of adding it). ROT13's self-inverse property made it trivially easy to implement in the early days of Usenet and mailing lists.</p>
+
+<h3>A Brief History</h3>
+<p>ROT13 originated on Usenet in the 1980s as a way to hide content that readers might not want to see: spoilers for movies and books, punchlines to jokes, puzzle solutions, and potentially offensive material. It wasn't meant to be secure — it was meant to require a deliberate action to read. You had to consciously pipe the text through the <code>rot13</code> command or run it through a decoder. This "speed bump" approach to content hiding became an internet convention.</p>
+<p>Early newsreaders (like rn and nn) included built-in ROT13 support. You'd press a key to toggle ROT13 decoding on the current article. Some modern applications still use ROT13 as an Easter egg. Try adding <code>?rot13</code> to certain website URLs and see what happens.</p>
+
+<h3>ROT13 Variants Worth Knowing</h3>
+<ul>
+  <li><strong>ROT5</strong> — Same idea but for digits 0-9 with a shift of 5. 0↔5, 1↔6, ..., 4↔9. Also self-inverse. Sometimes combined with ROT13 to make ROT18.</li>
+  <li><strong>ROT18</strong> — ROT13 for letters plus ROT5 for digits. Handy for obfuscating phone numbers and IDs along with text. Common in old Usenet posts.</li>
+  <li><strong>ROT47</strong> — Shifts all 94 printable ASCII characters (33-126) by 47 positions. The exclamation point ! (33) becomes P (80), and the tilde ~ (126) becomes O (79). More thorough than ROT13 because it scrambles punctuation and digits too.</li>
+</ul>
+<p>None of these provide any security. They're obfuscation, plain and simple. If you need actual encryption, look at AES or ChaCha20. But if you need to hide a spoiler or make a puzzle for a CTF, they're exactly the right tool. Use the <a href="/tools/rot13/">ROT13 Cipher</a> tool to encode or decode — the same button does both, because that's how ROT13 works.</p>
+
+<h2>Morse Code: The Original Digital Encoding</h2>
+<h3>Why Morse Endures</h3>
+<p>Morse code was developed in the 1830s for the electric telegraph — the first practical method of sending text electronically. Nearly 200 years later, it's still in active use. Not as a curiosity, but in real operational contexts: amateur radio, aviation navigation, maritime communication, and assistive technology.</p>
+<p>The fundamental insight behind Morse code is its variable-length design. More common letters get shorter codes. E, the most common English letter, is a single dot (·). Q, far less frequent, is dash-dash-dot-dash (--·-). This makes Morse more efficient than a fixed-length encoding would be — an early form of compression, decades before Huffman coding formalized the same principle.</p>
+
+<h3>The Encoding System</h3>
+<pre><code class="language-text">A ·-      B -···    C -·-·    D -··     E ·
+F ··-·    G --·     H ····    I ··      J ·---
+K -·-     L ·-··    M --      N -·      O ---
+P ·--·    Q --·-    R ·-·     S ···     T -
+U ··-     V ···-    W ·--     X -··-    Y -·--
+Z --··
+0 -----   1 ·----   2 ··---   3 ···--   4 ····-
+5 ·····   6 -····   7 --···   8 ---··   9 ----·</code></pre>
+<p>Notice the patterns: digits are easy to remember because they follow a structure — 0 is five dashes, 1 is one dot then four dashes, and so on. Letters are less regular because they evolved organically from sound patterns and frequency of use.</p>
+
+<h3>Modern Applications</h3>
+<ul>
+  <li><strong>Amateur Radio (Ham Radio)</strong> — Morse (often called "CW" for Continuous Wave) remains popular among ham operators worldwide. It works with extremely low power and narrow bandwidth — you can make contacts across continents with a few watts when voice would be impossible. The FCC dropped the Morse code requirement for ham licenses in 2007, but many operators still learn it voluntarily.</li>
+  <li><strong>Aviation Navigation Aids</strong> — Every VOR (VHF Omnidirectional Range) and NDB (Non-Directional Beacon) transmits its three-letter identifier in Morse. Pilots verify they're tuned to the correct station by listening to the Morse ID. It's built into the infrastructure of global aviation.</li>
+  <li><strong>Assistive Technology</strong> — People with severe motor disabilities can communicate using Morse code with a single switch (tap for dot, hold for dash). It's one of the few text-input methods that requires only binary input, making it accessible via eye blinks, sip-and-puff devices, or even EEG sensors.</li>
+  <li><strong>Emergency Signaling</strong> — SOS (··· --- ···) is universally recognized. You can signal it with a flashlight, a mirror, sound, or by any means that can produce short and long pulses. No special equipment needed.</li>
+</ul>
+
+<h3>Using Morse in Your Projects</h3>
+<p>In web development, Morse code rarely appears in production code but shows up in creative contexts: Easter eggs, puzzle mechanics, accessibility experiments, and educational tools. Converting text to Morse in JavaScript is straightforward — just a character lookup table:</p>
+<pre><code class="language-javascript">const MORSE = { A: '.-', B: '-...', C: '-.-.', /* ... */ };
+const toMorse = text =>
+  text.toUpperCase().split('').map(ch => MORSE[ch] || ch).join(' ');
+const fromMorse = morse =>
+  morse.split(' ').map(code => REVERSE[code] || code).join('');</code></pre>
+<p>The <a href="/tools/morse-code/">Morse Code Converter</a> handles this conversion in both directions, with a built-in reference table and audio playback so you can hear what the code sounds like.</p>
+
+<h2>ROT13 vs Morse: When to Use Each</h2>
+<table>
+  <thead><tr><th>Feature</th><th>ROT13</th><th>Morse Code</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Purpose</strong></td><td>Content obfuscation — hiding spoilers, jokes, answers</td><td>Signal transmission — audio, light, radio</td></tr>
+    <tr><td><strong>Security</strong></td><td>None — trivially reversible</td><td>None — it's a public encoding</td></tr>
+    <tr><td><strong>Output</strong></td><td>Same-length text string</td><td>Series of dots and dashes</td></tr>
+    <tr><td><strong>Characters affected</strong></td><td>Letters A-Z only; case preserved</td><td>A-Z and 0-9; case-insensitive</td></tr>
+    <tr><td><strong>Self-inverse?</strong></td><td>Yes — same function encodes and decodes</td><td>No — separate encode and decode needed</td></tr>
+    <tr><td><strong>Real-world use</strong></td><td>Usenet, forums, puzzles, Easter eggs</td><td>Ham radio, aviation, maritime, assistive tech</td></tr>
+  </tbody>
+</table>
+<p>Neither ROT13 nor Morse code should be used for anything requiring security. They're encoding systems, not encryption. Their value lies in their simplicity, their historical significance, and the specific niches where they remain the right tool for the job. Bookmark the <a href="/tools/rot13/">ROT13 Cipher</a> and <a href="/tools/morse-code/">Morse Code Converter</a> — you'll be surprised when they come in handy.</p>
+`
+---
+
+<GuideLayout
+  title="Ciphers & Classic Encoding: ROT13 and Morse Code Guide | DevTools Hub"
+  description="A practical guide to ROT13 and Morse code encoding. Learn how these classic ciphers work, where they're still used today (aviation, ham radio, accessibility), and when to reach for them."
+  breadcrumb="Ciphers & Classic Encoding"
+>
+  <Fragment slot="title">Ciphers &amp; Classic Encoding:<br class="hidden sm:block" />ROT13 and Morse Code</Fragment>
+  <Fragment slot="intro">ROT13 hides spoilers. Morse code lands airplanes. These two classic encoding systems serve surprisingly different purposes, and both are still in active use today. Here's how they work and when to reach for them.</Fragment>
+  <Fragment set:html={content} />
+</GuideLayout>

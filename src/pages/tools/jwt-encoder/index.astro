@@ -1,0 +1,230 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import StatusMessage from '../../../components/StatusMessage.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'jwt-encoder')!
+
+const steps = [
+  { name: 'Enter Header and Payload', text: 'Fill in the JWT header (typically {"alg":"HS256","typ":"JWT"}) and payload (your claims like sub, name, iat, exp). Both are JSON objects that define your token.' },
+  { name: 'Enter Your Secret Key', text: 'Enter the secret key used to sign the token. For HS256 (HMAC-SHA256), this is a shared secret string. For security, use a long, random key in production — never hardcode secrets in source code.' },
+  { name: 'Copy the JWT', text: 'Click "Generate JWT" to create the signed token. The output is a complete JWT in the format header.payload.signature, ready for use in Authentication headers or API requests.' },
+]
+
+const faq = [
+  { question: 'Is it safe to generate JWTs in a browser?', answer: 'This tool generates JWTs entirely in your browser using the Web Crypto API. Your secret key never leaves your computer. However, for production use, JWTs should be generated on your server where secrets can be stored securely (environment variables, secrets manager). This tool is intended for testing, learning, and debugging.' },
+  { question: 'What signing algorithms are supported?', answer: 'This tool supports HS256 (HMAC with SHA-256), HS384, and HS512. These are symmetric algorithms — the same secret key is used for both signing and verification. For asymmetric signing (RS256, ES256), use a server-side library since browser Web Crypto API support varies for these algorithms.' },
+  { question: 'What claims should I include in the payload?', answer: 'Common claims include: sub (subject/user ID), name (display name), iat (issued at — current timestamp), exp (expiration time), and iss (issuer). For security, always set an exp claim so tokens expire. Never put sensitive data (passwords, credit cards) in JWTs — the payload is only Base64-encoded, not encrypted.' },
+]
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free online JWT encoder. Create and sign JSON Web Tokens in your browser. Supports HS256/HS384/HS512. All processing is local — your secret never leaves your device." {steps} {faq}
+>
+  <div class="grid lg:grid-cols-2 gap-6 mb-6">
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-2 dark:text-gray-300">Algorithm</label>
+      <select id="algSelect" class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+        <option value="HS256">HS256 (HMAC-SHA256)</option>
+        <option value="HS384">HS384 (HMAC-SHA384)</option>
+        <option value="HS512">HS512 (HMAC-SHA512)</option>
+      </select>
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-2 dark:text-gray-300">Secret Key</label>
+      <input type="text" id="secretEl" class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-900 font-mono focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition dark:bg-gray-800 dark:border-gray-700 dark:text-white" placeholder="your-256-bit-secret">
+    </div>
+  </div>
+
+  <div class="grid lg:grid-cols-2 gap-6 mb-6">
+    <div class="code-panel">
+      <div class="code-panel-header">
+        <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Header (JSON)</span>
+        <button id="resetHeaderBtn" class="btn btn-sm btn-secondary text-xs">Reset</button>
+      </div>
+      <textarea id="headerEl" class="code-input" rows="4" placeholder='{"alg":"HS256","typ":"JWT"}'></textarea>
+    </div>
+    <div class="code-panel">
+      <div class="code-panel-header">
+        <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Payload (JSON)</span>
+        <button id="resetPayloadBtn" class="btn btn-sm btn-secondary text-xs">Reset</button>
+      </div>
+      <textarea id="payloadEl" class="code-input" rows="6" placeholder='{"sub":"1234567890","name":"John Doe","iat":1516239022}'></textarea>
+    </div>
+  </div>
+
+  <div class="flex flex-wrap gap-3 mb-6">
+    <button id="generateBtn" class="btn btn-primary">Generate JWT</button>
+    <button id="sampleBtn" class="btn btn-secondary">Load Sample</button>
+    <button id="clearBtn" class="btn btn-secondary">Clear</button>
+  </div>
+
+  <StatusMessage id="statusEl" />
+
+  <div id="resultArea" class="hidden">
+    <div class="code-panel">
+      <div class="code-panel-header">
+        <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Generated JWT</span>
+        <button id="copyJwtBtn" class="btn btn-sm btn-secondary">Copy</button>
+      </div>
+      <div class="p-4 bg-green-50 border border-green-200 rounded-xl dark:bg-green-900/20 dark:border-green-800">
+        <pre id="jwtOutput" class="text-sm font-mono text-green-800 break-all whitespace-pre-wrap dark:text-green-300"></pre>
+      </div>
+    </div>
+    <div class="mt-3 text-sm text-gray-400 dark:text-gray-500">
+      Use this token in the <code class="bg-gray-100 dark:bg-gray-800 px-1 rounded">Authorization: Bearer &lt;token&gt;</code> header.
+    </div>
+  </div>
+
+  <section slot="examples" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Example</h2>
+    <div class="bg-gray-50 border border-gray-200 rounded-xl p-6 dark:bg-gray-900 dark:border-gray-800">
+      <p class="text-sm text-gray-500 mb-4 dark:text-gray-400">With these inputs:</p>
+      <div class="grid sm:grid-cols-3 gap-4 text-sm">
+        <div>
+          <span class="text-xs text-gray-400 uppercase tracking-wider">Header</span>
+          <pre class="mt-1 text-gray-700 dark:text-gray-300"><code>&#123;"alg":"HS256","typ":"JWT"&#125;</code></pre>
+        </div>
+        <div>
+          <span class="text-xs text-gray-400 uppercase tracking-wider">Payload</span>
+          <pre class="mt-1 text-gray-700 dark:text-gray-300"><code>&#123;"sub":"123","name":"Alice"&#125;</code></pre>
+        </div>
+        <div>
+          <span class="text-xs text-gray-400 uppercase tracking-wider">Secret</span>
+          <pre class="mt-1 text-gray-700 dark:text-gray-300"><code>my-secret-key</code></pre>
+        </div>
+      </div>
+      <p class="text-sm text-gray-400 mt-4 dark:text-gray-500">You'll get a valid JWT with three dot-separated parts. You can verify it with the JWT Decoder tool.</p>
+    </div>
+  </section>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Creating JWTs for Testing</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">
+        This tool is invaluable for testing APIs that require JWT authentication. Instead of setting up a full auth server just to get a test token, you can quickly generate a valid JWT with custom claims. Generate a token with a specific user ID, expiration time, or custom claim, and use it to test your API's authorization logic.
+      </p>
+      <h3 class="text-lg font-semibold text-gray-900 mt-6 mb-3 dark:text-white">Important Security Note</h3>
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">
+        Never use browser-generated JWTs in production. In production, your server should generate JWTs after authenticating the user. The secret key should be stored in an environment variable or secrets manager — never in client-side code, never in your git repository. This tool is for testing and learning only.
+      </p>
+    </div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+      <a href="/guides/jwt-deep-dive-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">JWT Deep-Dive Guide</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Encode, decode, inspect — complete JWT reference.</p></div></div></a>
+      <a href="/guides/json-debugging-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">JSON Debugging Guide</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Fix and prevent common JSON errors.</p></div></div></a>
+    </div>
+  </section>
+
+  <script>
+    import { copyToClipboard } from '../../../utils/copyToClipboard'
+
+    const headerEl = document.getElementById('headerEl') as HTMLTextAreaElement
+    const payloadEl = document.getElementById('payloadEl') as HTMLTextAreaElement
+    const secretEl = document.getElementById('secretEl') as HTMLInputElement
+    const algSelect = document.getElementById('algSelect') as HTMLSelectElement
+    const resultArea = document.getElementById('resultArea')!
+    const jwtOutput = document.getElementById('jwtOutput')!
+
+    function showStatus(msg: string, type: 'success' | 'error') {
+      const el = document.getElementById('statusEl')!
+      el.textContent = msg; el.classList.remove('hidden')
+      el.className = type === 'success' ? 'mt-4 px-4 py-3 rounded-lg bg-green-900/40 border border-green-800 text-green-400' : 'mt-4 px-4 py-3 rounded-lg bg-red-900/40 border border-red-800 text-red-400'
+      setTimeout(() => el.classList.add('hidden'), 3000)
+    }
+
+    function base64UrlEncode(str: string): string {
+      return btoa(unescape(encodeURIComponent(str)))
+        .replace(/=/g, '')
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+    }
+
+    async function generateJwt() {
+      try {
+        const header = JSON.parse(headerEl.value.trim())
+        const payload = JSON.parse(payloadEl.value.trim())
+        const secret = secretEl.value
+        const alg = algSelect.value
+
+        if (!secret) { showStatus('Enter a secret key', 'error'); return }
+
+        const headerB64 = base64UrlEncode(JSON.stringify(header))
+        const payloadB64 = base64UrlEncode(JSON.stringify(payload))
+        const signingInput = headerB64 + '.' + payloadB64
+
+        // Map algorithm to Web Crypto params
+        const algMap: Record<string, { name: string; hash: string }> = {
+          'HS256': { name: 'HMAC', hash: 'SHA-256' },
+          'HS384': { name: 'HMAC', hash: 'SHA-384' },
+          'HS512': { name: 'HMAC', hash: 'SHA-512' },
+        }
+
+        const cryptoAlg = algMap[alg]
+        const enc = new TextEncoder()
+        const key = await crypto.subtle.importKey(
+          'raw', enc.encode(secret),
+          { name: cryptoAlg.name, hash: cryptoAlg.hash },
+          false, ['sign']
+        )
+        const signature = await crypto.subtle.sign(
+          'HMAC', key, enc.encode(signingInput)
+        )
+
+        // Convert signature to Base64URL
+        const sigBytes = new Uint8Array(signature)
+        const sigB64 = btoa(String.fromCharCode(...sigBytes))
+          .replace(/=/g, '')
+          .replace(/\+/g, '-')
+          .replace(/\//g, '_')
+
+        const jwt = signingInput + '.' + sigB64
+        jwtOutput.textContent = jwt
+        resultArea.classList.remove('hidden')
+        showStatus('JWT generated! Copy it and use in your Authorization header.', 'success')
+      } catch (e) {
+        showStatus('Error: ' + (e as Error).message, 'error')
+      }
+    }
+
+    document.getElementById('generateBtn')!.addEventListener('click', generateJwt)
+
+    document.getElementById('sampleBtn')!.addEventListener('click', () => {
+      const now = Math.floor(Date.now() / 1000)
+      headerEl.value = JSON.stringify({ alg: 'HS256', typ: 'JWT' }, null, 2)
+      payloadEl.value = JSON.stringify({
+        sub: '1234567890',
+        name: 'John Doe',
+        email: 'john@example.com',
+        iat: now,
+        exp: now + 3600
+      }, null, 2)
+      secretEl.value = 'your-256-bit-secret'
+      resultArea.classList.add('hidden')
+    })
+
+    document.getElementById('resetHeaderBtn')!.addEventListener('click', () => {
+      headerEl.value = JSON.stringify({ alg: 'HS256', typ: 'JWT' }, null, 2)
+    })
+    document.getElementById('resetPayloadBtn')!.addEventListener('click', () => {
+      const now = Math.floor(Date.now() / 1000)
+      payloadEl.value = JSON.stringify({ sub: '1234567890', name: 'John Doe', iat: now }, null, 2)
+    })
+
+    document.getElementById('clearBtn')!.addEventListener('click', () => {
+      headerEl.value = ''
+      payloadEl.value = ''
+      secretEl.value = ''
+      resultArea.classList.add('hidden')
+    })
+
+    document.getElementById('copyJwtBtn')!.addEventListener('click', async () => {
+      const ok = await copyToClipboard(jwtOutput.textContent || '')
+      showStatus(ok ? 'JWT copied!' : 'Copy failed', ok ? 'success' : 'error')
+    })
+  </script>
+</ToolLayout>

@@ -92,4 +92,29 @@ const toolsByCategory = Object.entries(categories).map(([key, category]) => ({
         });
       });
     })();
-  </script></BaseLayout>
+  </script>
+  <script type="application/ld+json" set:html={JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: 'All Developer Tools',
+    description: `Browse ${tools.length} free online developer tools. JSON formatter, Base64 converter, UUID generator, and more.`,
+    url: 'https://toolhub.51nav.com/tools/',
+    hasPart: tools.map(t => ({
+      '@type': 'SoftwareApplication',
+      name: t.name,
+      description: t.description,
+      applicationCategory: 'DeveloperApplication',
+      operatingSystem: 'Web Browser',
+      url: `https://toolhub.51nav.com/tools/${t.id}/`,
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+    })),
+  })}></script>
+  <script type="application/ld+json" set:html={JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://toolhub.51nav.com' },
+      { '@type': 'ListItem', position: 2, name: 'Tools' },
+    ],
+  })}></script>
+</BaseLayout>

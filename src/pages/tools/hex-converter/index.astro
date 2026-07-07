@@ -1,0 +1,161 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import StatusMessage from '../../../components/StatusMessage.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'hex-converter')!
+
+const steps = [
+  { name: 'Enter Your Data', text: 'Type or paste text into the input panel. You can enter regular text to encode, or a hex string to decode.' },
+  { name: 'Choose Direction', text: 'Click "Encode to Hex" to convert text to hexadecimal, or "Decode from Hex" to convert hex back to text.' },
+  { name: 'Copy and Use', text: 'The converted output appears on the right. Copy it for use in your code, configuration files, or debugging.' },
+]
+
+const faq = [
+  { question: 'What is hex encoding?', answer: 'Hexadecimal (hex) encoding represents each byte of data as a two-character hex string (00-FF). For example, the letter "A" (ASCII 65) becomes "41" in hex. Hex is widely used in programming for representing binary data in a human-readable format, in color codes (#FF0000), memory addresses, and network packet analysis.' },
+  { question: 'How is hex different from Base64?', answer: 'Hex uses 16 characters (0-9, A-F) and produces output that\'s twice the size of the original data (each byte → 2 hex chars). Base64 uses 64 characters and produces output about 33% larger. Hex is easier to read and debug because you can see individual byte values, while Base64 is more compact for transmission.' },
+  { question: 'Can I decode a hex string with spaces?', answer: 'Yes, the decoder automatically strips whitespace, spaces, line breaks, and "0x" prefixes from the input before decoding. So you can paste hex dumps directly without cleaning them up first.' },
+]
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free online hex encoder and decoder. Convert text to hexadecimal or decode hex back to plain text. Handles spaces, 0x prefixes, and mixed formatting automatically." {steps} {faq}
+>
+  <div class="flex flex-wrap gap-3 mb-6">
+    <button id="encodeBtn" class="btn btn-primary">Encode to Hex</button>
+    <button id="decodeBtn" class="btn btn-secondary">Decode from Hex</button>
+    <button id="sampleBtn" class="btn btn-secondary">Load Sample</button>
+    <button id="clearBtn" class="btn btn-secondary">Clear</button>
+  </div>
+
+  <div class="grid lg:grid-cols-2 gap-6">
+    <div class="code-panel">
+      <div class="code-panel-header">
+        <span class="text-sm font-medium text-gray-500 dark:text-gray-400" id="inputLabel">Text</span>
+        <button id="copyInputBtn" class="btn btn-sm btn-secondary">Copy</button>
+      </div>
+      <textarea id="inputEl" class="code-input" placeholder="Enter text or hex string..."></textarea>
+    </div>
+    <div class="code-panel">
+      <div class="code-panel-header">
+        <span class="text-sm font-medium text-gray-500 dark:text-gray-400" id="outputLabel">Hex</span>
+        <button id="copyOutputBtn" class="btn btn-sm btn-secondary">Copy</button>
+      </div>
+      <pre id="outputEl" class="code-output"></pre>
+    </div>
+  </div>
+  <StatusMessage id="statusEl" />
+
+  <section slot="examples" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Examples</h2>
+    <div class="grid lg:grid-cols-2 gap-6">
+      <div>
+        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 dark:text-gray-400">Plain Text</h3>
+        <pre class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-700 overflow-x-auto dark:bg-gray-900 dark:border-gray-800 dark:text-gray-300"><code>Hello World</code></pre>
+      </div>
+      <div>
+        <h3 class="text-sm font-semibold text-green-600 uppercase tracking-wider mb-3">Hex Encoded</h3>
+        <pre class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-700 overflow-x-auto dark:bg-gray-900 dark:border-gray-800 dark:text-gray-300"><code>48 65 6c 6c 6f 20 57 6f 72 6c 64</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">When to Use Hex Encoding</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">
+        Hex encoding is the go-to format when you need to inspect binary data at the byte level. Unlike Base64 which obscures individual bytes, hex lets you see exactly what each byte is. This makes it invaluable for debugging, reverse engineering, and working with low-level protocols.
+      </p>
+      <h3 class="text-lg font-semibold text-gray-900 mt-6 mb-3 dark:text-white">Common Use Cases</h3>
+      <ul class="list-disc list-inside space-y-2 text-gray-500 dark:text-gray-400">
+        <li>Reading hex dumps from network packet analyzers (Wireshark)</li>
+        <li>Inspecting binary file headers and magic numbers</li>
+        <li>Working with cryptographic hashes (SHA-256, MD5 outputs)</li>
+        <li>CSS color values (#FF5733)</li>
+        <li>Encoding binary data in JSON when Base64 isn't suitable</li>
+      </ul>
+    </div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+      <a href="/guides/character-encoding-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">Character Encoding Guide</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Unicode, UTF-8, hex, ASCII — encoding deep-dive.</p></div></div></a>
+      <a href="/guides/number-bases-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">Number Bases Guide</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Binary, hex, decimal, octal conversions explained.</p></div></div></a>
+    </div>
+  </section>
+
+  <script>
+    import { copyToClipboard } from '../../../utils/copyToClipboard'
+
+    const inputEl = document.getElementById('inputEl') as HTMLTextAreaElement
+    const outputEl = document.getElementById('outputEl')!
+    const inputLabel = document.getElementById('inputLabel')!
+    const outputLabel = document.getElementById('outputLabel')!
+
+    function showStatus(msg: string, type: 'success' | 'error') {
+      const el = document.getElementById('statusEl')!
+      el.textContent = msg; el.classList.remove('hidden')
+      el.className = type === 'success' ? 'mt-4 px-4 py-3 rounded-lg bg-green-900/40 border border-green-800 text-green-400' : 'mt-4 px-4 py-3 rounded-lg bg-red-900/40 border border-red-800 text-red-400'
+      setTimeout(() => el.classList.add('hidden'), 3000)
+    }
+
+    function encodeHex(text: string, spaced = true): string {
+      const bytes = new TextEncoder().encode(text)
+      const hexes = Array.from(bytes).map(b => b.toString(16).padStart(2, '0'))
+      return spaced ? hexes.join(' ') : hexes.join('')
+    }
+
+    function decodeHex(hex: string): string {
+      // Strip whitespace, 0x prefixes, and non-hex chars
+      const cleaned = hex.replace(/\s/g, '').replace(/0x/gi, '').replace(/[^0-9a-fA-F]/g, '')
+      if (cleaned.length % 2 !== 0) throw new Error('Hex string must have an even number of characters')
+      const bytes: number[] = []
+      for (let i = 0; i < cleaned.length; i += 2) {
+        bytes.push(parseInt(cleaned.substring(i, i + 2), 16))
+      }
+      return new TextDecoder().decode(new Uint8Array(bytes))
+    }
+
+    document.getElementById('encodeBtn')!.addEventListener('click', () => {
+      const v = inputEl.value
+      if (!v) { showStatus('Enter some text first', 'error'); return }
+      inputLabel.textContent = 'Text'
+      outputLabel.textContent = 'Hex'
+      outputEl.textContent = encodeHex(v)
+      showStatus('Encoded to hex!', 'success')
+    })
+
+    document.getElementById('decodeBtn')!.addEventListener('click', () => {
+      const v = inputEl.value.trim()
+      if (!v) { showStatus('Enter a hex string first', 'error'); return }
+      try {
+        inputLabel.textContent = 'Hex'
+        outputLabel.textContent = 'Text'
+        outputEl.textContent = decodeHex(v)
+        showStatus('Decoded from hex!', 'success')
+      } catch (e) {
+        showStatus('Invalid hex: ' + (e as Error).message, 'error')
+      }
+    })
+
+    document.getElementById('sampleBtn')!.addEventListener('click', () => {
+      inputEl.value = 'Hello World'
+      outputEl.textContent = ''
+      inputLabel.textContent = 'Text'
+      outputLabel.textContent = 'Hex'
+    })
+
+    document.getElementById('clearBtn')!.addEventListener('click', () => { inputEl.value = ''; outputEl.textContent = '' })
+
+    document.getElementById('copyInputBtn')!.addEventListener('click', async () => {
+      const ok = await copyToClipboard(inputEl.value)
+      showStatus(ok ? 'Copied!' : 'Copy failed', ok ? 'success' : 'error')
+    })
+    document.getElementById('copyOutputBtn')!.addEventListener('click', async () => {
+      const ok = await copyToClipboard(outputEl.textContent || '')
+      showStatus(ok ? 'Copied!' : 'Copy failed', ok ? 'success' : 'error')
+    })
+  </script>
+</ToolLayout>

@@ -2,6 +2,9 @@ import { tools } from '../data/tools'
 
 // Guide slugs — add new guides here when created
 const guideSlugs = [
+  'base64-image-guide',
+  'character-encoding-guide',
+  'ciphers-encoding-guide',
   'cron-expressions-guide',
   'css-color-gradient-guide',
   'csv-json-conversion-guide',
@@ -12,6 +15,7 @@ const guideSlugs = [
   'json-debugging-guide',
   'json-escaping-guide',
   'json-structure-guide',
+  'jwt-deep-dive-guide',
   'line-deduplication-guide',
   'lorem-ipsum-guide',
   'naming-conventions-guide',

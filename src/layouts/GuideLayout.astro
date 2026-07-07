@@ -11,6 +11,39 @@ interface Props {
 }
 
 const { title, description, breadcrumb = 'Guide' } = Astro.props
+
+const siteUrl = 'https://toolhub.51nav.com'
+const canonicalPath = Astro.url.pathname
+const pageUrl = `${siteUrl}${canonicalPath}`
+
+// Article structured data
+const articleLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: title,
+  description: description,
+  url: pageUrl,
+  publisher: {
+    '@type': 'Organization',
+    name: 'DevTools Hub',
+    url: siteUrl,
+  },
+  mainEntityOfPage: {
+    '@type': 'WebPage',
+    '@id': pageUrl,
+  },
+}
+
+// BreadcrumbList structured data
+const breadcrumbLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: siteUrl },
+    { '@type': 'ListItem', position: 2, name: 'Guides', item: `${siteUrl}/guides/` },
+    { '@type': 'ListItem', position: 3, name: breadcrumb },
+  ],
+}
 ---
 
 <BaseLayout {title} {description}>
@@ -18,7 +51,7 @@ const { title, description, breadcrumb = 'Guide' } = Astro.props
   <main class="flex-1">
     <article class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <!-- Breadcrumb -->
-      <nav class="flex items-center gap-2 text-sm text-gray-400 mb-8">
+      <nav class="flex items-center gap-2 text-sm text-gray-400 mb-8" aria-label="Breadcrumb">
         <a href="/" class="hover:text-blue-500 transition-colors">Home</a>
         <span class="text-gray-300 dark:text-gray-600">/</span>
         <a href="/guides/" class="hover:text-blue-500 transition-colors">Guides</a>
@@ -43,6 +76,10 @@ const { title, description, breadcrumb = 'Guide' } = Astro.props
     </article>
   </main>
   <Footer />
+
+  <!-- Structured Data -->
+  <script type="application/ld+json" set:html={JSON.stringify(articleLd)}></script>
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbLd)}></script>
 
   <!-- Prism.js for syntax highlighting -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />

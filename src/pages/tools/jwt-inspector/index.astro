@@ -1,0 +1,308 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import StatusMessage from '../../../components/StatusMessage.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'jwt-inspector')!
+
+const steps = [
+  { name: 'Paste Your JWT', text: 'Paste a JSON Web Token into the input field. A valid JWT has three parts separated by dots: header.payload.signature.' },
+  { name: 'Click Inspect', text: 'Click "Inspect JWT" to decode and analyze the token. The tool extracts the header and payload, checks the expiration, identifies the algorithm, and breaks down each claim.' },
+  { name: 'Review the Analysis', text: 'The inspector shows: token structure, claim-by-claim breakdown, expiration status with a visual indicator, issue time in human-readable format, and the signing algorithm used.' },
+]
+
+const faq = [
+  { question: 'What does the JWT Inspector show that the JWT Decoder doesn\'t?', answer: 'The Inspector goes beyond basic decoding. It shows: whether the token is expired (with a visual indicator), human-readable dates for iat/exp/nbf claims, the time remaining before expiration, claim-type analysis, and token structure visualization. It\'s designed for debugging and understanding JWTs at a glance.' },
+  { question: 'How is the expiration check performed?', answer: 'The tool reads the "exp" (expiration) claim from the JWT payload and compares it to your computer\'s current time. Green means the token is still valid, red means it\'s expired, and yellow means it expires within the next hour (a warning to refresh soon).' },
+  { question: 'Does this tool verify JWT signatures?', answer: 'No — signature verification requires the secret key or public key, which this tool doesn\'t ask for. The Inspector is for examining the contents and structure of JWTs. For signature verification, use a server-side JWT library with the appropriate secret or public key.' },
+]
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free online JWT Inspector. Decode and analyze JSON Web Tokens in detail — check expiration, view claims, see token structure. All local, no data sent anywhere." {steps} {faq}
+>
+  <div class="code-panel mb-6">
+    <div class="code-panel-header">
+      <span class="text-sm font-medium text-gray-500 dark:text-gray-400">JWT Token</span>
+      <div class="flex gap-2">
+        <button id="sampleBtn" class="btn btn-sm btn-secondary">Load Sample</button>
+        <button id="clearBtn" class="btn btn-sm btn-secondary">Clear</button>
+      </div>
+    </div>
+    <textarea id="jwtInput" class="code-input" placeholder="Paste a JWT to inspect..."></textarea>
+  </div>
+
+  <div class="mb-6">
+    <button id="inspectBtn" class="btn btn-primary">Inspect JWT</button>
+  </div>
+
+  <StatusMessage id="statusEl" />
+
+  <!-- Results Area -->
+  <div id="resultsArea" class="hidden">
+    <!-- Token Overview -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+      <div class="bg-white border border-gray-200 rounded-xl p-4 dark:bg-gray-800 dark:border-gray-700">
+        <div class="text-xs text-gray-400 uppercase tracking-wider mb-1">Algorithm</div>
+        <div class="text-lg font-bold text-gray-900 dark:text-white" id="overviewAlg">-</div>
+      </div>
+      <div class="bg-white border border-gray-200 rounded-xl p-4 dark:bg-gray-800 dark:border-gray-700">
+        <div class="text-xs text-gray-400 uppercase tracking-wider mb-1">Token Type</div>
+        <div class="text-lg font-bold text-gray-900 dark:text-white" id="overviewType">-</div>
+      </div>
+      <div class="bg-white border border-gray-200 rounded-xl p-4 dark:bg-gray-800 dark:border-gray-700">
+        <div class="text-xs text-gray-400 uppercase tracking-wider mb-1">Claims Count</div>
+        <div class="text-lg font-bold text-gray-900 dark:text-white" id="overviewClaims">-</div>
+      </div>
+      <div id="expiryBox" class="bg-white border border-gray-200 rounded-xl p-4 dark:bg-gray-800 dark:border-gray-700">
+        <div class="text-xs text-gray-400 uppercase tracking-wider mb-1">Status</div>
+        <div class="text-lg font-bold" id="overviewStatus">-</div>
+      </div>
+    </div>
+
+    <!-- Expiry Bar -->
+    <div id="expiryBar" class="hidden mb-6">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-sm text-gray-500 dark:text-gray-400">Token Lifetime</span>
+        <span class="text-sm text-gray-500 dark:text-gray-400" id="expiryLabel">-</span>
+      </div>
+      <div class="w-full bg-gray-200 rounded-full h-3 dark:bg-gray-700">
+        <div id="expiryProgress" class="h-3 rounded-full transition-all duration-500" style="width: 0%"></div>
+      </div>
+    </div>
+
+    <!-- Color-coded JWT Parts -->
+    <div class="mb-6">
+      <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 dark:text-gray-400">Token Structure</h3>
+      <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 font-mono text-sm break-all dark:bg-gray-900 dark:border-gray-800" id="jwtParts">
+      </div>
+    </div>
+
+    <!-- Header & Payload JSON -->
+    <div class="grid lg:grid-cols-2 gap-6 mb-6">
+      <div class="code-panel">
+        <div class="code-panel-header">
+          <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Header</span>
+          <button id="copyHeaderBtn" class="btn btn-sm btn-secondary">Copy</button>
+        </div>
+        <pre id="headerOut" class="code-output"></pre>
+      </div>
+      <div class="code-panel">
+        <div class="code-panel-header">
+          <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Payload (Claims)</span>
+          <button id="copyPayloadBtn" class="btn btn-sm btn-secondary">Copy</button>
+        </div>
+        <pre id="payloadOut" class="code-output"></pre>
+      </div>
+    </div>
+
+    <!-- Claims Breakdown -->
+    <div class="mb-6">
+      <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 dark:text-gray-400">Claims Breakdown</h3>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-gray-200 dark:border-gray-700">
+              <th class="text-left py-2 px-3 text-gray-500 font-medium dark:text-gray-400">Claim</th>
+              <th class="text-left py-2 px-3 text-gray-500 font-medium dark:text-gray-400">Value</th>
+              <th class="text-left py-2 px-3 text-gray-500 font-medium dark:text-gray-400">Type</th>
+              <th class="text-left py-2 px-3 text-gray-500 font-medium dark:text-gray-400">Description</th>
+            </tr>
+          </thead>
+          <tbody id="claimsTable"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Inspecting JWTs for Debugging</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">
+        When debugging authentication issues, the JWT Inspector is your first stop. Got a 401 Unauthorized? Paste the token here first — the most common causes are expired tokens, wrong audience (aud claim), or missing required claims. The expiry bar gives you an instant visual read on whether the token is still valid, and the claims breakdown helps you spot missing or unexpected claims.
+      </p>
+      <h3 class="text-lg font-semibold text-gray-900 mt-6 mb-3 dark:text-white">Standard JWT Claims</h3>
+      <ul class="list-disc list-inside space-y-2 text-gray-500 dark:text-gray-400">
+        <li><strong>iss</strong> (Issuer) — Who created the token</li>
+        <li><strong>sub</strong> (Subject) — Who the token is about (usually a user ID)</li>
+        <li><strong>aud</strong> (Audience) — Who the token is intended for</li>
+        <li><strong>exp</strong> (Expiration) — When the token expires (Unix timestamp)</li>
+        <li><strong>nbf</strong> (Not Before) — When the token becomes valid</li>
+        <li><strong>iat</strong> (Issued At) — When the token was created</li>
+      </ul>
+    </div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+      <a href="/guides/jwt-deep-dive-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">JWT Deep-Dive Guide</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Encode, decode, inspect — complete JWT reference.</p></div></div></a>
+      <a href="/guides/json-debugging-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">JSON Debugging Guide</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Fix and prevent common JSON errors.</p></div></div></a>
+    </div>
+  </section>
+
+  <script>
+    import { copyToClipboard } from '../../../utils/copyToClipboard'
+
+    const jwtInput = document.getElementById('jwtInput') as HTMLTextAreaElement
+    const resultsArea = document.getElementById('resultsArea')!
+
+    const CLAIM_DESCRIPTIONS: Record<string, string> = {
+      'iss': 'Issuer — who created this token',
+      'sub': 'Subject — who this token is about',
+      'aud': 'Audience — who this token is intended for',
+      'exp': 'Expiration time (Unix timestamp)',
+      'nbf': 'Not before — token invalid before this time',
+      'iat': 'Issued at — when the token was created',
+      'jti': 'JWT ID — unique identifier for this token',
+    }
+
+    function showStatus(msg: string, type: 'success' | 'error') {
+      const el = document.getElementById('statusEl')!
+      el.textContent = msg; el.classList.remove('hidden')
+      el.className = type === 'success' ? 'mt-4 px-4 py-3 rounded-lg bg-green-900/40 border border-green-800 text-green-400' : 'mt-4 px-4 py-3 rounded-lg bg-red-900/40 border border-red-800 text-red-400'
+      setTimeout(() => el.classList.add('hidden'), 3000)
+    }
+
+    function base64UrlDecode(s: string): string {
+      s = s.replace(/-/g, '+').replace(/_/g, '/')
+      while (s.length % 4) s += '='
+      return decodeURIComponent(escape(atob(s)))
+    }
+
+    function formatTimestamp(ts: number): string {
+      try {
+        const d = new Date(ts * 1000)
+        return d.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'medium' })
+      } catch {
+        return String(ts)
+      }
+    }
+
+    function timeAgo(ts: number): string {
+      const now = Math.floor(Date.now() / 1000)
+      const diff = now - ts
+      if (diff < 60) return diff + 's ago'
+      if (diff < 3600) return Math.floor(diff / 60) + 'm ago'
+      if (diff < 86400) return Math.floor(diff / 3600) + 'h ago'
+      return Math.floor(diff / 86400) + 'd ago'
+    }
+
+    function inspectJwt() {
+      const token = jwtInput.value.trim()
+      if (!token) { showStatus('Paste a JWT first!', 'error'); return }
+
+      try {
+        const parts = token.split('.')
+        if (parts.length !== 3) throw new Error('Invalid JWT format — must have 3 parts separated by dots')
+
+        const header = JSON.parse(base64UrlDecode(parts[0]))
+        const payload = JSON.parse(base64UrlDecode(parts[1]))
+
+        // Overview
+        document.getElementById('overviewAlg')!.textContent = header.alg || 'none'
+        document.getElementById('overviewType')!.textContent = header.typ || 'JWT'
+        const claimCount = Object.keys(payload).length
+        document.getElementById('overviewClaims')!.textContent = String(claimCount)
+
+        // Expiry status
+        const expiryBox = document.getElementById('expiryBox')!
+        const statusEl = document.getElementById('overviewStatus')!
+        const now = Math.floor(Date.now() / 1000)
+        let statusClass = ''
+        let statusText = 'No expiry'
+
+        if (payload.exp) {
+          const expTime = payload.exp
+          if (now > expTime) {
+            statusClass = 'text-red-600 dark:text-red-400'
+            statusText = 'Expired'
+            expiryBox.className = 'bg-red-50 border border-red-200 rounded-xl p-4 dark:bg-red-900/20 dark:border-red-800'
+          } else if (expTime - now < 3600) {
+            statusClass = 'text-yellow-600 dark:text-yellow-400'
+            statusText = 'Expiring soon'
+            expiryBox.className = 'bg-yellow-50 border border-yellow-200 rounded-xl p-4 dark:bg-yellow-900/20 dark:border-yellow-800'
+          } else {
+            statusClass = 'text-green-600 dark:text-green-400'
+            statusText = 'Valid'
+            expiryBox.className = 'bg-green-50 border border-green-200 rounded-xl p-4 dark:bg-green-900/20 dark:border-green-800'
+          }
+
+          // Progress bar
+          if (payload.iat && payload.exp) {
+            const lifetime = payload.exp - payload.iat
+            const elapsed = now - payload.iat
+            const pct = Math.min(100, Math.max(0, (elapsed / lifetime) * 100))
+            const bar = document.getElementById('expiryProgress')!
+            bar.style.width = pct + '%'
+            if (pct > 90) bar.className = 'h-3 rounded-full bg-red-500'
+            else if (pct > 70) bar.className = 'h-3 rounded-full bg-yellow-500'
+            else bar.className = 'h-3 rounded-full bg-green-500'
+            document.getElementById('expiryLabel')!.textContent =
+              'Issued ' + timeAgo(payload.iat) + ' · Expires in ' + Math.floor((payload.exp - now) / 60) + 'm'
+            document.getElementById('expiryBar')!.classList.remove('hidden')
+          } else {
+            document.getElementById('expiryBar')!.classList.add('hidden')
+          }
+        } else {
+          document.getElementById('expiryBar')!.classList.add('hidden')
+          expiryBox.className = 'bg-white border border-gray-200 rounded-xl p-4 dark:bg-gray-800 dark:border-gray-700'
+        }
+        statusEl.className = 'text-lg font-bold ' + statusClass
+        statusEl.textContent = statusText
+
+        // Color-coded JWT parts
+        document.getElementById('jwtParts')!.innerHTML =
+          `<span class="text-red-500">${parts[0]}</span>.<span class="text-purple-500">${parts[1]}</span>.<span class="text-blue-500">${parts[2]}</span>`
+
+        // Header and Payload JSON
+        document.getElementById('headerOut')!.textContent = JSON.stringify(header, null, 2)
+        document.getElementById('payloadOut')!.textContent = JSON.stringify(payload, null, 2)
+
+        // Claims table
+        document.getElementById('claimsTable')!.innerHTML = Object.entries(payload).map(([key, value]) => {
+          let displayValue = JSON.stringify(value)
+          let note = ''
+          if (['exp', 'nbf', 'iat'].includes(key) && typeof value === 'number') {
+            note = formatTimestamp(value)
+          }
+          const desc = CLAIM_DESCRIPTIONS[key] || ''
+          const isStandard = key in CLAIM_DESCRIPTIONS
+          return `<tr class="border-b border-gray-100 dark:border-gray-800">
+            <td class="py-2 px-3 font-mono font-semibold ${isStandard ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'}">${key}</td>
+            <td class="py-2 px-3 font-mono text-gray-900 dark:text-white max-w-xs truncate">${displayValue}</td>
+            <td class="py-2 px-3 text-gray-400 dark:text-gray-500">${typeof value}</td>
+            <td class="py-2 px-3 text-gray-400 dark:text-gray-500 text-xs">${desc}${note ? '<br><span class="text-gray-500">' + note + '</span>' : ''}</td>
+          </tr>`
+        }).join('')
+
+        resultsArea.classList.remove('hidden')
+        showStatus('JWT inspected!', 'success')
+      } catch (e) {
+        showStatus('Invalid JWT: ' + (e as Error).message, 'error')
+      }
+    }
+
+    document.getElementById('inspectBtn')!.addEventListener('click', inspectJwt)
+
+    document.getElementById('sampleBtn')!.addEventListener('click', () => {
+      jwtInput.value = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE5MTYyMzkwMjIsImlzcyI6ImFwaS5leGFtcGxlLmNvbSIsImF1ZCI6ImFwcC5leGFtcGxlLmNvbSJ9.3TbKXqDYqXfLcBpV8KwJ2YzR7pNmA6HsLkFvMwSdRtU'
+      resultsArea.classList.add('hidden')
+    })
+
+    document.getElementById('clearBtn')!.addEventListener('click', () => {
+      jwtInput.value = ''
+      resultsArea.classList.add('hidden')
+    })
+
+    document.getElementById('copyHeaderBtn')!.addEventListener('click', async () => {
+      const ok = await copyToClipboard(document.getElementById('headerOut')!.textContent || '')
+      showStatus(ok ? 'Copied!' : 'Copy failed', ok ? 'success' : 'error')
+    })
+    document.getElementById('copyPayloadBtn')!.addEventListener('click', async () => {
+      const ok = await copyToClipboard(document.getElementById('payloadOut')!.textContent || '')
+      showStatus(ok ? 'Copied!' : 'Copy failed', ok ? 'success' : 'error')
+    })
+  </script>
+</ToolLayout>

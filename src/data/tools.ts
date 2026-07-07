@@ -11,6 +11,13 @@ export const tools: Tool[] = [
   { id: 'base64-converter', name: 'Base64 Converter', description: 'Encode/decode Base64', icon: 'base64', category: 'encoding' },
   { id: 'url-encode', name: 'URL Encode/Decode', description: 'URL encode/decode text', icon: 'url', category: 'encoding' },
   { id: 'html-entities', name: 'HTML Entities', description: 'HTML entity encode/decode', icon: 'html', category: 'encoding' },
+  { id: 'unicode-converter', name: 'Unicode Converter', description: 'Encode/decode Unicode escape sequences', icon: 'escape', category: 'encoding' },
+  { id: 'hex-converter', name: 'Hex Converter', description: 'Encode/decode text to/from hex', icon: 'hash', category: 'encoding' },
+  { id: 'binary-converter', name: 'Binary Converter', description: 'Convert text to/from binary', icon: 'number', category: 'encoding' },
+  { id: 'ascii-converter', name: 'ASCII Converter', description: 'Convert text to/from ASCII codes', icon: 'number', category: 'encoding' },
+  { id: 'utf8-converter', name: 'UTF-8 Converter', description: 'Encode/decode UTF-8 byte sequences', icon: 'escape', category: 'encoding' },
+  { id: 'rot13', name: 'ROT13 Cipher', description: 'Encode/decode with ROT13 cipher', icon: 'case', category: 'encoding' },
+  { id: 'morse-code', name: 'Morse Code', description: 'Convert text to/from Morse code', icon: 'escape', category: 'encoding' },
 
   // ===== GENERATORS =====
   { id: 'uuid-generator', name: 'UUID Generator', description: 'Generate UUID v4', icon: 'uuid', category: 'generator' },
@@ -44,6 +51,8 @@ export const tools: Tool[] = [
 
   // ===== DEV =====
   { id: 'jwt-decoder', name: 'JWT Decoder', description: 'Decode JSON Web Tokens', icon: 'jwt', category: 'dev' },
+  { id: 'jwt-encoder', name: 'JWT Encoder', description: 'Create and sign JSON Web Tokens', icon: 'jwt', category: 'dev' },
+  { id: 'jwt-inspector', name: 'JWT Inspector', description: 'Inspect JWT claims, expiry, and structure', icon: 'jwt', category: 'dev' },
   { id: 'regex-tester', name: 'Regex Tester', description: 'Test regular expressions', icon: 'regex', category: 'dev' },
   { id: 'diff-checker', name: 'Diff Checker', description: 'Compare text differences', icon: 'diff', category: 'dev' },
   { id: 'sql-formatter', name: 'SQL Formatter', description: 'Format SQL queries', icon: 'sql', category: 'dev' },
@@ -66,6 +75,7 @@ export const tools: Tool[] = [
 
   // ===== IMAGE =====
   { id: 'image-to-base64', name: 'Image to Base64', description: 'Convert image to Base64 data URI', icon: 'base64', category: 'image' },
+  { id: 'base64-image-viewer', name: 'Base64 Image Viewer', description: 'Decode and view Base64-encoded images', icon: 'base64', category: 'image' },
 
   // ===== SECURITY =====
   { id: 'ssl-checker', name: 'SSL Certificate Checker', description: 'Check SSL certificate details', icon: 'jwt', category: 'security' },

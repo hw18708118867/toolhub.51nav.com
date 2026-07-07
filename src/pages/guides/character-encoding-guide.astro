@@ -1,0 +1,95 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+
+const content = `
+<h2>Why Character Encoding Still Matters</h2>
+<p>Character encoding sounds like a solved problem. UTF-8 won. Over 98% of websites use it. Yet every developer hits encoding bugs: garbled Chinese characters in a CSV export, a "?" where an emoji should be, a JSON file that breaks because someone saved it as Latin-1. These problems haven't disappeared — they've just gotten more subtle.</p>
+<p>This guide covers the encoding formats you'll actually encounter day-to-day: Unicode escape sequences in JavaScript, UTF-8 byte inspection, ASCII code lookups, and hex encoding. You'll learn what each one does, when to reach for it, and how to avoid the mistakes that waste hours of debugging.</p>
+
+<h2>Unicode: One Encoding to Rule Them All</h2>
+<h3>The Problem Unicode Solved</h3>
+<p>Before Unicode, every language had its own encoding. Russian used KOI8-R. Japanese used Shift-JIS. Chinese used GB2312. A document written in one encoding would render as garbage in another — a phenomenon called <em>mojibake</em> (文字化け), literally "transformed characters." If you've ever opened a file and seen strings of � or scrambled symbols, you've encountered an encoding mismatch.</p>
+<p>Unicode assigns a unique number — a <strong>code point</strong> — to every character across all writing systems. "A" is U+0041. "中" is U+4E2D. "😀" is U+1F600. That's over 140,000 characters, from Latin to Cuneiform to Emoji, all in one coherent system.</p>
+<p>The code point is the abstract identifier. How it gets stored as bytes depends on the encoding form — UTF-8, UTF-16, or UTF-32. UTF-8 is the one you actually need to know.</p>
+
+<h3>Unicode Escape Sequences in Code</h3>
+<p>JavaScript, JSON, and CSS all support Unicode escape sequences — a way to represent any character using only ASCII characters. In JavaScript, you write <code>\\uXXXX</code> for characters in the Basic Multilingual Plane (U+0000 to U+FFFF) and <code>\\u{XXXXX}</code> for higher code points:</p>
+<pre><code class="language-javascript">// BMP characters (4 hex digits)
+'\\u4e2d\\u6587'  →  "中文"
+
+// Emoji with surrogate pairs (older syntax)
+'\\uD83D\\uDE00'  →  "😀"
+
+// ES6+ supports full code points with braces
+'\\u{1F600}'      →  "😀"</code></pre>
+<p>When you see a JSON response with <code>\\uXXXX</code> sequences, it's because the server is escaping non-ASCII characters to keep the response ASCII-safe. This is common in REST APIs that serve international content. The data is intact — it just needs to be decoded.</p>
+<p>Use the <a href="/tools/unicode-converter/">Unicode Converter</a> to encode text to escapes or decode <code>\\uXXXX</code> back to readable characters. It handles surrogate pairs and emoji correctly, which many hand-rolled solutions get wrong.</p>
+
+<h2>UTF-8: How Characters Become Bytes</h2>
+<h3>The Variable-Length Design</h3>
+<p>UTF-8 is a stroke of engineering elegance. It's variable-length: ASCII characters use 1 byte, extended Latin and Arabic use 2, CJK characters use 3, and emoji use 4. The brilliance is in how it stays backward-compatible — every ASCII document is automatically valid UTF-8.</p>
+<p>Here's how the byte patterns work:</p>
+<table>
+  <thead><tr><th>Byte Count</th><th>First Byte Pattern</th><th>Code Point Range</th><th>Example</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td><code>0xxxxxxx</code></td><td>U+0000 – U+007F</td><td>A → <code>41</code></td></tr>
+    <tr><td>2</td><td><code>110xxxxx</code></td><td>U+0080 – U+07FF</td><td>é → <code>C3 A9</code></td></tr>
+    <tr><td>3</td><td><code>1110xxxx</code></td><td>U+0800 – U+FFFF</td><td>中 → <code>E4 B8 AD</code></td></tr>
+    <tr><td>4</td><td><code>11110xxx</code></td><td>U+10000+</td><td>😀 → <code>F0 9F 98 80</code></td></tr>
+  </tbody>
+</table>
+<p>Continuation bytes always start with <code>10</code>. This means you can't mistake the middle of one character for the start of another — if your data stream gets corrupted mid-character, the decoder can find the next valid start byte and recover. That's a deliberate design choice, not an accident.</p>
+
+<h3>Why Byte Count ≠ Character Count</h3>
+<p>A common pitfall: the string "Hello世界" has 7 characters but 13 bytes in UTF-8. If you're storing text in a database with a byte-length limit (like MySQL's old <code>VARCHAR(255)</code>), you might truncate multi-byte characters in the middle, producing invalid UTF-8. Always count characters, not bytes, when dealing with text length limits. Use the <a href="/tools/utf8-converter/">UTF-8 Converter</a> to see the exact byte breakdown for any text.</p>
+
+<h2>ASCII: The Foundation That Won't Die</h2>
+<h3>The 128-Character Baseline</h3>
+<p>ASCII (American Standard Code for Information Interchange) was published in 1963. It defines 128 characters: 33 control codes (0-31 and 127) and 95 printable characters (32-126). It's tiny by modern standards — no accents, no non-Latin scripts, not even a euro sign. Yet ASCII's influence persists because UTF-8 is backward-compatible: every valid ASCII byte is also valid UTF-8.</p>
+<p>The ASCII table has a logical structure worth memorizing in broad strokes:</p>
+<ul>
+  <li><strong>48-57</strong>: Digits 0-9. So <code>'5' - '0'</code> equals 5 in most languages.</li>
+  <li><strong>65-90</strong>: Uppercase A-Z. Notice that 'A' (65) and 'a' (97) differ by exactly 32 — that's a single bit flip.</li>
+  <li><strong>97-122</strong>: Lowercase a-z. The 32-bit gap between cases means you can convert case by toggling bit 5.</li>
+  <li><strong>32</strong>: Space. The most common character in most text.</li>
+  <li><strong>10</strong>: Line Feed (\\n). The Unix newline. Windows uses 13 followed by 10 (\\r\\n).</li>
+</ul>
+<p>Knowing these ranges helps you read hex dumps at a glance. See <code>48</code> in a hex editor and you know it's the digit '0'. See <code>41</code> and it's 'A'. The <a href="/tools/ascii-converter/">ASCII Converter</a> shows decimal, hex, and binary for every character — useful when you're debugging wire protocols or file formats.</p>
+
+<h2>Hex Encoding: Bytes as Human-Readable Text</h2>
+<h3>Why Hex Is Ubiquitous</h3>
+<p>Hexadecimal (base-16) is the lingua franca of low-level programming because it maps cleanly to bytes. Each byte (8 bits) fits exactly into two hex digits (00-FF). This makes hex dumps readable in a way binary isn't — you can scan a hex dump and spot patterns, like ASCII text ranges (20-7E) or null bytes (00).</p>
+<p>Hex encoding is everywhere once you start looking:</p>
+<ul>
+  <li><strong>CSS colors</strong>: <code>#FF5733</code> is just three bytes (red, green, blue) in hex.</li>
+  <li><strong>Cryptographic hashes</strong>: SHA-256 outputs are 32 bytes, displayed as 64 hex characters.</li>
+  <li><strong>Memory addresses</strong>: <code>0x7fff5fbff8c0</code> — the 0x prefix signals hex in C, C++, Rust, and many others.</li>
+  <li><strong>Network packets</strong>: Wireshark displays payload bytes in hex with an ASCII sidebar.</li>
+</ul>
+<p>Converting between text and hex is straightforward: each byte of the UTF-8 representation becomes two hex digits. The letter "A" (byte <code>0x41</code>) becomes the string "41". The Chinese character "中" (bytes <code>0xE4 0xB8 0xAD</code>) becomes "E4 B8 AD". Use the <a href="/tools/hex-converter/">Hex Converter</a> to encode or decode hex strings — it automatically strips whitespace and 0x prefixes, so you can paste hex dumps directly.</p>
+
+<h2>Binary Encoding: The Raw Representation</h2>
+<p>Binary (base-2) is the fundamental encoding — everything ultimately reduces to 0s and 1s. While you rarely work with raw binary strings in production code, understanding how text maps to bits helps you grasp why certain bugs happen. A byte is 8 bits. The letter "A" in binary is <code>01000001</code>. That leading zero isn't decoration — it distinguishes ASCII characters (which all start with 0) from extended character sets.</p>
+<p>Binary conversion is primarily useful for learning and teaching. If you're explaining character encoding to a junior developer, starting with binary makes everything else click. It also comes up in hardware contexts (microcontrollers, FPGA programming) and in certain interview questions. The <a href="/tools/binary-converter/">Binary Converter</a> handles the conversion in both directions.</p>
+
+<h2>Practical Debugging Workflow</h2>
+<p>When you hit an encoding problem, here's the systematic approach:</p>
+<ol>
+  <li><strong>Identify the symptom</strong>. Garbled characters (mojibake) usually mean UTF-8 bytes are being interpreted as Latin-1 or Windows-1252. Question marks (�) are the Unicode replacement character — it means the decoder encountered bytes that aren't valid in the expected encoding.</li>
+  <li><strong>Check the bytes, not the display</strong>. Use the <a href="/tools/utf8-converter/">UTF-8 Converter</a> or a hex editor to see the actual bytes. What encoding produced them? What encoding is interpreting them?</li>
+  <li><strong>Trace the pipeline</strong>. Encoding bugs happen at boundaries: database → backend → JSON serializer → HTTP response → browser. At each step, verify the encoding declaration (charset, Content-Type header, BOM).</li>
+  <li><strong>Fix at the source</strong>. The most robust fix is to always declare UTF-8 everywhere: in your database (utf8mb4 in MySQL), in your HTTP headers (Content-Type: application/json; charset=utf-8), in your HTML meta tags, and in your code editor.</li>
+</ol>
+<p>Bookmark the <a href="/tools/unicode-converter/">Unicode Converter</a>, <a href="/tools/utf8-converter/">UTF-8 Converter</a>, <a href="/tools/ascii-converter/">ASCII Converter</a>, <a href="/tools/hex-converter/">Hex Converter</a>, and <a href="/tools/binary-converter/">Binary Converter</a>. Together they cover every encoding conversion you'll need in day-to-day development.</p>
+`
+---
+
+<GuideLayout
+  title="Character Encoding Guide: Unicode, UTF-8, ASCII, Hex & Binary | DevTools Hub"
+  description="A practical guide to character encoding for developers. Covers Unicode escapes, UTF-8 byte structure, ASCII codes, hex strings, and binary — with debugging workflows and code examples."
+  breadcrumb="Character Encoding"
+>
+  <Fragment slot="title">Character Encoding:<br class="hidden sm:block" />Unicode, UTF-8, ASCII, Hex &amp; Binary</Fragment>
+  <Fragment slot="intro">Every developer hits encoding bugs. This guide covers the five encoding formats you'll actually use — Unicode escapes, UTF-8 bytes, ASCII codes, hex, and binary — with practical debugging workflows that save hours.</Fragment>
+  <Fragment set:html={content} />
+</GuideLayout>
