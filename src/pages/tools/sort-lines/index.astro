@@ -1,0 +1,137 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import StatusMessage from '../../../components/StatusMessage.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'sort-lines')!
+
+const steps = [
+  { name: 'Paste Your Text', text: 'Paste text into the input panel. Each line is treated as a separate item. The tool works with any text — lists, data rows, code, or configuration entries.' },
+  { name: 'Choose Sort Order', text: 'Select your sort method: alphabetical A-Z, reverse Z-A, numeric sort, or sort by line length. Numeric sort correctly handles numbers (2 comes before 10), unlike basic alphabetical sort.' },
+  { name: 'Copy the Result', text: 'The sorted text appears in the output panel. Copy it to your clipboard or use it directly in your workflow. All processing happens in your browser.' },
+]
+
+const faq = [
+  { question: 'What is the difference between alphabetical and numeric sort?', answer: 'Alphabetical sort compares characters by their Unicode order, so "10" comes before "2" (because "1" < "2"). Numeric sort extracts and compares numbers, so "2" comes before "10". Use numeric sort when your lines contain numbers you want sorted by value, not by digit order.' },
+  { question: 'Is the sort case-sensitive?', answer: 'Alphabetical sort is case-sensitive by default, following standard string comparison. Uppercase letters (A-Z) come before lowercase letters (a-z) in Unicode order. If you need case-insensitive sorting, convert all text to the same case first using our Text Case tool.' },
+  { question: 'Does sorting modify line content?', answer: 'No, the tool only changes the order of lines. Each line keeps its original content, spacing, and formatting. Only the line order is rearranged based on your chosen sort method.' },
+  { question: 'When would I need to sort lines?', answer: 'Sorting lines is useful for organizing lists alphabetically, arranging data rows for better readability, sorting import data before database insertion, ordering configuration file entries, and preparing word lists or dictionaries.' },
+]
+
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free online text line sorter. Sort lines alphabetically A-Z, Z-A, numerically or by length. Organize lists and data rows instantly. All processing is local and private." {steps} {faq}
+>
+  <div class="flex flex-wrap gap-3 mb-6">
+    <button id="sortAscBtn" class="btn btn-primary">Sort A-Z ↑</button>
+    <button id="sortDescBtn" class="btn btn-secondary">Sort Z-A ↓</button>
+    <button id="sortNumBtn" class="btn btn-secondary">Sort Numeric</button>
+    <button id="sortLenBtn" class="btn btn-secondary">Sort by Length</button>
+    <button id="sampleBtn" class="btn btn-secondary">Load Sample</button>
+    <button id="clearBtn" class="btn btn-secondary">Clear</button>
+  </div>
+  <div class="grid lg:grid-cols-2 gap-6">
+    <div class="code-panel">
+      <div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Input</span></div>
+      <textarea id="sortInput" class="code-input" placeholder="Enter lines to sort..."></textarea>
+    </div>
+    <div class="code-panel">
+      <div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Output</span><button id="copyBtn" class="btn btn-sm btn-secondary ml-auto">Copy</button></div>
+      <pre id="sortOutput" class="code-output"></pre>
+    </div>
+  </div>
+
+  <section slot="examples" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Example</h2>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div>
+        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 dark:text-gray-400">Before (Unsorted)</h3>
+        <pre class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-700 dark:bg-gray-900 dark:border-gray-800 dark:text-gray-300"><code>zebra
+apple
+monkey
+banana
+cat</code></pre>
+      </div>
+      <div>
+        <h3 class="text-sm font-semibold text-green-600 uppercase tracking-wider mb-3">After (A-Z)</h3>
+        <pre class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-700 dark:bg-gray-900 dark:border-gray-800 dark:text-gray-300"><code>apple
+banana
+cat
+monkey
+zebra</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">When to Use Line Sorting</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">Sorting lines is one of the most fundamental text operations. Whether you're organizing data, cleaning up lists, or preparing content for publication, a reliable line sorter saves time and reduces errors.</p>
+      <h3 class="text-lg font-semibold text-gray-900 mt-6 mb-3 dark:text-white">Practical Applications</h3>
+      <ul class="list-disc list-inside space-y-2 text-gray-500 dark:text-gray-400">
+        <li><strong>Contact lists:</strong> Sort names alphabetically for directories and mailing lists</li>
+        <li><strong>Code organization:</strong> Sort imports, CSS properties, or configuration keys</li>
+        <li><strong>Data preparation:</strong> Sort CSV rows before database import for consistency</li>
+        <li><strong>Word lists:</strong> Create alphabetized vocabulary lists for study or reference</li>
+        <li><strong>Inventory:</strong> Sort SKU codes or product names for easier lookup</li>
+      </ul>
+    </div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+      <a href="/guides/sort-lines-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">Sort Lines Guide</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Alphabetical, numeric and length-based sorting explained.</p></div></div></a>
+      <a href="/guides/line-deduplication-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">Line Deduplication Guide</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Remove duplicates, preserve order, clean up lists.</p></div></div></a>
+    </div>
+  </section>
+
+  <script>
+    import { copyToClipboard } from '../../../utils/copyToClipboard'
+    const sortInput = document.getElementById('sortInput') as HTMLTextAreaElement;
+    const sortOutput = document.getElementById('sortOutput')!;
+    const sortAscBtn = document.getElementById('sortAscBtn')!;
+    const sortDescBtn = document.getElementById('sortDescBtn')!;
+    const sortNumBtn = document.getElementById('sortNumBtn')!;
+    const sortLenBtn = document.getElementById('sortLenBtn')!;
+    const sampleBtn = document.getElementById('sampleBtn')!;
+    const clearBtn = document.getElementById('clearBtn')!;
+    const copyBtn = document.getElementById('copyBtn')!;
+
+    function getLines(): string[] { return sortInput.value.split('\n'); }
+    function output(lines: string[]) { sortOutput.textContent = lines.join('\n'); }
+
+    sortAscBtn.addEventListener('click', () => {
+      const lines = getLines();
+      lines.sort((a, b) => a.localeCompare(b));
+      output(lines);
+    });
+    sortDescBtn.addEventListener('click', () => {
+      const lines = getLines();
+      lines.sort((a, b) => b.localeCompare(a));
+      output(lines);
+    });
+    sortNumBtn.addEventListener('click', () => {
+      const lines = getLines();
+      lines.sort((a, b) => {
+        const na = parseFloat(a), nb = parseFloat(b);
+        if (!isNaN(na) && !isNaN(nb)) return na - nb;
+        return a.localeCompare(b, undefined, { numeric: true });
+      });
+      output(lines);
+    });
+    sortLenBtn.addEventListener('click', () => {
+      const lines = getLines();
+      lines.sort((a, b) => a.length - b.length);
+      output(lines);
+    });
+    clearBtn.addEventListener('click', () => { sortInput.value = ''; sortOutput.textContent = ''; });
+    copyBtn.addEventListener('click', async () => { await copyToClipboard(sortOutput.textContent || ''); });
+    sampleBtn.addEventListener('click', () => {
+      sortInput.value = 'zebra\napple\n10 monkeys\nbanana\n2 cats\ncat';
+      sortOutput.textContent = '';
+    });
+  </script>
+</ToolLayout>

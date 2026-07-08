@@ -1,0 +1,111 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'reverse-text')!
+
+const steps = [
+  { name: 'Enter Your Text', text: 'Type or paste any text into the input panel. The tool works with single words, sentences, paragraphs, code, or any text content.' },
+  { name: 'Choose a Reverse Mode', text: 'Select from: reverse all characters (mirrors the entire string), reverse line by line (reverses each line independently), or reverse word order (keeps words intact but flips their order).' },
+  { name: 'Copy the Result', text: 'The reversed text appears in the output panel. Copy it and use it wherever needed. All processing runs in your browser — nothing is sent to any server.' },
+]
+
+const faq = [
+  { question: 'What is the difference between the reverse modes?', answer: '"Reverse All Characters" flips the entire text as one string — "Hello World" becomes "dlroW olleH". "Reverse Each Line" reverses characters within each line but keeps line order — useful for code or formatted text. "Reverse Word Order" keeps each word intact but reverses the sequence of words — "Hello World" becomes "World Hello".' },
+  { question: 'Does reversing text preserve line breaks?', answer: 'Yes, line breaks are preserved. In "Reverse All Characters" mode, line breaks stay in their original positions. In "Reverse Each Line" mode, each line is reversed independently, and the line order stays the same.' },
+  { question: 'What happens to emoji and special characters?', answer: 'Simple emoji (single code point) reverse correctly. However, some emoji are made of multiple code points (like skin tone modifiers or flags) and may not reverse as expected. Similarly, combined characters with accent marks may break apart. Test with your specific text if it contains complex Unicode sequences.' },
+  { question: 'When is reversing text useful?', answer: 'While reversing text can be fun (mirror writing, puzzles), it has practical uses: testing palindrome strings, creating mirrored text effects, working with RTL (right-to-left) languages, debugging text encoding issues, and simple text obfuscation for placeholder content.' },
+]
+
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free online text reverser. Reverse characters, each line, or word order instantly. Simple text manipulation tool for mirror text, palindromes and more." {steps} {faq}
+>
+  <div class="code-panel mb-6">
+    <div class="code-panel-header">
+      <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Input Text</span>
+      <button id="sampleBtn" class="btn btn-sm btn-secondary ml-auto">Load Sample</button>
+    </div>
+    <textarea id="reverseInput" class="code-input" placeholder="Enter text to reverse..."></textarea>
+  </div>
+  <div class="flex flex-wrap gap-3 mb-6">
+    <button id="reverseAllBtn" class="btn btn-primary">Reverse All Characters</button>
+    <button id="reverseLineBtn" class="btn btn-secondary">Reverse Each Line</button>
+    <button id="reverseWordBtn" class="btn btn-secondary">Reverse Word Order</button>
+  </div>
+  <div class="code-panel">
+    <div class="code-panel-header">
+      <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Output</span>
+      <button id="copyBtn" class="btn btn-sm btn-secondary ml-auto">Copy</button>
+    </div>
+    <pre id="reverseOutput" class="code-output"></pre>
+  </div>
+
+  <section slot="examples" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Examples</h2>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left">
+        <thead>
+          <tr class="border-b border-gray-200 dark:border-gray-800">
+            <th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">Mode</th>
+            <th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">Input: "Hello World"</th>
+          </tr>
+        </thead>
+        <tbody class="text-gray-500 dark:text-gray-400 font-mono text-sm">
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">Reverse All Characters</td><td class="py-3 px-4">dlroW olleH</td></tr>
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">Reverse Each Line</td><td class="py-3 px-4">dlroW olleH</td></tr>
+          <tr><td class="py-3 px-4">Reverse Word Order</td><td class="py-3 px-4">World Hello</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">How Text Reversal Works</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">Text reversal is a straightforward operation, but the results differ significantly depending on what unit you choose to reverse — characters, lines, or words. Each mode serves different purposes.</p>
+      <h3 class="text-lg font-semibold text-gray-900 mt-6 mb-3 dark:text-white">Reverse Modes Explained</h3>
+      <ul class="list-disc list-inside space-y-2 text-gray-500 dark:text-gray-400">
+        <li><strong>All Characters:</strong> Treats the entire text as one string and reverses every character from end to start. This is the classic "mirror text" effect.</li>
+        <li><strong>Each Line:</strong> Reverses the characters within each line independently. Line order stays the same. Useful for right-align mockups or text art.</li>
+        <li><strong>Word Order:</strong> Splits text by spaces and reverses the sequence of words. Each word's spelling is preserved. Useful for rephrasing or checking sentence flow.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+      <a href="/guides/reverse-text-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">Reverse Text Guide</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Character, line and word order reversal explained.</p></div></div></a>
+      <a href="/guides/naming-conventions-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">Naming Conventions Guide</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">camelCase, snake_case, kebab-case explained.</p></div></div></a>
+    </div>
+  </section>
+
+  <script>
+    import { copyToClipboard } from '../../../utils/copyToClipboard'
+    const reverseInput = document.getElementById('reverseInput') as HTMLTextAreaElement;
+    const reverseOutput = document.getElementById('reverseOutput')!;
+    const reverseAllBtn = document.getElementById('reverseAllBtn')!;
+    const reverseLineBtn = document.getElementById('reverseLineBtn')!;
+    const reverseWordBtn = document.getElementById('reverseWordBtn')!;
+    const sampleBtn = document.getElementById('sampleBtn')!;
+    const copyBtn = document.getElementById('copyBtn')!;
+
+    reverseAllBtn.addEventListener('click', () => {
+      reverseOutput.textContent = reverseInput.value.split('').reverse().join('');
+    });
+    reverseLineBtn.addEventListener('click', () => {
+      reverseOutput.textContent = reverseInput.value.split('\n').map(l => l.split('').reverse().join('')).join('\n');
+    });
+    reverseWordBtn.addEventListener('click', () => {
+      reverseOutput.textContent = reverseInput.value.split(' ').reverse().join(' ');
+    });
+    sampleBtn.addEventListener('click', () => {
+      reverseInput.value = 'Hello World\nThis is line two\nGoodbye';
+      reverseOutput.textContent = '';
+    });
+    copyBtn.addEventListener('click', async () => { await copyToClipboard(reverseOutput.textContent || ''); });
+  </script>
+</ToolLayout>

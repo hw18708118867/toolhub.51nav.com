@@ -1,0 +1,54 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+const content = `
+<div class="prose prose-gray max-w-none dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-strong:text-gray-900 dark:prose-strong:text-white prose-code:text-blue-600 dark:prose-code:text-blue-400 prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-pre:bg-gray-50 dark:prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-gray-800">
+
+<h2>Why Character Counting Matters More Than You Think</h2>
+<p>Every platform you publish on has limits. Twitter gives you 280 characters per post. SMS messages max out at 160 characters before they split into multiple segments. Google truncates meta descriptions somewhere around 155-160 characters. App Store titles cap at 30 characters. Google Ads headlines limit you to exactly 30 characters per line. If you go over these limits without knowing, your message gets cut off mid-sentence — sometimes in ways that make your brand look careless.</p>
+<p>A <a href="/tools/character-counter/">character counter</a> tells you exactly where you stand before you hit publish. Not just total characters, but the breakdown: letters, digits, spaces, punctuation. Each metric answers a different question. Total characters matches what Twitter and SMS enforce. Characters without spaces helps when you're working with CJK (Chinese, Japanese, Korean) text where spaces don't separate words. The letter-to-digit ratio tells you whether your text is readable or looks like a CAPTCHA. A dedicated counter gives you all of this in real time as you type.</p>
+
+<h2>Platform-Specific Character Limits (Updated 2025)</h2>
+<table>
+  <thead><tr><th>Platform / Medium</th><th>Character Limit</th><th>What Happens If You Exceed</th></tr></thead>
+  <tbody>
+    <tr><td>Twitter (X) Post</td><td>280</td><td>Cannot post. Twitter prevents sending. X Premium subscribers get up to 25,000 characters.</td></tr>
+    <tr><td>SMS Message</td><td>160 (GSM-7 encoding)</td><td>Message splits into multiple segments. Each segment billed separately. Some carriers concatenate poorly.</td></tr>
+    <tr><td>Meta Description (SEO)</td><td>~155-160</td><td>Google truncates the rest with "…" in search results. Mobile truncation is shorter (around 120 chars).</td></tr>
+    <tr><td>Title Tag (SEO)</td><td>50-60</td><td>Truncated in SERPs. Google measures by pixel width (600px), not characters, but 55 chars is a safe target.</td></tr>
+    <tr><td>Instagram Caption</td><td>2,200</td><td>Truncated after 125 characters in feed with "… more". Users must tap to expand.</td></tr>
+    <tr><td>Google Ads Headline</td><td>30 per headline</td><td>Cannot submit ad. Hard enforcement in Google Ads Editor and web interface.</td></tr>
+    <tr><td>Google Ads Description</td><td>90 per line</td><td>Same hard enforcement. Ads with truncated descriptions don't run.</td></tr>
+    <tr><td>App Store Title (iOS)</td><td>30</td><td>App Store Connect rejects the submission.</td></tr>
+    <tr><td>App Store Subtitle (iOS)</td><td>30</td><td>Same — hard rejection at submission time.</td></tr>
+    <tr><td>YouTube Video Title</td><td>100</td><td>Truncated in search results and sidebar. Full title visible on watch page only.</td></tr>
+    <tr><td>Push Notification (iOS/Android)</td><td>~110-120 (varies)</td><td>Truncated based on screen width. Most smartphones show 2-3 lines of notification text max.</td></tr>
+  </tbody>
+</table>
+
+<h2>What Gets Counted as a Character?</h2>
+<p>This sounds simple but has surprising edge cases. A character is any single code point in the text. Letters (A-Z, a-z, and every letter in every alphabet), digits (0-9), punctuation marks (periods, commas, exclamation marks, question marks, semicolons, colons, apostrophes, quotation marks, parentheses, brackets, hyphens, dashes, ellipses), symbols (@, #, $, %, &, *, +, =, /, \\, |, ~, backtick, ^), whitespace (spaces, tabs, line breaks), and emoji all count as one character each. Even an "invisible" character like a zero-width space (U+200B) counts as 1 — and can cause debugging headaches when your 280-character tweet mysteriously exceeds the limit because of invisible characters you copied from a word processor.</p>
+<p>The distinction between "with spaces" and "without spaces" matters differently across platforms. Twitter counts every character, including spaces. Most social platforms do the same — a space is a character, full stop. But if you're working with character-dense languages like Chinese where words aren't separated by spaces, the "without spaces" count gives you a more accurate sense of how much actual content you have. A 140-character Chinese tweet can convey significantly more information than a 140-character English tweet.</p>
+
+<h2>Letters, Digits, and the Character Mix</h2>
+<p>Breaking characters down by type reveals information about your text that total count alone hides. If your meta description is 160 characters but 40 of them are digits and symbols, the actual readable content is 120 characters — on the short side. If a product SKU is mostly letters with a few embedded numbers, the letter-to-digit ratio tells you whether it follows your naming convention. For password fields, a balanced mix of letters, digits, and symbols indicates stronger entropy than a string of all letters.</p>
+<p>For SEO meta descriptions specifically, every character should earn its place. Filler words ("very", "really", "just", "that") consume characters without adding meaning. A 160-character description with 75% letters and minimal punctuation is efficient. A 160-character description padded with exclamation marks and ALL CAPS screams "spam" to both users and search engines. Use a <a href="/tools/character-counter/">character counter</a> to audit your copy before it goes live.</p>
+
+<h2>Character Count vs. Byte Count</h2>
+<p>Characters and bytes are different things, and confusing them causes real bugs. In UTF-8 encoding, ASCII characters (basic Latin letters, digits, common punctuation) use 1 byte each. Extended Latin characters (é, ñ, ü) use 2 bytes. CJK characters (中文, 日本語, 한국어) use 3 bytes. Emoji and other supplemental characters use 4 bytes. So "Hello" is 5 characters and 5 bytes. "Héllo" is 5 characters but 6 bytes. "你好" is 2 characters but 6 bytes.</p>
+<p>Most platforms count characters, not bytes, for their limits. Twitter's 280-character limit means 280 characters whether they're ASCII or emoji. But database column limits and API payload limits often count bytes. A VARCHAR(255) column in MySQL stores up to 255 characters for ASCII text, but only 85 three-byte CJK characters. If your form validation counts characters but your database counts bytes, users from different locales will hit unexpected errors. This is why you validate at both layers.</p>
+
+<h2>Practical Workflow for Character-Constrained Writing</h2>
+<p>Start by writing your content without worrying about limits. Get your message on the page first. Then check the count. If you're over, cut systematically: remove adverbs ("very", "quickly"), replace phrases with single words ("due to the fact that" → "because"), shorten URLs with a link shortener if the platform counts URLs toward the limit, and delete redundant sentences. If you're well under the limit, add detail, not filler — a specific number, a concrete benefit, a time frame. "Free shipping" is 14 characters. "Free 2-day shipping on orders over $50" is 42 characters and tells readers much more.</p>
+<p>Our <a href="/tools/character-counter/">character counter</a> shows the breakdown in real time — total characters, characters without spaces, letters, digits, spaces, and punctuation. This makes it easy to spot where your characters are going. If punctuation is high relative to letters, your text may be too fragmented. If spaces are high, your copy may be using too many short words where compound sentences would read better. The numbers don't write your copy for you, but they flag problems before your audience sees them.</p>
+
+<h2>Character Counting for Localization</h2>
+<p>English text expands 15-30% when translated into German. It contracts 10-20% when translated into Chinese. If your UI button says "Submit" (6 characters) in English, the German equivalent "Absenden" is 8 characters, and "Einreichen" is 10. The Chinese equivalent "提交" is 2 characters — visually much shorter. UI layouts designed for English text break with longer translations unless you account for this. Character counting during the design phase, not after translation, prevents layout emergencies.</p>
+<p>This is especially critical for mobile apps where screen real estate is tight. A navigation label that fits perfectly in English might overflow its container in German or Finnish. Character count your strings during development, test with pseudo-localization (simulated longer strings), and set character budgets per UI element before sending content to translators. This is cheaper than fixing 47 overflow bugs the week before launch.</p>
+</div>
+`
+---
+<GuideLayout title="Character Counting: Platform Limits, SEO & Localization | DevTools Hub" description="Complete guide to character counting — platform limits for Twitter, SMS, SEO meta tags. Covers character vs byte count, letter/digit breakdowns, and localization considerations." breadcrumb="Character Counting Guide">
+  <Fragment slot="title">Character Counting Guide:<br class="hidden sm:block" />Platform Limits That Matter</Fragment>
+  <Fragment slot="intro">From Twitter's 280 characters to SMS 160-character segments, every platform enforces limits. Learn the exact limits, why characters and bytes aren't the same thing, and how to write within constraints without sacrificing clarity.</Fragment>
+  <Fragment set:html={content} />
+</GuideLayout>

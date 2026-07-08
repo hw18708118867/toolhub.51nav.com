@@ -1,0 +1,121 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'line-counter')!
+
+const steps = [
+  { name: 'Paste Your Text', text: 'Type or paste text into the input panel. The tool accepts any text — code, documents, data files, or plain text with any line ending format (Windows CRLF or Unix LF).' },
+  { name: 'View Line Counts', text: 'The tool automatically shows total lines, non-empty lines, and empty lines. Results update in real-time as you type or edit the text.' },
+  { name: 'Use the Results', text: 'Line counts are useful for checking code file lengths, estimating document size, validating CSV row counts, and meeting submission requirements for academic papers.' },
+]
+
+const faq = [
+  { question: 'What counts as a line?', answer: 'A line is any text followed by a line break (Enter/Return). The tool counts every line, including empty lines and the last line even if it does not end with a line break. This matches the behavior of most code editors and text processing tools.' },
+  { question: 'What is the difference between total lines and non-empty lines?', answer: 'Total lines includes every line, including blank lines. Non-empty lines excludes lines that contain only whitespace (spaces, tabs) or nothing at all. This is useful when you want to know how many actual content lines a file has, such as lines of code excluding blank lines.' },
+  { question: 'Does this work with code files?', answer: 'Yes, the line counter works with any text-based file. Paste code, log files, CSV data, or configuration files. For counting lines of code specifically, non-empty lines give a rough estimate — though dedicated tools like cloc provide more accurate language-specific metrics.' },
+  { question: 'Why would I need to count lines?', answer: 'Common use cases include: checking if a CSV file has the expected number of rows, validating data imports, estimating document length for translation quotes, meeting page/line requirements for academic papers, and tracking code file sizes during development.' },
+]
+
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free online line counter. Count total lines, non-empty lines and empty lines instantly. Works with code, documents and data files. All processing is local and private." {steps} {faq}
+>
+  <div class="code-panel mb-6">
+    <div class="code-panel-header">
+      <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Enter Your Text</span>
+      <button id="sampleBtn" class="btn btn-sm btn-secondary ml-auto">Load Sample</button>
+    </div>
+    <textarea id="lineInput" class="code-input" placeholder="Paste or type text here..."></textarea>
+  </div>
+  <div class="code-panel">
+    <div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Line Count Results</span></div>
+    <div class="p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="bg-gray-50 rounded-lg p-6 text-center dark:bg-gray-800">
+        <div class="text-4xl font-bold text-blue-600 dark:text-blue-400" id="totalLines">0</div>
+        <div class="text-sm text-gray-400 mt-2">Total Lines</div>
+        <div class="text-xs text-gray-500 mt-1 dark:text-gray-500">Includes blank lines</div>
+      </div>
+      <div class="bg-gray-50 rounded-lg p-6 text-center dark:bg-gray-800">
+        <div class="text-4xl font-bold text-green-600 dark:text-green-400" id="nonEmptyLines">0</div>
+        <div class="text-sm text-gray-400 mt-2">Non-Empty Lines</div>
+        <div class="text-xs text-gray-500 mt-1 dark:text-gray-500">Lines with content</div>
+      </div>
+      <div class="bg-gray-50 rounded-lg p-6 text-center dark:bg-gray-800">
+        <div class="text-4xl font-bold text-gray-400 dark:text-gray-500" id="emptyLines">0</div>
+        <div class="text-sm text-gray-400 mt-2">Empty Lines</div>
+        <div class="text-xs text-gray-500 mt-1 dark:text-gray-500">Blank/whitespace-only</div>
+      </div>
+    </div>
+  </div>
+
+  <section slot="examples" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Example</h2>
+    <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 font-mono text-sm text-gray-700 dark:bg-gray-900 dark:border-gray-800 dark:text-gray-300">
+      <pre><code>Line 1: Hello world
+Line 2:
+Line 3: This is content
+Line 4:
+Line 5: Last line</code></pre>
+    </div>
+    <div class="grid grid-cols-3 gap-4 mt-4 text-center text-sm">
+      <div class="bg-blue-50 rounded-lg p-3 dark:bg-blue-900/20"><span class="text-blue-600 dark:text-blue-400 font-bold">5</span><br><span class="text-gray-500">Total Lines</span></div>
+      <div class="bg-green-50 rounded-lg p-3 dark:bg-green-900/20"><span class="text-green-600 dark:text-green-400 font-bold">3</span><br><span class="text-gray-500">Non-Empty Lines</span></div>
+      <div class="bg-gray-100 rounded-lg p-3 dark:bg-gray-800"><span class="text-gray-500 font-bold">2</span><br><span class="text-gray-400">Empty Lines</span></div>
+    </div>
+  </section>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Common Uses for Line Counting</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">Line counting is one of the simplest and most useful text metrics. Developers use it to gauge file complexity, writers use it to estimate document length, and data analysts use it to validate datasets.</p>
+      <h3 class="text-lg font-semibold text-gray-900 mt-6 mb-3 dark:text-white">Practical Applications</h3>
+      <ul class="list-disc list-inside space-y-2 text-gray-500 dark:text-gray-400">
+        <li><strong>Code review:</strong> Check if a file has grown too large and needs refactoring</li>
+        <li><strong>Data validation:</strong> Verify a CSV has the expected number of rows before import</li>
+        <li><strong>Translation:</strong> Estimate translation cost based on line count</li>
+        <li><strong>Academic:</strong> Meet line or page count requirements for assignments</li>
+        <li><strong>Log analysis:</strong> Count error lines in application logs</li>
+      </ul>
+    </div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+      <a href="/guides/line-counting-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">Line Counting Guide</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Metrics for code review, data validation and translation estimation.</p></div></div></a>
+      <a href="/guides/text-processing-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">Text Processing Guide</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">String escaping, diffing, and text manipulation explained.</p></div></div></a>
+    </div>
+  </section>
+
+  <script>
+    const lineInput = document.getElementById('lineInput') as HTMLTextAreaElement;
+    const sampleBtn = document.getElementById('sampleBtn')!;
+    const totalLines = document.getElementById('totalLines')!;
+    const nonEmptyLines = document.getElementById('nonEmptyLines')!;
+    const emptyLines = document.getElementById('emptyLines')!;
+
+    function count() {
+      const text = lineInput.value;
+      if (!text) {
+        totalLines.textContent = '0';
+        nonEmptyLines.textContent = '0';
+        emptyLines.textContent = '0';
+        return;
+      }
+      const lines = text.split('\n');
+      totalLines.textContent = lines.length.toString();
+      const nonEmpty = lines.filter(l => l.trim().length > 0);
+      nonEmptyLines.textContent = nonEmpty.length.toString();
+      emptyLines.textContent = (lines.length - nonEmpty.length).toString();
+    }
+
+    sampleBtn.addEventListener('click', () => {
+      lineInput.value = 'Line 1: Hello world\nLine 2: \nLine 3: This is content\nLine 4:   \nLine 5: Last line';
+      count();
+    });
+    lineInput.addEventListener('input', count);
+  </script>
+</ToolLayout>

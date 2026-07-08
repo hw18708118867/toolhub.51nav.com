@@ -1,0 +1,134 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'character-counter')!
+
+const steps = [
+  { name: 'Paste Your Text', text: 'Type or paste any text into the input box. The tool works with any language and accepts any characters — letters, numbers, symbols, and emoji.' },
+  { name: 'View Real-Time Counts', text: 'As you type, the tool instantly calculates character counts including total characters, characters without spaces, letters, digits, spaces, and punctuation.' },
+  { name: 'Use the Data', text: 'Review the breakdown to check if your text meets specific character limits. Useful for social media posts, meta descriptions, SMS messages, and app localization.' },
+]
+
+const faq = [
+  { question: 'What are characters?', answer: 'A character is any single unit of text — a letter, number, space, punctuation mark, or symbol. For example, "Hello!" is 6 characters (5 letters + 1 exclamation mark). Even invisible characters like spaces and line breaks count as one character each.' },
+  { question: 'What is the difference between "with spaces" and "without spaces"?', answer: 'The "with spaces" count includes every character in your text. The "without spaces" count excludes space characters but still counts other whitespace like line breaks. Many platforms like Twitter and SMS have character limits that count spaces, so the total count is what you should use for those platforms.' },
+  { question: 'When would I need to count characters specifically?', answer: 'Character counting is essential for social media posts (Twitter: 280 chars, Instagram captions: 2,200 chars), SEO meta descriptions (150-160 chars), SMS messages (160 chars), app store descriptions, Google Ads headlines, and database field validation.' },
+  { question: 'Does this count emoji as one character?', answer: 'Yes, JavaScript counts each emoji as a single character, even though emoji are actually made up of multiple bytes. This matches how most platforms count emoji for character limits. Some older systems may count emoji differently, so always test on the target platform if emoji are critical.' },
+]
+
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free online character counter. Count total characters, letters, digits, spaces and more in real-time. Perfect for social media limits, SEO meta tags and SMS messages." {steps} {faq}
+>
+  <div class="code-panel mb-6">
+    <div class="code-panel-header">
+      <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Enter Your Text</span>
+      <button id="sampleBtn" class="btn btn-sm btn-secondary ml-auto">Load Sample</button>
+    </div>
+    <textarea id="charInput" class="code-input" placeholder="Paste or type your text here..."></textarea>
+  </div>
+  <div class="code-panel">
+    <div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Character Count Results</span></div>
+    <div class="p-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div class="bg-gray-50 rounded-lg p-4 text-center dark:bg-gray-800">
+        <div class="text-3xl font-bold text-blue-600 dark:text-blue-400" id="totalChars">0</div>
+        <div class="text-xs text-gray-400 mt-1">Total Characters</div>
+      </div>
+      <div class="bg-gray-50 rounded-lg p-4 text-center dark:bg-gray-800">
+        <div class="text-3xl font-bold text-green-600 dark:text-green-400" id="charsNoSpace">0</div>
+        <div class="text-xs text-gray-400 mt-1">Without Spaces</div>
+      </div>
+      <div class="bg-gray-50 rounded-lg p-4 text-center dark:bg-gray-800">
+        <div class="text-3xl font-bold text-purple-600 dark:text-purple-400" id="lettersCount">0</div>
+        <div class="text-xs text-gray-400 mt-1">Letters</div>
+      </div>
+      <div class="bg-gray-50 rounded-lg p-4 text-center dark:bg-gray-800">
+        <div class="text-3xl font-bold text-orange-600 dark:text-orange-400" id="digitsCount">0</div>
+        <div class="text-xs text-gray-400 mt-1">Digits</div>
+      </div>
+      <div class="bg-gray-50 rounded-lg p-4 text-center dark:bg-gray-800">
+        <div class="text-3xl font-bold text-cyan-600 dark:text-cyan-400" id="spacesCount">0</div>
+        <div class="text-xs text-gray-400 mt-1">Spaces</div>
+      </div>
+      <div class="bg-gray-50 rounded-lg p-4 text-center dark:bg-gray-800">
+        <div class="text-3xl font-bold text-pink-600 dark:text-pink-400" id="punctuationCount">0</div>
+        <div class="text-xs text-gray-400 mt-1">Punctuation</div>
+      </div>
+    </div>
+  </div>
+
+  <section slot="examples" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Common Character Limits</h2>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left">
+        <thead>
+          <tr class="border-b border-gray-200 dark:border-gray-800">
+            <th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">Platform</th>
+            <th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">Character Limit</th>
+          </tr>
+        </thead>
+        <tbody class="text-gray-500 dark:text-gray-400">
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">Twitter (X) Post</td><td class="py-3 px-4">280 characters</td></tr>
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">SEO Meta Description</td><td class="py-3 px-4">150-160 characters</td></tr>
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">SEO Title Tag</td><td class="py-3 px-4">50-60 characters</td></tr>
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">SMS Message</td><td class="py-3 px-4">160 characters</td></tr>
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">Instagram Caption</td><td class="py-3 px-4">2,200 characters</td></tr>
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">Google Ads Headline</td><td class="py-3 px-4">30 characters</td></tr>
+          <tr><td class="py-3 px-4">App Store Title</td><td class="py-3 px-4">30 characters</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Why Character Count Matters</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">Character counts directly affect how your content appears across the web. A title tag that's too long gets truncated in search results with "...", wasting valuable click-through opportunity. An SMS that exceeds 160 characters may be split into multiple messages or fail to deliver.</p>
+      <h3 class="text-lg font-semibold text-gray-900 mt-6 mb-3 dark:text-white">Tips for Staying Within Limits</h3>
+      <ul class="list-disc list-inside space-y-2 text-gray-500 dark:text-gray-400">
+        <li>Write your content first, then trim to fit character limits</li>
+        <li>Use abbreviations sparingly — they can confuse readers</li>
+        <li>Remove filler words like "very" and "really" to save space</li>
+        <li>Test on the actual platform — different apps count characters differently</li>
+      </ul>
+    </div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+      <a href="/guides/character-counting-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">Character Counting Guide</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Platform limits for Twitter, SMS, SEO meta tags and more.</p></div></div></a>
+      <a href="/guides/word-count-seo-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">Word Counts & SEO</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Content length benchmarks for every content type.</p></div></div></a>
+    </div>
+  </section>
+
+  <script>
+    const charInput = document.getElementById('charInput') as HTMLTextAreaElement;
+    const sampleBtn = document.getElementById('sampleBtn')!;
+    const totalChars = document.getElementById('totalChars')!;
+    const charsNoSpace = document.getElementById('charsNoSpace')!;
+    const lettersCount = document.getElementById('lettersCount')!;
+    const digitsCount = document.getElementById('digitsCount')!;
+    const spacesCount = document.getElementById('spacesCount')!;
+    const punctuationCount = document.getElementById('punctuationCount')!;
+
+    function count() {
+      const text = charInput.value;
+      totalChars.textContent = text.length.toString();
+      charsNoSpace.textContent = text.replace(/\s/g, '').length.toString();
+      lettersCount.textContent = (text.match(/[a-zA-Z]/g) || []).length.toString();
+      digitsCount.textContent = (text.match(/[0-9]/g) || []).length.toString();
+      spacesCount.textContent = (text.match(/ /g) || []).length.toString();
+      punctuationCount.textContent = (text.match(/[.,!?;:'"()\[\]{}<>\/\\@#$%^&*+=|~`_-]/g) || []).length.toString();
+    }
+
+    sampleBtn.addEventListener('click', () => {
+      charInput.value = 'Hello! This is a sample text with 123 numbers and some punctuation...\nIt has 2 lines and 98 characters total.';
+      count();
+    });
+    charInput.addEventListener('input', count);
+  </script>
+</ToolLayout>

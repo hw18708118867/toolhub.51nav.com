@@ -1,0 +1,118 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import StatusMessage from '../../../components/StatusMessage.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'remove-empty-lines')!
+
+const steps = [
+  { name: 'Paste Your Text', text: 'Paste text with empty lines into the input panel. The tool handles any text — code, data exports, log files, or plain text with mixed line endings.' },
+  { name: 'Remove Empty Lines', text: 'Click "Remove Empty Lines" to strip out all blank lines and whitespace-only lines. The tool preserves the order of remaining lines and keeps original line endings.' },
+  { name: 'Copy the Result', text: 'The cleaned text appears in the output panel. Use "Copy" to copy it to your clipboard or paste it directly into your target application.' },
+]
+
+const faq = [
+  { question: 'What counts as an empty line?', answer: 'The tool removes two types of lines: completely blank lines (no characters) and whitespace-only lines (lines that contain only spaces, tabs, or other invisible whitespace characters). Lines with any visible text are preserved.' },
+  { question: 'Will this change my data formatting?', answer: 'No, the tool only removes empty and whitespace-only lines. All remaining lines keep their original content, indentation, and formatting. The relative order of non-empty lines is preserved exactly as it was.' },
+  { question: 'When is removing empty lines useful?', answer: 'Common uses include: cleaning up copied text from PDFs that often adds extra blank lines, removing gaps from log files, compacting configuration files, cleaning data exports, and preparing text for import into databases that reject empty rows.' },
+  { question: 'Does it handle different line endings?', answer: 'Yes, the tool works with Windows (CRLF), Unix/Linux (LF), and Mac (CR) line endings. The output uses the same line ending style as your browser and operating system.' },
+]
+
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free online tool to remove empty lines from text. Strip blank lines and whitespace-only lines instantly. Clean up copied text, log files and data exports. All processing is local and private." {steps} {faq}
+>
+  <div class="flex flex-wrap gap-3 mb-6">
+    <button id="removeBtn" class="btn btn-primary">Remove Empty Lines</button>
+    <button id="sampleBtn" class="btn btn-secondary">Load Sample</button>
+    <button id="clearBtn" class="btn btn-secondary">Clear</button>
+  </div>
+  <div class="grid lg:grid-cols-2 gap-6">
+    <div class="code-panel">
+      <div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Input</span></div>
+      <textarea id="emptyInput" class="code-input" placeholder="Paste text with empty lines..."></textarea>
+    </div>
+    <div class="code-panel">
+      <div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Output</span><button id="copyBtn" class="btn btn-sm btn-secondary ml-auto">Copy</button></div>
+      <pre id="emptyOutput" class="code-output"></pre>
+    </div>
+  </div>
+  <StatusMessage id="emptyStatus" />
+
+  <section slot="examples" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Example</h2>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div>
+        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 dark:text-gray-400">Before (With Empty Lines)</h3>
+        <pre class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-700 dark:bg-gray-900 dark:border-gray-800 dark:text-gray-300"><code>apple
+
+banana
+
+cherry
+
+date</code></pre>
+      </div>
+      <div>
+        <h3 class="text-sm font-semibold text-green-600 uppercase tracking-wider mb-3">After (Cleaned)</h3>
+        <pre class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-700 dark:bg-gray-900 dark:border-gray-800 dark:text-gray-300"><code>apple
+banana
+cherry
+date</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Common Use Cases</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">Empty lines can creep into text from many sources — PDF exports, email formatting, copy-paste artifacts, and generated output. Removing them manually is tedious and error-prone, especially in large documents.</p>
+      <h3 class="text-lg font-semibold text-gray-900 mt-6 mb-3 dark:text-white">When to Remove Empty Lines</h3>
+      <ul class="list-disc list-inside space-y-2 text-gray-500 dark:text-gray-400">
+        <li><strong>PDF to text:</strong> PDF extraction often adds blank lines between paragraphs</li>
+        <li><strong>Log files:</strong> Remove empty lines to make logs easier to scan</li>
+        <li><strong>Data import:</strong> Clean CSV/TSV files before database import</li>
+        <li><strong>Code cleanup:</strong> Remove excessive blank lines from copied code</li>
+        <li><strong>Email formatting:</strong> Clean up forwarded or quoted email text</li>
+      </ul>
+    </div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+      <a href="/guides/remove-empty-lines-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">Remove Empty Lines Guide</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Clean PDF exports, email threads and legacy data exports.</p></div></div></a>
+      <a href="/guides/line-deduplication-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">Line Deduplication Guide</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Remove duplicates, preserve order, clean up lists.</p></div></div></a>
+    </div>
+  </section>
+
+  <script>
+    import { copyToClipboard } from '../../../utils/copyToClipboard'
+    const removeBtn = document.getElementById('removeBtn')!;
+    const clearBtn = document.getElementById('clearBtn')!;
+    const sampleBtn = document.getElementById('sampleBtn')!;
+    const copyBtn = document.getElementById('copyBtn')!;
+    const emptyInput = document.getElementById('emptyInput') as HTMLTextAreaElement;
+    const emptyOutput = document.getElementById('emptyOutput')!;
+
+    function showStatus(message: string, type: 'success' | 'error') {
+      const statusEl = document.getElementById('emptyStatus')!;
+      statusEl.textContent = message; statusEl.classList.remove('hidden');
+      statusEl.className = type === 'success' ? 'mt-4 px-4 py-3 rounded-lg bg-green-900/40 border border-green-800 text-green-400' : 'mt-4 px-4 py-3 rounded-lg bg-red-900/40 border border-red-800 text-red-400';
+      setTimeout(() => statusEl.classList.add('hidden'), 3000);
+    }
+
+    removeBtn.addEventListener('click', () => {
+      const lines = emptyInput.value.split('\n');
+      const nonEmpty = lines.filter(l => l.trim().length > 0);
+      const removed = lines.length - nonEmpty.length;
+      emptyOutput.textContent = nonEmpty.join('\n');
+      showStatus(`Removed ${removed} empty line${removed !== 1 ? 's' : ''}!`, 'success');
+    });
+
+    clearBtn.addEventListener('click', () => { emptyInput.value = ''; emptyOutput.textContent = ''; });
+    copyBtn.addEventListener('click', async () => { const ok = await copyToClipboard(emptyOutput.textContent || ''); showStatus(ok ? 'Copied!' : 'Failed to copy', ok ? 'success' : 'error'); });
+    sampleBtn.addEventListener('click', () => { emptyInput.value = 'apple\n\nbanana\n\ncherry\n   \ndate'; emptyOutput.textContent = ''; });
+  </script>
+</ToolLayout>

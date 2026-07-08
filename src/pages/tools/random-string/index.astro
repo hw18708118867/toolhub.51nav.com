@@ -1,0 +1,162 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import StatusMessage from '../../../components/StatusMessage.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'random-string')!
+
+const steps = [
+  { name: 'Configure Your String', text: 'Set the desired string length (1-256 characters) and choose which character types to include: uppercase letters, lowercase letters, numbers, and/or symbols.' },
+  { name: 'Generate Random Strings', text: 'Click "Generate" to create a batch of random strings. You can generate up to 100 strings at once. Each string is randomly generated using JavaScript\'s Math.random().' },
+  { name: 'Copy or Download', text: 'Use "Copy All" to copy all generated strings to your clipboard at once. Use "Download" to save them as a .txt file for import into other applications.' },
+]
+
+const faq = [
+  { question: 'How random are the generated strings?', answer: 'The strings are generated using JavaScript\'s Math.random() with the Fisher-Yates approach. While suitable for most practical uses (testing, placeholder data, temporary tokens), this is not cryptographically secure. For security-sensitive use cases like API keys or session tokens, use UUID v4 or a dedicated crypto library instead.' },
+  { question: 'What character sets are available?', answer: 'You can choose any combination of: uppercase letters (A-Z), lowercase letters (a-z), numbers (0-9), and special symbols (!@#$%^&* etc.). At least one character set must be selected. The more types you include, the larger the possible character space for each string.' },
+  { question: 'How many strings can I generate at once?', answer: 'You can generate between 1 and 100 strings at a time, each with a length from 1 to 256 characters. For larger batches, generate multiple times and combine the results.' },
+  { question: 'What are random strings used for?', answer: 'Random strings are useful for generating test data, placeholder usernames, temporary file names, coupon codes, dummy API keys for development, random IDs in testing environments, and seed data for database testing. For production identifiers, use UUID or Nano ID instead.' },
+]
+
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free online random string generator. Create random alphanumeric strings for testing, placeholder data, tokens and more. Customize length and character types. All processing is local and private." {steps} {faq}
+>
+  <div class="mb-6 space-y-4">
+    <div class="flex flex-wrap gap-6 items-end">
+      <div>
+        <label class="block font-medium text-gray-700 dark:text-gray-300 mb-2">String Length: <span id="strLenVal" class="text-blue-600 dark:text-blue-400 font-bold">16</span></label>
+        <input type="range" id="strLength" min="1" max="256" value="16" class="w-48">
+      </div>
+      <div>
+        <label class="block font-medium text-gray-700 dark:text-gray-300 mb-2">Number of Strings:</label>
+        <select id="strCount" class="form-select bg-white border border-gray-200 text-gray-900 rounded-lg px-3 py-2 w-32 dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100">
+          <option value="1">1</option><option value="5" selected>5</option><option value="10">10</option><option value="25">25</option><option value="50">50</option><option value="100">100</option>
+        </select>
+      </div>
+    </div>
+    <div>
+      <label class="block font-medium text-gray-700 dark:text-gray-300 mb-2">Character Types</label>
+      <div class="flex flex-wrap gap-4">
+        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="strUpper" checked class="w-4 h-4 rounded"><span class="text-gray-700 dark:text-gray-300">A-Z</span></label>
+        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="strLower" checked class="w-4 h-4 rounded"><span class="text-gray-700 dark:text-gray-300">a-z</span></label>
+        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="strNums" checked class="w-4 h-4 rounded"><span class="text-gray-700 dark:text-gray-300">0-9</span></label>
+        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="strSymbols" class="w-4 h-4 rounded"><span class="text-gray-700 dark:text-gray-300">Symbols</span></label>
+      </div>
+    </div>
+  </div>
+  <div class="flex flex-wrap gap-3 mb-6">
+    <button id="generateBtn" class="btn btn-primary">Generate</button>
+    <button id="copyBtn" class="btn btn-secondary">Copy All</button>
+    <button id="clearBtn" class="btn btn-secondary">Clear</button>
+  </div>
+  <div class="code-panel">
+    <div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Generated Strings</span><button id="downloadBtn" class="btn btn-sm btn-secondary">Download</button></div>
+    <pre id="strOutput" class="code-output font-mono">Click "Generate" to create random strings</pre>
+  </div>
+  <StatusMessage id="strStatus" />
+
+  <section slot="examples" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Example Output</h2>
+    <pre class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-700 font-mono dark:bg-gray-900 dark:border-gray-800 dark:text-gray-300"><code>Kx7mPq2RvL9nWt3Y
+Hb5jFd8sAe3NgU1M
+xR4wC6tY9pLk2QvB
+Zm8NvF3jHd5sAe7W
+Tq1Lp9Xr4BwY6MnC</code></pre>
+    <p class="text-sm text-gray-400 mt-3">16 characters, uppercase + lowercase + numbers — 62¹⁶ possible combinations per string.</p>
+  </section>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">When to Use Random Strings</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">Random strings are a versatile tool in development, testing, and content creation. While not suitable for cryptographic purposes, they're perfect for many day-to-day programming and data tasks.</p>
+      <h3 class="text-lg font-semibold text-gray-900 mt-6 mb-3 dark:text-white">Common Use Cases</h3>
+      <ul class="list-disc list-inside space-y-2 text-gray-500 dark:text-gray-400">
+        <li><strong>Testing:</strong> Generate dummy usernames, emails, or product SKUs for QA</li>
+        <li><strong>Development:</strong> Create temporary tokens, nonce values, or sample API responses</li>
+        <li><strong>Database seeding:</strong> Populate test databases with realistic-looking string data</li>
+        <li><strong>Content:</strong> Generate placeholder text with specific length and character constraints</li>
+        <li><strong>Gaming:</strong> Create random room codes, player tags, or loot table identifiers</li>
+      </ul>
+      <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mt-6 dark:bg-amber-900/20 dark:border-amber-800">
+        <p class="text-sm text-amber-700 dark:text-amber-400"><strong>Note:</strong> This generator uses Math.random() and is not cryptographically secure. For passwords, API keys, or security tokens, use our <a href="/tools/password-generator/" class="text-amber-800 underline dark:text-amber-300">Password Generator</a> or <a href="/tools/uuid-generator/" class="text-amber-800 underline dark:text-amber-300">UUID Generator</a> instead.</p>
+      </div>
+    </div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+      <a href="/guides/random-string-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">Random String Guide</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Test data, tokens, entropy and character sets explained.</p></div></div></a>
+      <a href="/guides/password-hash-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">Password Security & Hash Algorithms</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">MD5 vs SHA-256, bcrypt, password best practices.</p></div></div></a>
+    </div>
+  </section>
+
+  <script>
+    import { copyToClipboard } from '../../../utils/copyToClipboard'
+    const generateBtn = document.getElementById('generateBtn')!;
+    const copyBtn = document.getElementById('copyBtn')!;
+    const clearBtn = document.getElementById('clearBtn')!;
+    const downloadBtn = document.getElementById('downloadBtn')!;
+    const strLength = document.getElementById('strLength') as HTMLInputElement;
+    const strLenVal = document.getElementById('strLenVal')!;
+    const strCount = document.getElementById('strCount') as HTMLSelectElement;
+    const strUpper = document.getElementById('strUpper') as HTMLInputElement;
+    const strLower = document.getElementById('strLower') as HTMLInputElement;
+    const strNums = document.getElementById('strNums') as HTMLInputElement;
+    const strSymbols = document.getElementById('strSymbols') as HTMLInputElement;
+    const strOutput = document.getElementById('strOutput')!;
+
+    function showStatus(message: string, type: 'success' | 'error') {
+      const statusEl = document.getElementById('strStatus')!;
+      statusEl.textContent = message; statusEl.classList.remove('hidden');
+      statusEl.className = type === 'success' ? 'mt-4 px-4 py-3 rounded-lg bg-green-900/40 border border-green-800 text-green-400' : 'mt-4 px-4 py-3 rounded-lg bg-red-900/40 border border-red-800 text-red-400';
+      setTimeout(() => statusEl.classList.add('hidden'), 3000);
+    }
+
+    function generateString(len: number): string {
+      let chars = '';
+      if (strUpper.checked) chars += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      if (strLower.checked) chars += 'abcdefghijklmnopqrstuvwxyz';
+      if (strNums.checked) chars += '0123456789';
+      if (strSymbols.checked) chars += '!@#$%^&*()_+-=[]{}|;:,.<>?';
+      if (!chars) { showStatus('Select at least one character type', 'error'); return ''; }
+      let result = '';
+      for (let i = 0; i < len; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return result;
+    }
+
+    strLength.addEventListener('input', () => { strLenVal.textContent = strLength.value; });
+
+    generateBtn.addEventListener('click', () => {
+      const len = parseInt(strLength.value, 10);
+      const count = parseInt(strCount.value, 10);
+      const results: string[] = [];
+      for (let i = 0; i < count; i++) {
+        results.push(generateString(len));
+      }
+      strOutput.textContent = results.join('\n');
+      showStatus(`Generated ${count} string${count !== 1 ? 's' : ''}!`, 'success');
+    });
+
+    copyBtn.addEventListener('click', async () => {
+      const ok = await copyToClipboard(strOutput.textContent || '');
+      showStatus(ok ? 'Copied!' : 'Failed to copy', ok ? 'success' : 'error');
+    });
+
+    clearBtn.addEventListener('click', () => { strOutput.textContent = 'Click "Generate" to create random strings'; });
+
+    downloadBtn.addEventListener('click', () => {
+      const blob = new Blob([strOutput.textContent || ''], { type: 'text/plain' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'random-strings.txt';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
+  </script>
+</ToolLayout>

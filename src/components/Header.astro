@@ -7,6 +7,11 @@ const allTools = tools.map(t => ({
   ...t,
   categoryName: categories[t.category]?.name ?? 'Tools',
 }))
+
+// Pre-serialize search data for inline script injection
+const searchToolsJson = JSON.stringify(allTools.map(t => ({
+  id: t.id, name: t.name, description: t.description, category: t.categoryName
+})))
 ---
 
 <header class="sticky top-0 z-50 bg-white/95 backdrop-blur-lg border-b border-gray-200 dark:bg-gray-900/95 dark:border-gray-800">
@@ -97,68 +102,9 @@ const allTools = tools.map(t => ({
 </header>
 
 <!-- Search script -->
-<script>
-  // Tool data injected from server
-  const searchTools = [{id:"json-formatter",name:"JSON Formatter",description:"Format, validate, minify JSON",category:"Data"},
-    {id:"base64-converter",name:"Base64 Converter",description:"Encode/decode Base64",category:"Encoding"},
-    {id:"url-encode",name:"URL Encode/Decode",description:"URL encode/decode text",category:"Encoding"},
-    {id:"html-entities",name:"HTML Entities",description:"HTML entity encode/decode",category:"Encoding"},
-    {id:"unicode-converter",name:"Unicode Converter",description:"Encode/decode Unicode escape sequences",category:"Encoding"},
-    {id:"hex-converter",name:"Hex Converter",description:"Encode/decode text to/from hex",category:"Encoding"},
-    {id:"binary-converter",name:"Binary Converter",description:"Convert text to/from binary",category:"Encoding"},
-    {id:"ascii-converter",name:"ASCII Converter",description:"Convert text to/from ASCII codes",category:"Encoding"},
-    {id:"utf8-converter",name:"UTF-8 Converter",description:"Encode/decode UTF-8 byte sequences",category:"Encoding"},
-    {id:"rot13",name:"ROT13 Cipher",description:"Encode/decode with ROT13 cipher",category:"Encoding"},
-    {id:"morse-code",name:"Morse Code",description:"Convert text to/from Morse code",category:"Encoding"},
-    {id:"uuid-generator",name:"UUID Generator",description:"Generate UUID v4",category:"Generators"},
-    {id:"qr-code",name:"QR Code Generator",description:"Generate QR codes",category:"Generators"},
-    {id:"lorem-ipsum",name:"Lorem Ipsum",description:"Generate placeholder text",category:"Generators"},
-    {id:"password-generator",name:"Password Generator",description:"Create secure passwords",category:"Generators"},
-    {id:"nano-id",name:"Nano ID Generator",description:"Generate compact unique IDs",category:"Generators"},
-    {id:"slug-generator",name:"Slug Generator",description:"Create URL-friendly slugs",category:"Generators"},
-    {id:"color-picker",name:"Color Picker",description:"HEX/RGB/HSL converter",category:"Colors"},
-    {id:"css-gradient",name:"CSS Gradient",description:"Create gradient CSS",category:"Colors"},
-    {id:"color-contrast",name:"Color Contrast Checker",description:"Check WCAG contrast ratios",category:"Colors"},
-    {id:"color-palette",name:"Color Palette Generator",description:"Generate color palettes",category:"Colors"},
-    {id:"timestamp",name:"Timestamp Converter",description:"Unix timestamp converter",category:"Data"},
-    {id:"hash-generator",name:"Hash Generator",description:"MD5, SHA-1, SHA-256",category:"Data"},
-    {id:"number-base",name:"Number Base",description:"Dec/Hex/Bin/Oct converter",category:"Data"},
-    {id:"json-yaml",name:"JSON ↔ YAML",description:"Convert JSON/YAML",category:"Data"},
-    {id:"csv-to-json",name:"CSV to JSON",description:"Convert CSV data to JSON",category:"Data"},
-    {id:"json-compare",name:"JSON Compare",description:"Compare and diff two JSON objects",category:"Data"},
-    {id:"json-escape",name:"JSON Escape",description:"Escape/unescape JSON strings",category:"Data"},
-    {id:"json-sort",name:"JSON Sort",description:"Sort JSON object keys alphabetically",category:"Data"},
-    {id:"json-to-csv",name:"JSON to CSV",description:"Convert JSON array to CSV format",category:"Data"},
-    {id:"json-flatten",name:"JSON Flatten",description:"Flatten nested JSON to dot-notation keys",category:"Data"},
-    {id:"json-xml",name:"JSON ↔ XML",description:"Convert between JSON and XML formats",category:"Data"},
-    {id:"json-to-toml",name:"JSON to TOML",description:"Convert JSON to TOML config format",category:"Data"},
-    {id:"json-tree-viewer",name:"JSON Tree Viewer",description:"Visualize JSON structure as a tree",category:"Data"},
-    {id:"jwt-decoder",name:"JWT Decoder",description:"Decode JSON Web Tokens",category:"Dev"},
-    {id:"jwt-encoder",name:"JWT Encoder",description:"Create and sign JSON Web Tokens",category:"Dev"},
-    {id:"jwt-inspector",name:"JWT Inspector",description:"Inspect JWT claims, expiry, and structure",category:"Dev"},
-    {id:"regex-tester",name:"Regex Tester",description:"Test regular expressions",category:"Dev"},
-    {id:"diff-checker",name:"Diff Checker",description:"Compare text differences",category:"Dev"},
-    {id:"sql-formatter",name:"SQL Formatter",description:"Format SQL queries",category:"Dev"},
-    {id:"url-parser",name:"URL Parser",description:"Parse URL components",category:"Dev"},
-    {id:"http-status",name:"HTTP Status Codes",description:"HTTP status code reference",category:"Dev"},
-    {id:"cron-parser",name:"Cron Expression Parser",description:"Parse cron schedules",category:"Dev"},
-    {id:"string-escaper",name:"String Escaper",description:"Escape/unescape strings",category:"Text"},
-    {id:"text-case",name:"Text Case",description:"UPPER/lower/CamelCase",category:"Text"},
-    {id:"word-counter",name:"Word Counter",description:"Count words, chars, lines",category:"Text"},
-    {id:"dedupe-lines",name:"Dedupe Lines",description:"Remove duplicate lines",category:"Text"},
-    {id:"markdown-preview",name:"Markdown Previewer",description:"Preview Markdown in real-time",category:"Text"},
-    {id:"ip-lookup",name:"IP Address Lookup",description:"Lookup IP geolocation & ISP",category:"Network"},
-    {id:"my-ip",name:"My IP Address",description:"Show your public IP address",category:"Network"},
-    {id:"dns-lookup",name:"DNS Lookup",description:"Query DNS records",category:"Network"},
-    {id:"user-agent",name:"User Agent Parser",description:"Parse browser user agent",category:"Network"},
-    {id:"image-to-base64",name:"Image to Base64",description:"Convert image to Base64 data URI",category:"Image"},
-    {id:"base64-image-viewer",name:"Base64 Image Viewer",description:"Decode and view Base64-encoded images",category:"Image"},
-    {id:"ssl-checker",name:"SSL Certificate Checker",description:"Check SSL certificate details",category:"Security"},
-    {id:"password-strength",name:"Password Strength Meter",description:"Evaluate password strength",category:"Security"},
-    {id:"css-formatter",name:"CSS Formatter",description:"Format & beautify CSS",category:"Formatters"},
-    {id:"html-formatter",name:"HTML Formatter",description:"Format & beautify HTML",category:"Formatters"},
-    {id:"js-formatter",name:"JavaScript Formatter",description:"Format & beautify JavaScript",category:"Formatters"},
-    {id:"px-to-rem",name:"PX to REM Converter",description:"Convert PX to REM/EM units",category:"Calculators"}];
+<script define:vars={{ searchToolsJson }}>
+  // Tool data injected from server — auto-generated from tools.ts
+  const searchTools = JSON.parse(searchToolsJson);
 
   const searchInput = document.getElementById('headerSearchInput')
   const searchResults = document.getElementById('headerSearchResults')

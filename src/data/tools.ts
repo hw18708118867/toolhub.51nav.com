@@ -26,6 +26,7 @@ export const tools: Tool[] = [
   { id: 'password-generator', name: 'Password Generator', description: 'Create secure passwords', icon: 'password', category: 'generator' },
   { id: 'nano-id', name: 'Nano ID Generator', description: 'Generate compact unique IDs', icon: 'hash', category: 'generator' },
   { id: 'slug-generator', name: 'Slug Generator', description: 'Create URL-friendly slugs', icon: 'case', category: 'generator' },
+  { id: 'random-string', name: 'Random String Generator', description: 'Generate random alphanumeric strings', icon: 'random', category: 'generator' },
 
   // ===== COLORS =====
   { id: 'color-picker', name: 'Color Picker', description: 'HEX/RGB/HSL converter', icon: 'color', category: 'color' },
@@ -65,6 +66,12 @@ export const tools: Tool[] = [
   { id: 'text-case', name: 'Text Case', description: 'UPPER/lower/CamelCase', icon: 'case', category: 'text' },
   { id: 'word-counter', name: 'Word Counter', description: 'Count words, chars, lines', icon: 'count', category: 'text' },
   { id: 'dedupe-lines', name: 'Dedupe Lines', description: 'Remove duplicate lines', icon: 'dedupe', category: 'text' },
+  { id: 'character-counter', name: 'Character Counter', description: 'Count characters, letters, digits and spaces', icon: 'count', category: 'text' },
+  { id: 'line-counter', name: 'Line Counter', description: 'Count total, empty and non-empty lines', icon: 'count', category: 'text' },
+  { id: 'remove-empty-lines', name: 'Remove Empty Lines', description: 'Remove blank and whitespace-only lines', icon: 'remove', category: 'text' },
+  { id: 'sort-lines', name: 'Sort Lines', description: 'Sort text lines alphabetically A-Z or Z-A', icon: 'sort-asc', category: 'text' },
+  { id: 'shuffle-lines', name: 'Shuffle Lines', description: 'Randomly shuffle and reorder text lines', icon: 'shuffle', category: 'text' },
+  { id: 'reverse-text', name: 'Reverse Text', description: 'Reverse characters, words or line order', icon: 'reverse', category: 'text' },
   { id: 'markdown-preview', name: 'Markdown Previewer', description: 'Preview Markdown in real-time', icon: 'html', category: 'text' },
 
   // ===== NETWORK =====

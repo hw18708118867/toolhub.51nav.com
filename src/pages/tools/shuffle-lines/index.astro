@@ -1,0 +1,129 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import StatusMessage from '../../../components/StatusMessage.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'shuffle-lines')!
+
+const steps = [
+  { name: 'Paste Your Text', text: 'Paste lines of text into the input panel. Each line is treated as a separate entry. The tool works with lists, quiz questions, data rows, and any line-based content.' },
+  { name: 'Shuffle the Lines', text: 'Click "Shuffle" to randomly reorder all lines. Each click produces a different random order. The shuffling uses the Fisher-Yates algorithm for fair, unbiased randomization.' },
+  { name: 'Copy the Result', text: 'The shuffled text appears in the output panel. Copy it to your clipboard or use it directly. You can shuffle multiple times until you get an order you like.' },
+]
+
+const faq = [
+  { question: 'How does the shuffle work?', answer: 'The tool uses the Fisher-Yates (Knuth) shuffle algorithm, which produces an unbiased random permutation — every possible ordering is equally likely. The randomness comes from Math.random(), which is suitable for most non-cryptographic use cases. Each shuffle is independent, so clicking again gives a new random order.' },
+  { question: 'Will lines be duplicated or lost?', answer: 'No. Shuffling only changes the order of lines, not their content. Every line from the input appears exactly once in the output, just in a different position. No lines are added, removed, or modified.' },
+  { question: 'Is the shuffle truly random?', answer: 'For practical purposes, yes. The Fisher-Yates algorithm with Math.random() provides a fair shuffle. The results are random enough for all common use cases like test question ordering, playlist shuffling, and data randomization. For cryptographic applications, use a dedicated CSPRNG instead.' },
+  { question: 'When would I need to shuffle lines?', answer: 'Common uses include: randomizing quiz or test question order, shuffling playlist or task lists, creating random group assignments, randomizing data rows for machine learning train/test splits, picking random samples from a list, and generating random word orders for brainstorming.' },
+]
+
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free online line shuffler. Randomly reorder text lines with one click. Perfect for randomizing quiz questions, lists and data rows. All processing is local and private." {steps} {faq}
+>
+  <div class="flex flex-wrap gap-3 mb-6">
+    <button id="shuffleBtn" class="btn btn-primary">Shuffle Lines</button>
+    <button id="sampleBtn" class="btn btn-secondary">Load Sample</button>
+    <button id="clearBtn" class="btn btn-secondary">Clear</button>
+  </div>
+  <div class="grid lg:grid-cols-2 gap-6">
+    <div class="code-panel">
+      <div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Input</span></div>
+      <textarea id="shuffleInput" class="code-input" placeholder="Enter lines to shuffle..."></textarea>
+    </div>
+    <div class="code-panel">
+      <div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Output</span><button id="copyBtn" class="btn btn-sm btn-secondary ml-auto">Copy</button></div>
+      <pre id="shuffleOutput" class="code-output"></pre>
+    </div>
+  </div>
+  <StatusMessage id="shuffleStatus" />
+
+  <section slot="examples" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Example</h2>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div>
+        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 dark:text-gray-400">Before (Original Order)</h3>
+        <pre class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-700 dark:bg-gray-900 dark:border-gray-800 dark:text-gray-300"><code>Sakura
+Ren
+Haruki
+Yuki
+Sora</code></pre>
+      </div>
+      <div>
+        <h3 class="text-sm font-semibold text-green-600 uppercase tracking-wider mb-3">After (Shuffled)</h3>
+        <pre class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-700 dark:bg-gray-900 dark:border-gray-800 dark:text-gray-300"><code>Haruki
+Sora
+Sakura
+Yuki
+Ren</code></pre>
+      </div>
+    </div>
+    <p class="text-sm text-gray-400 mt-3">Each shuffle produces a different random order.</p>
+  </section>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Practical Uses for Line Shuffling</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">Randomization is essential in many fields — from education to data science. A simple line shuffler eliminates bias and ensures fair, unpredictable ordering.</p>
+      <h3 class="text-lg font-semibold text-gray-900 mt-6 mb-3 dark:text-white">Common Scenarios</h3>
+      <ul class="list-disc list-inside space-y-2 text-gray-500 dark:text-gray-400">
+        <li><strong>Education:</strong> Randomize quiz questions to prevent cheating</li>
+        <li><strong>Research:</strong> Shuffle participant lists for random group assignment</li>
+        <li><strong>Data science:</strong> Randomize data rows before train/test splitting</li>
+        <li><strong>Events:</strong> Shuffle speaker or performer order for fair scheduling</li>
+        <li><strong>Brainstorming:</strong> Randomize word lists to spark new connections</li>
+      </ul>
+    </div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+      <a href="/guides/shuffle-lines-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">Shuffle Lines Guide</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">Fair randomization for tests, surveys and A/B testing.</p></div></div></a>
+      <a href="/guides/text-processing-guide/" class="group"><div class="bg-white border border-gray-200 rounded-xl p-5 flex gap-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-1 dark:text-white">Text Processing Guide</h4><p class="text-xs text-gray-500 mt-1 dark:text-gray-400">String escaping, diffing, and text manipulation explained.</p></div></div></a>
+    </div>
+  </section>
+
+  <script>
+    import { copyToClipboard } from '../../../utils/copyToClipboard'
+    const shuffleInput = document.getElementById('shuffleInput') as HTMLTextAreaElement;
+    const shuffleOutput = document.getElementById('shuffleOutput')!;
+    const shuffleBtn = document.getElementById('shuffleBtn')!;
+    const sampleBtn = document.getElementById('sampleBtn')!;
+    const clearBtn = document.getElementById('clearBtn')!;
+    const copyBtn = document.getElementById('copyBtn')!;
+
+    function showStatus(message: string, type: 'success' | 'error') {
+      const statusEl = document.getElementById('shuffleStatus')!;
+      statusEl.textContent = message; statusEl.classList.remove('hidden');
+      statusEl.className = type === 'success' ? 'mt-4 px-4 py-3 rounded-lg bg-green-900/40 border border-green-800 text-green-400' : 'mt-4 px-4 py-3 rounded-lg bg-red-900/40 border border-red-800 text-red-400';
+      setTimeout(() => statusEl.classList.add('hidden'), 3000);
+    }
+
+    function fisherYatesShuffle(arr: string[]): string[] {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    shuffleBtn.addEventListener('click', () => {
+      const lines = shuffleInput.value.split('\n');
+      if (lines.length === 0 || (lines.length === 1 && lines[0] === '')) return;
+      shuffleOutput.textContent = fisherYatesShuffle(lines).join('\n');
+      showStatus(`Shuffled ${lines.length} line${lines.length !== 1 ? 's' : ''}!`, 'success');
+    });
+
+    clearBtn.addEventListener('click', () => { shuffleInput.value = ''; shuffleOutput.textContent = ''; });
+    copyBtn.addEventListener('click', async () => { const ok = await copyToClipboard(shuffleOutput.textContent || ''); showStatus(ok ? 'Copied!' : 'Failed to copy', ok ? 'success' : 'error'); });
+    sampleBtn.addEventListener('click', () => {
+      shuffleInput.value = 'Sakura\nRen\nHaruki\nYuki\nSora';
+      shuffleOutput.textContent = '';
+    });
+  </script>
+</ToolLayout>
