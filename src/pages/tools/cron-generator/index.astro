@@ -1,0 +1,159 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'cron-generator')!
+
+const steps = [
+  { name: 'Choose Your Schedule', text: 'Select the frequency — every X minutes, hourly, daily, weekly, or monthly. Then configure the specifics like the exact minute, hour, day of month, or day of week.' },
+  { name: 'Review the Expression', text: 'The tool builds a standard 5-field cron expression as you make selections. Each field updates in real time. The human-readable description confirms your schedule is correct.' },
+  { name: 'Copy and Use', text: 'Copy the cron expression and paste it into your crontab (Linux/Mac), cron job scheduler (cPanel, Plesk), or CI/CD pipeline (GitHub Actions, GitLab CI). Test immediately to verify it runs at the expected time.' },
+]
+
+const faq = [
+  { question: 'What is a cron expression?', answer: 'A cron expression is a string of 5 fields separated by spaces that defines when a scheduled task should run. The fields are: minute (0-59), hour (0-23), day of month (1-31), month (1-12), and day of week (0-7, where both 0 and 7 represent Sunday). An asterisk (*) means "every" — so "* * * * *" means "every minute of every hour of every day."' },
+  { question: 'What are common cron schedules?', answer: 'Common patterns include: "0 * * * *" (every hour at minute 0), "0 0 * * *" (midnight daily), "0 9 * * 1-5" (9am weekdays), "*/15 * * * *" (every 15 minutes), "0 0 1 * *" (midnight on the 1st of every month), and "0 0 * * 0" (midnight every Sunday). Use our generator to build these visually without memorizing the field order.' },
+  { question: 'What is the difference between day-of-month and day-of-week?', answer: 'Day of month (3rd field) specifies which day of the month — 1st, 15th, last day. Day of week (5th field) specifies which day of the week — Monday, Friday, Sunday (0 or 7). When both fields have specific values (not *), the job runs when EITHER condition matches — for example, "0 0 1 * 1" runs at midnight on the 1st of the month AND every Monday.' },
+  { question: 'Where can I use cron expressions?', answer: 'Cron expressions are used in: Linux/Unix crontab files, GitHub Actions workflow schedules, GitLab CI pipeline schedules, Kubernetes CronJobs, AWS CloudWatch Events, Jenkins job scheduling, and many SaaS platforms. While the basic 5-field format is universal, some systems extend it — for example, some support a 6th field for seconds or special strings like @daily and @hourly.' },
+]
+
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free online cron expression generator. Build cron schedule expressions visually — every X minutes, hourly, daily, weekly, monthly. Copy-ready for crontab, GitHub Actions and CI/CD pipelines." {steps} {faq}
+>
+  <div class="mb-6 space-y-4">
+    <div>
+      <label class="block font-medium text-gray-700 dark:text-gray-300 mb-2">Frequency</label>
+      <select id="freqSelect" class="form-select bg-white border border-gray-200 rounded-lg px-3 py-2 dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100 w-48">
+        <option value="every-x-minutes">Every X Minutes</option>
+        <option value="hourly">Hourly</option>
+        <option value="daily" selected>Daily</option>
+        <option value="weekly">Weekly</option>
+        <option value="monthly">Monthly</option>
+      </select>
+    </div>
+    <div id="freqOptions" class="space-y-3">
+      <!-- Dynamic options -->
+    </div>
+  </div>
+  <div class="flex gap-3 mb-6">
+    <button id="generateBtn" class="btn btn-primary">Generate Expression</button>
+  </div>
+  <div class="grid md:grid-cols-2 gap-6">
+    <div class="code-panel">
+      <div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Cron Expression</span><button id="copyBtn" class="btn btn-sm btn-secondary ml-auto">Copy</button></div>
+      <pre id="cronOutput" class="code-output text-2xl tracking-wider text-center">0 0 * * *</pre>
+    </div>
+    <div class="code-panel">
+      <div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Human Readable</span></div>
+      <pre id="humanOutput" class="code-output">At midnight every day</pre>
+    </div>
+  </div>
+
+  <section slot="examples" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Common Cron Expressions</h2>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left">
+        <thead><tr class="border-b border-gray-200 dark:border-gray-800"><th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">Expression</th><th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">Schedule</th></tr></thead>
+        <tbody class="text-gray-500 dark:text-gray-400 font-mono text-sm">
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">* * * * *</td><td class="py-3 px-4">Every minute</td></tr>
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">*/15 * * * *</td><td class="py-3 px-4">Every 15 minutes</td></tr>
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">0 * * * *</td><td class="py-3 px-4">Every hour</td></tr>
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">0 0 * * *</td><td class="py-3 px-4">Midnight every day</td></tr>
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">0 9 * * 1-5</td><td class="py-3 px-4">9:00 AM, Monday to Friday</td></tr>
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">0 0 1 * *</td><td class="py-3 px-4">Midnight on the 1st of every month</td></tr>
+          <tr><td class="py-3 px-4">0 0 * * 0</td><td class="py-3 px-4">Midnight every Sunday</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Cron in Modern Infrastructure</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">Cron expressions have been around since Unix Version 7 (1979), but they're more relevant than ever. Cloud platforms, CI/CD pipelines, and container orchestration systems all use cron syntax to define scheduled tasks. The same 5-field expression that worked on a mainframe in 1980 works in a Kubernetes CronJob today.</p>
+      <h3 class="text-lg font-semibold text-gray-900 mt-6 mb-3 dark:text-white">Modern Use Cases</h3>
+      <ul class="list-disc list-inside space-y-2 text-gray-500 dark:text-gray-400">
+        <li><strong>Database backups:</strong> Schedule daily database dumps at low-traffic hours (e.g., 0 2 * * *)</li>
+        <li><strong>SSL certificate renewal:</strong> Run certbot renewal weekly to check expiring certificates</li>
+        <li><strong>Log rotation:</strong> Rotate and compress log files daily to manage disk space</li>
+        <li><strong>Data sync:</strong> Synchronize data between systems on a regular interval</li>
+        <li><strong>Cache warming:</strong> Pre-build cached pages before peak traffic hours</li>
+      </ul>
+    </div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="space-y-3">
+      <a href="/guides/cron-generator-guide/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">Cron Expressions Guide</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Build cron schedules visually — GitHub Actions, K8s and crontab.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+      <a href="/guides/cron-expressions-guide/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">Cron Expressions Explained</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Schedule automated tasks with the five-field cron syntax.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+      <a href="/guides/unix-timestamps-guide/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">Unix Timestamps & Timezone Handling</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Epoch time, seconds vs milliseconds, and timezone best practices.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+    </div>
+  </section>
+
+  <script>
+    import { copyToClipboard } from '../../../utils/copyToClipboard'
+    const freqSelect = document.getElementById('freqSelect') as HTMLSelectElement;
+    const freqOptions = document.getElementById('freqOptions')!;
+    const cronOutput = document.getElementById('cronOutput')!;
+    const humanOutput = document.getElementById('humanOutput')!;
+    const copyBtn = document.getElementById('copyBtn')!;
+
+    function renderOptions() {
+      const freq = freqSelect.value;
+      let html = '';
+      if (freq === 'every-x-minutes') {
+        html = '<div><label class="block text-sm text-gray-600 dark:text-gray-400 mb-1">Every</label><input type="number" id="optMin" class="code-input w-24" value="15" min="1" max="59"></div>';
+      } else if (freq === 'hourly') {
+        html = '<div><label class="block text-sm text-gray-600 dark:text-gray-400 mb-1">At minute</label><input type="number" id="optMin" class="code-input w-24" value="0" min="0" max="59"></div>';
+      } else if (freq === 'daily') {
+        html = '<div class="flex gap-4"><div><label class="block text-sm text-gray-600 dark:text-gray-400 mb-1">Hour (0-23)</label><input type="number" id="optHr" class="code-input w-24" value="0" min="0" max="23"></div><div><label class="block text-sm text-gray-600 dark:text-gray-400 mb-1">Minute (0-59)</label><input type="number" id="optMin" class="code-input w-24" value="0" min="0" max="59"></div></div>';
+      } else if (freq === 'weekly') {
+        html = '<div class="flex gap-4 flex-wrap"><div><label class="block text-sm text-gray-600 dark:text-gray-400 mb-1">Day of Week</label><select id="optDow" class="form-select bg-white border border-gray-200 rounded-lg px-3 py-2 dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100"><option value="0">Sunday</option><option value="1" selected>Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option></select></div><div><label class="block text-sm text-gray-600 dark:text-gray-400 mb-1">Hour</label><input type="number" id="optHr" class="code-input w-24" value="0" min="0" max="23"></div><div><label class="block text-sm text-gray-600 dark:text-gray-400 mb-1">Minute</label><input type="number" id="optMin" class="code-input w-24" value="0" min="0" max="59"></div></div>';
+      } else if (freq === 'monthly') {
+        html = '<div class="flex gap-4 flex-wrap"><div><label class="block text-sm text-gray-600 dark:text-gray-400 mb-1">Day of Month</label><input type="number" id="optDom" class="code-input w-24" value="1" min="1" max="31"></div><div><label class="block text-sm text-gray-600 dark:text-gray-400 mb-1">Hour</label><input type="number" id="optHr" class="code-input w-24" value="0" min="0" max="23"></div><div><label class="block text-sm text-gray-600 dark:text-gray-400 mb-1">Minute</label><input type="number" id="optMin" class="code-input w-24" value="0" min="0" max="59"></div></div>';
+      }
+      freqOptions.innerHTML = html;
+    }
+
+    function generate() {
+      const freq = freqSelect.value;
+      const min = (document.getElementById('optMin') as HTMLInputElement)?.value || '0';
+      const hr = (document.getElementById('optHr') as HTMLInputElement)?.value || '0';
+      const dom = (document.getElementById('optDom') as HTMLInputElement)?.value || '*';
+      const dow = (document.getElementById('optDow') as HTMLSelectElement)?.value || '*';
+      let expr = '', human = '';
+
+      switch (freq) {
+        case 'every-x-minutes': expr = `*/${min} * * * *`; human = `Every ${min} minutes`; break;
+        case 'hourly': expr = `${min} * * * *`; human = `At minute ${min} past every hour`; break;
+        case 'daily': expr = `${min} ${hr} * * *`; human = `At ${hr.padStart(2, '0')}:${min.padStart(2, '0')} every day`; break;
+        case 'weekly': {
+          const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+          expr = `${min} ${hr} * * ${dow}`;
+          human = `At ${hr.padStart(2, '0')}:${min.padStart(2, '0')} every ${days[parseInt(dow)]}`;
+          break;
+        }
+        case 'monthly': {
+          expr = `${min} ${hr} ${dom} * *`;
+          human = `At ${hr.padStart(2, '0')}:${min.padStart(2, '0')} on day ${dom} of every month`;
+          break;
+        }
+      }
+      cronOutput.textContent = expr;
+      humanOutput.textContent = human;
+    }
+
+    freqSelect.addEventListener('change', () => { renderOptions(); generate(); });
+    freqOptions.addEventListener('input', generate);
+    freqOptions.addEventListener('change', generate);
+    copyBtn.addEventListener('click', async () => { await copyToClipboard(cronOutput.textContent || ''); });
+
+    // Init
+    renderOptions();
+    generate();
+  </script>
+</ToolLayout>

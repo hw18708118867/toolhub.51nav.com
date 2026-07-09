@@ -11,6 +11,7 @@ const sections = [
       { href: '/guides/csv-json-conversion-guide/', title: 'CSV to JSON Conversion', desc: 'Convert data between CSV and JSON, handle edge cases and delimiters.' },
       { href: '/guides/number-bases-guide/', title: 'Number Bases: Binary, Hex & Octal', desc: 'Understand and convert between decimal, hex, binary, and octal.' },
       { href: '/guides/unix-timestamps-guide/', title: 'Unix Timestamps & Timezone Handling', desc: 'Epoch time, seconds vs milliseconds, and timezone best practices.' },
+      { href: '/guides/timezone-converter-guide/', title: 'Timezone Conversion: UTC, DST & Best Practices', desc: 'Store in UTC, display in local time, handle DST transitions correctly.' },
       { href: '/guides/cron-expressions-guide/', title: 'Cron Expressions Guide', desc: 'Schedule automated tasks with the five-field cron syntax.' },
     ]
   },
@@ -38,16 +39,24 @@ const sections = [
       { href: '/guides/reverse-text-guide/', title: 'Reversing Text in Three Modes', desc: 'Character, line, and word order reversal — when each is useful.' },
       { href: '/guides/lorem-ipsum-guide/', title: 'Lorem Ipsum in Design & Development', desc: 'When to use placeholder text, and when to replace it with real content.' },
       { href: '/guides/random-string-guide/', title: 'Random String Generation', desc: 'Test data, development tokens, and placeholder content explained.' },
+      { href: '/guides/robots-txt-guide/', title: 'Robots.txt: Rules, Syntax & Validation', desc: 'Control search engine crawlers — correct syntax and common mistakes.', },
+      { href: '/guides/sitemap-guide/', title: 'XML Sitemaps: Structure, Limits & SEO Best Practices', desc: 'Required fields, size limits, sitemap indexes, and submission workflow.', },
     ]
   },
   {
     name: 'Network & Security',
     guides: [
       { href: '/guides/dns-records-guide/', title: 'DNS Records Explained', desc: 'A, AAAA, MX, CNAME, TXT, NS — every record type with examples.' },
+      { href: '/guides/dns-log-monitoring-guide/', title: 'DNS Log Monitoring for Security & Propagation', desc: 'Real-time DNS query logging for XXE, SSRF detection and DNS propagation tracking.' },
       { href: '/guides/ip-addresses-guide/', title: 'IP Addresses & Geolocation', desc: 'IPv4 vs IPv6, public vs private, and how IP geolocation works.' },
+      { href: '/guides/http-headers-guide/', title: 'HTTP Headers: Security, Caching & Performance', desc: 'CSP, HSTS, Cache-Control, ETag — headers that protect and accelerate your site.' },
+      { href: '/guides/whois-lookup-guide/', title: 'WHOIS Lookup: Domain Research & Ownership', desc: 'Domain registration dates, registrars, name servers, and post-GDPR privacy.' },
+      { href: '/guides/ping-tool-guide/', title: 'Ping & Network Latency: Diagnosing Connectivity', desc: 'RTT, jitter, packet loss — what ping metrics mean and how to use them.' },
+      { href: '/guides/port-checking-guide/', title: 'Port Checking & TCP Ports: Network Security Audit', desc: 'Which ports should be open, which should never face the internet.' },
       { href: '/guides/user-agent-guide/', title: 'User Agent Parsing', desc: 'Decode browser, OS, and device from any user agent string.' },
       { href: '/guides/ssl-certificates-guide/', title: 'SSL Certificates Explained', desc: 'Certificate chains, expiry, verification, and self-signed certs.' },
       { href: '/guides/password-hash-guide/', title: 'Password Security & Hash Algorithms', desc: 'MD5 vs SHA-256, bcrypt, Argon2, and password best practices.' },
+      { href: '/guides/query-string-parsing-guide/', title: 'Query String Parsing: Debugging URL Parameters', desc: 'Encoding edge cases, OAuth debugging, UTM parameters, and SEO considerations.' },
     ]
   },
   {
@@ -55,20 +64,26 @@ const sections = [
     guides: [
       { href: '/guides/sql-formatting-guide/', title: 'SQL Formatting Guide', desc: 'Write clean, readable queries with consistent formatting conventions.' },
       { href: '/guides/text-diffing-guide/', title: 'Text Diffing for Code Review', desc: 'Read diff output, compare configs, and debug with line-by-line comparison.' },
+      { href: '/guides/regex-reference-guide/', title: 'Regex Cheat Sheet & Reference', desc: 'Character classes, quantifiers, lookarounds — every construct with examples.' },
+      { href: '/guides/regex-generator-guide/', title: 'Regex Generator: Pre-built Validation Patterns', desc: 'Email, URL, phone, IP, date patterns — copy-ready for JS, Python, PHP.' },
+      { href: '/guides/cron-generator-guide/', title: 'Cron Expressions: Syntax, Fields & Scheduling', desc: 'Build cron schedules visually. Covers GitHub Actions, K8s, and crontab.' },
       { href: '/guides/css-color-gradient-guide/', title: 'CSS Colors & Gradients Guide', desc: 'HEX, RGB, HSL explained. Build palettes and gradients.' },
       { href: '/guides/qr-codes-guide/', title: 'QR Codes: How They Work', desc: 'Error correction, sizing, encoding, and practical uses beyond URLs.' },
     ]
   },
 ]
+
+const totalGuides = sections.reduce((sum, s) => sum + s.guides.length, 0)
+const metaDescription = totalGuides + ' in-depth developer guides covering JSON debugging, web encoding, text processing, networking, security, and more.'
 ---
 
-<BaseLayout title="Developer Guides | DevTools Hub" description="23 in-depth developer guides covering JSON debugging, web encoding, text processing, networking, security, and more.">
+<BaseLayout title="Developer Guides | DevTools Hub" description={metaDescription}>
   <Header />
   <main class="flex-1 py-16">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="mb-12">
         <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-4 dark:text-white">Developer Guides</h1>
-        <p class="text-lg text-gray-500 dark:text-gray-400">23 in-depth tutorials. Each one covers a specific topic — no filler, no fluff.</p>
+        <p class="text-lg text-gray-500 dark:text-gray-400">{totalGuides} in-depth tutorials. Each one covers a specific topic — no filler, no fluff.</p>
       </div>
       <div class="space-y-12">
         {sections.map(section => (
@@ -94,7 +109,7 @@ const sections = [
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
     name: 'Developer Guides',
-    description: '31 in-depth developer guides covering JSON debugging, web encoding, text processing, networking, security, and more.',
+    description: metaDescription,
     url: 'https://toolhub.51nav.com/guides/',
   })}></script>
   <script type="application/ld+json" set:html={JSON.stringify({

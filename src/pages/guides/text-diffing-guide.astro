@@ -49,7 +49,7 @@ const content = `
 </div>
 `
 ---
-<GuideLayout title="Text Diffing: Comparing Code for Review & Debugging | DevTools Hub" description="A comprehensive guide to diff comparison. Learn how diff algorithms work, how to read diff output, and real-world workflows for code review, config debugging, and test comparison." breadcrumb="Text Diffing">
+<GuideLayout title="Text Diffing: Comparing Code for Review & Debugging | DevTools Hub" description="A comprehensive guide to diff comparison. Learn how diff algorithms work, how to read diff output, and real-world workflows for code review, config debugging, and test comparison." breadcrumb="Text Diffing" relatedTools={[{"href":"/tools/diff-checker/","title":"Diff Checker","desc":"Compare text differences","type":"tool"}]}>
   <Fragment slot="title">Text Diffing: Code Review<br class="hidden sm:block" />& Debug Comparison</Fragment>
   <Fragment slot="intro">Diffs are the universal language of code review. From the Myers algorithm to reading hunk headers to real-world debugging workflows — everything you need to compare text like a pro.</Fragment>
   <Fragment set:html={content} />

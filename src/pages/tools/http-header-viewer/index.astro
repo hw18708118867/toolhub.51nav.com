@@ -1,0 +1,141 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'http-header-viewer')!
+
+const steps = [
+  { name: 'Enter a URL', text: 'Type a full URL (including https://) into the input field. The tool will make a request to fetch the response headers from that URL.' },
+  { name: 'View Response Headers', text: 'The response headers are displayed in a table — status code, content type, server information, caching directives, security headers, and more.' },
+  { name: 'Analyze the Results', text: 'Check for missing security headers (like Content-Security-Policy or X-Frame-Options), review caching behavior (Cache-Control, ETag), and verify the server technology (Server header).' },
+]
+
+const faq = [
+  { question: 'What are HTTP headers?', answer: 'HTTP headers are key-value pairs sent between the client and server with every HTTP request and response. Request headers tell the server about the client (browser type, accepted formats, authentication tokens). Response headers tell the client about the response (content type, cache rules, security policies, server info). Headers are invisible to users but critical for security, performance, and debugging.' },
+  { question: 'What security headers should I look for?', answer: 'Key security headers include: Content-Security-Policy (prevents XSS attacks), Strict-Transport-Security (enforces HTTPS), X-Frame-Options (prevents clickjacking), X-Content-Type-Options (prevents MIME sniffing), and Referrer-Policy (controls referrer information). Missing these headers makes your site more vulnerable to common web attacks.' },
+  { question: 'Why do I see a CORS error?', answer: 'When fetching headers from a different domain via JavaScript, the target server must include Access-Control-Allow-Origin headers to permit cross-origin requests. If these headers are missing, the browser blocks the response. Our tool attempts the request, but some servers block cross-origin header requests. For those cases, use curl -I in the terminal or a server-side tool.' },
+  { question: 'What can I learn from response headers?', answer: 'Response headers reveal: what web server and version is running (Server header), what caching strategy is in place (Cache-Control, ETag, Expires), what security measures are deployed, whether compression is enabled (Content-Encoding: gzip), how the server handles redirects (Location header), and what content type is being served (Content-Type). This information is invaluable for debugging and security audits.' },
+]
+
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free online HTTP header viewer. Inspect response headers from any URL — check security headers, caching policies, server info and more. Essential for debugging and security audits." {steps} {faq}
+>
+  <div class="flex gap-3 mb-6">
+    <input type="text" id="urlInput" class="flex-1 bg-white border border-gray-200 text-gray-900 rounded-lg px-4 py-3 text-sm dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100" placeholder="https://example.com">
+    <button id="fetchBtn" class="btn btn-primary">Fetch Headers</button>
+  </div>
+  <div id="headerOutput" class="code-panel">
+    <div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Response Headers</span></div>
+    <div class="p-4">
+      <p class="text-gray-400 text-sm">Enter a URL and click "Fetch Headers" to see the response.</p>
+    </div>
+  </div>
+
+  <section slot="examples" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Common Security Headers to Check</h2>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left">
+        <thead><tr class="border-b border-gray-200 dark:border-gray-800"><th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">Header</th><th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">Purpose</th></tr></thead>
+        <tbody class="text-gray-500 dark:text-gray-400 text-sm">
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4 font-mono">Content-Security-Policy</td><td class="py-3 px-4">Controls which resources (scripts, styles, images) the browser can load. Primary defense against XSS attacks.</td></tr>
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4 font-mono">Strict-Transport-Security</td><td class="py-3 px-4">Forces the browser to use HTTPS for all future requests to this domain. Prevents SSL stripping attacks.</td></tr>
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4 font-mono">X-Frame-Options</td><td class="py-3 px-4">Prevents the page from being embedded in an iframe on another site. Stops clickjacking attacks.</td></tr>
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4 font-mono">X-Content-Type-Options</td><td class="py-3 px-4">Blocks the browser from MIME-sniffing the content type. Prevents certain types of content injection.</td></tr>
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4 font-mono">Cache-Control</td><td class="py-3 px-4">Directs browsers and CDNs on how to cache the response. Critical for performance optimization.</td></tr>
+          <tr><td class="py-3 px-4 font-mono">Server</td><td class="py-3 px-4">Reveals the web server software and version. Consider hiding this in production for security.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Why Check HTTP Headers?</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">HTTP headers are the control channel of the web. Every page load, every API call, every image and script — all of it flows through headers. Understanding what headers your site sends (and what headers your dependencies send) is fundamental to web development and security.</p>
+      <h3 class="text-lg font-semibold text-gray-900 mt-6 mb-3 dark:text-white">What Headers Reveal</h3>
+      <ul class="list-disc list-inside space-y-2 text-gray-500 dark:text-gray-400">
+        <li><strong>Security posture:</strong> Missing CSP or HSTS headers are red flags in security audits</li>
+        <li><strong>Performance configuration:</strong> Cache-Control and ETag headers determine how efficiently resources load</li>
+        <li><strong>Server technology:</strong> The Server header often reveals the exact software and version</li>
+        <li><strong>Redirect chains:</strong> 301/302 responses with Location headers show how URLs resolve</li>
+        <li><strong>Content negotiation:</strong> Vary and Content-Type headers show how the server selects response formats</li>
+      </ul>
+    </div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="space-y-3">
+      <a href="/guides/http-headers-guide/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">HTTP Headers Guide</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">CSP, HSTS, Cache-Control — headers that protect and accelerate.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+      <a href="/guides/ssl-certificates-guide/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">SSL Certificates Explained</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Certificate chains, expiry, verification, and self-signed certs.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+      <a href="/guides/web-encoding-guide/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">Web Encoding Guide</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Base64, URL encoding, and HTML entities explained.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+    </div>
+  </section>
+
+  <script>
+    const urlInput = document.getElementById('urlInput') as HTMLInputElement;
+    const fetchBtn = document.getElementById('fetchBtn')!;
+    const headerOutput = document.getElementById('headerOutput')!;
+
+    const SECURITY_HEADERS = [
+      'content-security-policy', 'strict-transport-security', 'x-frame-options',
+      'x-content-type-options', 'referrer-policy', 'permissions-policy',
+      'cross-origin-opener-policy', 'cross-origin-embedder-policy'
+    ];
+
+    async function fetchHeaders() {
+      let url = urlInput.value.trim();
+      if (!url) return;
+      if (!url.startsWith('http')) url = 'https://' + url;
+
+      headerOutput.innerHTML = '<div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Response Headers</span></div><div class="p-4"><p class="text-gray-400 text-sm">Fetching...</p></div>';
+
+      try {
+        // Try a real GET fetch — works for same-origin URLs and CORS-enabled servers
+        const resp = await fetch(url, { method: 'GET', redirect: 'follow' });
+        const headers: [string, string][] = [];
+        resp.headers.forEach((value, key) => headers.push([key, value]));
+
+        if (headers.length === 0) {
+          showFallback(url);
+          return;
+        }
+
+        // Build the header table
+        let html = '<div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Response from <code class="text-blue-600 dark:text-blue-400">' + url + '</code></span></div><div class="p-4 overflow-x-auto"><table class="w-full text-left"><thead><tr class="border-b border-gray-200 dark:border-gray-800"><th class="py-2 px-3 text-sm font-semibold text-gray-900 dark:text-white">Header</th><th class="py-2 px-3 text-sm font-semibold text-gray-900 dark:text-white">Value</th></tr></thead><tbody class="text-gray-500 dark:text-gray-400 text-sm">';
+
+        headers.forEach(([key, value]) => {
+          const isSecurity = SECURITY_HEADERS.includes(key.toLowerCase());
+          const missingClass = isSecurity ? '' : '';
+          const rowClass = isSecurity ? 'bg-green-50 dark:bg-green-900/10' : '';
+          html += '<tr class="border-b border-gray-100 dark:border-gray-800 ' + rowClass + '"><td class="py-2 px-3 font-mono font-medium text-gray-700 dark:text-gray-300">' + key + '</td><td class="py-2 px-3 font-mono break-all">' + value + '</td></tr>';
+        });
+
+        html += '</tbody></table></div>';
+
+        // Add a summary of security headers
+        const foundSecurity = headers.filter(([k]) => SECURITY_HEADERS.includes(k.toLowerCase()));
+        const missingSecurity = SECURITY_HEADERS.filter(h => !headers.some(([k]) => k.toLowerCase() === h));
+
+        if (missingSecurity.length > 0) {
+          html += '<div class="p-4 border-t border-gray-200 dark:border-gray-800"><p class="text-amber-600 dark:text-amber-400 text-sm font-medium mb-2">Missing Security Headers (' + missingSecurity.length + '):</p><p class="text-gray-500 dark:text-gray-400 text-xs">' + missingSecurity.join(', ') + '</p></div>';
+        }
+
+        headerOutput.innerHTML = html;
+      } catch (e: any) {
+        // CORS blocked or network error
+        showFallback(url);
+      }
+    }
+
+    function showFallback(url: string) {
+      headerOutput.innerHTML = '<div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Response Headers</span></div><div class="p-4 space-y-3"><div class="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl dark:bg-amber-900/20 dark:border-amber-800"><svg class="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><div><p class="text-amber-700 dark:text-amber-400 text-sm font-medium mb-1">Browser CORS Policy Prevents Reading Headers</p><p class="text-amber-600 dark:text-amber-400 text-xs">The browser blocks JavaScript from reading response headers of cross-origin URLs unless the target server explicitly allows it via <code class="bg-amber-100 dark:bg-amber-800 px-1 rounded">Access-Control-Allow-Origin</code> headers. This is a security feature, not a bug.</p></div></div><div class="space-y-2"><p class="text-gray-500 dark:text-gray-400 text-sm font-medium">How to view headers for <code class="text-blue-600 dark:text-blue-400">' + url + '</code>:</p><div class="grid gap-2"><div class="flex items-start gap-2 text-sm"><span class="text-blue-500 font-mono flex-shrink-0">1.</span><span class="text-gray-500 dark:text-gray-400">Open <strong class="text-gray-700 dark:text-gray-300">DevTools</strong> (F12) → <strong class="text-gray-700 dark:text-gray-300">Network</strong> tab → visit the URL → click the request → <strong class="text-gray-700 dark:text-gray-300">Headers</strong></span></div><div class="flex items-start gap-2 text-sm"><span class="text-blue-500 font-mono flex-shrink-0">2.</span><span class="text-gray-500 dark:text-gray-400">Run <button onclick="navigator.clipboard.writeText(\'curl -I ' + url + '\')" class="text-blue-600 hover:underline font-mono cursor-copy">curl -I ' + url + '</button> in your terminal</span></div></div></div></div>';
+    }
+
+    fetchBtn.addEventListener('click', fetchHeaders);
+    urlInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') fetchHeaders(); });
+  </script>
+</ToolLayout>

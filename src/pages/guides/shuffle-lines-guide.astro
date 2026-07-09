@@ -25,7 +25,7 @@ const content = `
 </div>
 `
 ---
-<GuideLayout title="Shuffle Lines: Randomizing Lists for Testing, Surveys & A/B Tests | DevTools Hub" description="Guide to randomly shuffling text lines. Covers Fisher-Yates algorithm, applications in education, survey design, machine learning train/test splits, and A/B testing group assignment." breadcrumb="Shuffle Lines Guide">
+<GuideLayout title="Shuffle Lines: Randomizing Lists for Testing, Surveys & A/B Tests | DevTools Hub" description="Guide to randomly shuffling text lines. Covers Fisher-Yates algorithm, applications in education, survey design, machine learning train/test splits, and A/B testing group assignment." breadcrumb="Shuffle Lines Guide" relatedTools={[{"href":"/tools/shuffle-lines/","title":"Shuffle Lines","desc":"Randomly shuffle and reorder text lines","type":"tool"},{"href":"/tools/random-string/","title":"Random String Generator","desc":"Generate random alphanumeric strings","type":"tool"}]}>
   <Fragment slot="title">Shuffle Lines Guide:<br class="hidden sm:block" />Fair Randomization Made Simple</Fragment>
   <Fragment slot="intro">Randomizing line order eliminates bias in testing, surveys, and group assignments. Learn how Fisher-Yates shuffle works, when to use it, and why random order sometimes beats organized order.</Fragment>
   <Fragment set:html={content} />

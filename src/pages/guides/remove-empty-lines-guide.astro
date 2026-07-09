@@ -30,7 +30,7 @@ const content = `
 </div>
 `
 ---
-<GuideLayout title="Remove Empty Lines: Clean Text Data & Fix Formatting | DevTools Hub" description="Guide to removing blank and whitespace-only lines from text. Covers PDF extraction artifacts, email formatting, legacy system exports, and combining with deduplication for data cleaning pipelines." breadcrumb="Remove Empty Lines Guide">
+<GuideLayout title="Remove Empty Lines: Clean Text Data & Fix Formatting | DevTools Hub" description="Guide to removing blank and whitespace-only lines from text. Covers PDF extraction artifacts, email formatting, legacy system exports, and combining with deduplication for data cleaning pipelines." breadcrumb="Remove Empty Lines Guide" relatedTools={[{"href":"/tools/remove-empty-lines/","title":"Remove Empty Lines","desc":"Remove blank and whitespace-only lines","type":"tool"},{"href":"/tools/css-formatter/","title":"CSS Formatter","desc":"Format & beautify CSS","type":"tool"},{"href":"/tools/js-formatter/","title":"JavaScript Formatter","desc":"Format & beautify JavaScript","type":"tool"},{"href":"/tools/dedupe-lines/","title":"Dedupe Lines","desc":"Remove duplicate lines","type":"tool"}]}>
   <Fragment slot="title">Remove Empty Lines:<br class="hidden sm:block" />Clean Text, Fix Data Imports</Fragment>
   <Fragment slot="intro">Empty lines break database imports, bloat log files, and clutter copied text. Learn where they come from, when to remove them, and how to combine empty line removal with other text tools for effective data cleaning workflows.</Fragment>
   <Fragment set:html={content} />

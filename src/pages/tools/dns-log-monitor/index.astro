@@ -1,0 +1,65 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'dns-log-monitor')!
+
+const steps = [
+  { name: 'Get a Subdomain', text: 'dig.pm gives you a random subdomain like abc123.dig.pm. Any DNS query hitting this subdomain is logged in real-time — no setup required, just copy the subdomain.' },
+  { name: 'Trigger a DNS Query', text: 'Use the subdomain anywhere that causes a DNS lookup: ping it from terminal, curl it, paste it into a URL, use it as a callback address in a payload, or add random prefixes (xxx.abc123.dig.pm) — all of them get logged.' },
+  { name: 'Watch the Log', text: 'Every DNS query appears instantly in the log below with timestamp, source IP, query type, and the full domain that was looked up. The page auto-refreshes as new queries arrive.' },
+]
+
+const faq = [
+  { question: 'What is DNS logging used for?', answer: 'DNS log tools are commonly used for: detecting out-of-band (OOB) vulnerabilities like XXE, SSRF, and blind command injection, verifying that a DNS change has propagated globally, debugging DNS resolution issues, testing DNS-based service discovery, and security research where you need to confirm external interaction.' },
+  { question: 'How does dig.pm work?', answer: 'dig.pm runs an authoritative DNS server. When you get a subdomain, the DNS server is configured to respond authoritatively for anything under that subdomain. Any DNS query for your subdomain (or deeper levels like xxx.your-subdomain.dig.pm) reaches their server, which logs it and responds. It\'s the same principle as dnslog.cn, Burp Collaborator, and interactsh.' },
+  { question: 'Are my DNS queries public?', answer: 'The subdomain is randomly generated and accessible to anyone who knows it. Keep your subdomain token private if you\'re using it for security testing. If you need private DNS logs, consider running your own interactsh server or using a service with authentication.' },
+  { question: 'What DNS record types are logged?', answer: 'dig.pm logs all DNS query types — A, AAAA, MX, TXT, CNAME, NS, and others. The log shows each query\'s type, source IP address, timestamp, and the full queried domain. This is particularly useful for SSRF testing where you control the domain prefix but not the DNS query type.' },
+]
+
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free online DNS log monitor. Real-time DNS query logging — get a subdomain and see every DNS lookup instantly. Useful for SSRF detection, DNS propagation tracking, and security testing."
+  {steps} {faq}
+>
+  <div class="text-center py-16 space-y-6">
+    <div class="w-20 h-20 mx-auto bg-blue-50 rounded-2xl flex items-center justify-center dark:bg-blue-600/20">
+      <svg class="w-10 h-10 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M12 6v6l4 2"/>
+      </svg>
+    </div>
+    <div>
+      <h3 class="text-xl font-bold text-gray-900 mb-2 dark:text-white">dig.pm — Real-time DNS Query Log</h3>
+      <p class="text-gray-500 dark:text-gray-400 max-w-md mx-auto">dig.pm provides real-time DNS query logging. Get a subdomain, trigger DNS lookups, and watch them appear instantly.</p>
+    </div>
+    <a href="https://dig.pm" target="_blank" rel="noopener" class="inline-flex items-center gap-2 px-8 py-4 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/20 text-lg">
+      Open dig.pm
+      <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+    </a>
+    <p class="text-xs text-gray-400">Opens in a new tab. dig.pm blocks iframe embedding for security.</p>
+  </div>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">How to Use dig.pm for DNS Logging</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">dig.pm is a real-time DNS logging service. Every DNS query that reaches its server gets logged and displayed instantly. No account, no setup — just copy the subdomain and start triggering queries.</p>
+      <h3 class="text-lg font-semibold text-gray-900 mt-6 mb-3 dark:text-white">Typical Workflow</h3>
+      <ol class="list-decimal list-inside space-y-2 text-gray-500 dark:text-gray-400">
+        <li>dig.pm assigns you a random subdomain like <code class="text-blue-600 dark:text-blue-400">a1b2c3.dig.pm</code></li>
+        <li>Copy it and use it in your test — as a webhook URL, SSRF target, or just <code class="text-blue-600 dark:text-blue-400">ping a1b2c3.dig.pm</code></li>
+        <li>The DNS query hits dig.pm's authoritative server and appears in the log</li>
+        <li>Use random prefixes like <code class="text-blue-600 dark:text-blue-400">test123.a1b2c3.dig.pm</code> to create unique identifiers per test</li>
+      </ol>
+      <h3 class="text-lg font-semibold text-gray-900 mt-6 mb-3 dark:text-white">Common Use Cases</h3>
+      <ul class="list-disc list-inside space-y-2 text-gray-500 dark:text-gray-400">
+        <li><strong>SSRF Detection:</strong> Use the subdomain as a target URL in SSRF payloads — if the server resolves it, you see the DNS query in the log</li>
+        <li><strong>Blind XXE:</strong> Reference the subdomain in an XML external entity — DNS queries confirm the XXE was processed</li>
+        <li><strong>DNS Propagation:</strong> Make a DNS change, then query your subdomain from different locations to see when resolvers pick up the change</li>
+        <li><strong>Reverse DNS Tracking:</strong> Embed the subdomain in email images or links to track opens (note: many email clients pre-fetch DNS, so results may not be definitive)</li>
+      </ul>
+    </div>
+  </section>
+</ToolLayout>

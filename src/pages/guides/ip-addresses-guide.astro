@@ -41,7 +41,7 @@ const content = `
 </div>
 `
 ---
-<GuideLayout title="IP Addresses & Geolocation: What Developers Should Know | DevTools Hub" description="A complete guide to IP addresses. Covers IPv4 vs IPv6, public vs private, static vs dynamic, NAT, geolocation accuracy, and practical debugging scenarios for network issues." breadcrumb="IP Addresses">
+<GuideLayout title="IP Addresses & Geolocation: What Developers Should Know | DevTools Hub" description="A complete guide to IP addresses. Covers IPv4 vs IPv6, public vs private, static vs dynamic, NAT, geolocation accuracy, and practical debugging scenarios for network issues." breadcrumb="IP Addresses" relatedTools={[{"href":"/tools/my-ip/","title":"My IP Address","desc":"Show your public IP address","type":"tool"},{"href":"/tools/ip-lookup/","title":"IP Address Lookup","desc":"Lookup IP geolocation & ISP","type":"tool"}]}>
   <Fragment slot="title">IP Addresses & Geolocation:<br class="hidden sm:block" />What Developers Should Know</Fragment>
   <Fragment slot="intro">IP addresses are the foundation of internet networking. From NAT to geolocation accuracy to practical debugging — understand the addresses that make the internet route packets.</Fragment>
   <Fragment set:html={content} />

@@ -29,7 +29,7 @@ const content = `
 </div>
 `
 ---
-<GuideLayout title="Random String Generator: Test Data, Tokens & Placeholder Content | DevTools Hub" description="Guide to generating random alphanumeric strings. Compares random strings vs UUID vs Nano ID, explains entropy and character sets, and covers use cases for testing, database seeding, and development tokens." breadcrumb="Random String Guide">
+<GuideLayout title="Random String Generator: Test Data, Tokens & Placeholder Content | DevTools Hub" description="Guide to generating random alphanumeric strings. Compares random strings vs UUID vs Nano ID, explains entropy and character sets, and covers use cases for testing, database seeding, and development tokens." breadcrumb="Random String Guide" relatedTools={[{"href":"/tools/random-string/","title":"Random String Generator","desc":"Generate random alphanumeric strings","type":"tool"},{"href":"/tools/uuid-generator/","title":"UUID Generator","desc":"Generate UUID v4","type":"tool"},{"href":"/tools/nano-id/","title":"Nano ID Generator","desc":"Generate compact unique IDs","type":"tool"},{"href":"/tools/lorem-ipsum/","title":"Lorem Ipsum","desc":"Generate placeholder text","type":"tool"}]}>
   <Fragment slot="title">Random String Guide:<br class="hidden sm:block" />When & How to Generate Random Text</Fragment>
   <Fragment slot="intro">Random strings fill test databases, power development tokens, and stand in for real data during prototyping. Learn how character sets and length determine randomness quality, and when to use UUID or Nano ID instead.</Fragment>
   <Fragment set:html={content} />

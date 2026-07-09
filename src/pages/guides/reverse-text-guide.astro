@@ -30,7 +30,7 @@ const content = `
 </div>
 `
 ---
-<GuideLayout title="Reverse Text: Character, Line & Word Order Reversal | DevTools Hub" description="Guide to reversing text in three modes — all characters, each line independently, and word order. Covers practical uses for palindrome checking, text encoding debugging, writing proofreading, and Unicode considerations." breadcrumb="Reverse Text Guide">
+<GuideLayout title="Reverse Text: Character, Line & Word Order Reversal | DevTools Hub" description="Guide to reversing text in three modes — all characters, each line independently, and word order. Covers practical uses for palindrome checking, text encoding debugging, writing proofreading, and Unicode considerations." breadcrumb="Reverse Text Guide" relatedTools={[{"href":"/tools/reverse-text/","title":"Reverse Text","desc":"Reverse characters, words or line order","type":"tool"},{"href":"/tools/rot13/","title":"ROT13 Cipher","desc":"Encode/decode with ROT13 cipher","type":"tool"},{"href":"/tools/text-case/","title":"Text Case","desc":"UPPER/lower/CamelCase","type":"tool"},{"href":"/tools/word-counter/","title":"Word Counter","desc":"Count words, chars, lines","type":"tool"}]}>
   <Fragment slot="title">Reverse Text Guide:<br class="hidden sm:block" />Three Ways to Flip Your Text</Fragment>
   <Fragment slot="intro">Reversing text isn't just one operation — it's three. Learn the difference between character reversal, line reversal, and word order reversal, and when each mode solves a real problem.</Fragment>
   <Fragment set:html={content} />

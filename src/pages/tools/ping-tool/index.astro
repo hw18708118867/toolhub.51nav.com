@@ -1,0 +1,142 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'ping-tool')!
+
+const steps = [
+  { name: 'Enter Hostname or IP', text: 'Type a hostname (like google.com) or an IP address (like 8.8.8.8) into the input field. This is the target you want to test connectivity to.' },
+  { name: 'Run the Ping Test', text: 'Click "Ping" to send test packets to the target. The tool measures how long each packet takes to travel to the destination and back — the round-trip time in milliseconds.' },
+  { name: 'Read the Results', text: 'Results show minimum, average, and maximum response times. Consistent times indicate a stable connection. Spikes suggest network congestion. Timeouts mean packets were lost — a sign of network problems.' },
+]
+
+const faq = [
+  { question: 'How does ping work?', answer: 'Ping sends ICMP (Internet Control Message Protocol) Echo Request packets to the target host and waits for Echo Reply packets. It measures the round-trip time and reports any packet loss. Ping is the simplest and most universal network diagnostic tool — it answers one question: can this machine reach that machine, and how fast?' },
+  { question: 'What is a good ping time?', answer: 'Under 20ms: excellent (same city or nearby data center). 20-50ms: good (within the same country or region). 50-100ms: acceptable (cross-country). 100-200ms: slow (intercontinental). Over 200ms: poor (satellite links, congested networks, or very long distances). For real-time applications like online gaming or video calls, aim for under 50ms.' },
+  { question: 'What does packet loss mean?', answer: 'Packet loss happens when one or more ping packets don\'t receive a reply. 0% is normal. Occasional packet loss (1-2%) might be temporary network congestion. Persistent packet loss (5%+) indicates a real problem: faulty hardware, overloaded routers, or a bad connection. For streaming and VoIP, even 1% packet loss causes noticeable quality degradation.' },
+  { question: 'Can I ping any server?', answer: 'In a browser, you cannot send raw ICMP packets due to OS security restrictions. Our tool uses HTTP-based timing to approximate ping measurements. For true ICMP ping, use the command line: type "ping google.com" in Terminal (Mac/Linux) or Command Prompt (Windows). Browser-based ping tools estimate latency by timing HTTP requests, which is a good approximation for most purposes.' },
+]
+
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free online ping tool. Test network latency and connectivity to any server. Measure response times and detect packet loss. Useful for diagnosing network issues and server reachability." {steps} {faq}
+>
+  <div class="flex gap-3 mb-6">
+    <input type="text" id="targetInput" class="flex-1 bg-white border border-gray-200 text-gray-900 rounded-lg px-4 py-3 text-sm dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100" placeholder="google.com or 8.8.8.8">
+    <button id="pingBtn" class="btn btn-primary">Ping</button>
+    <button id="sampleBtn" class="btn btn-secondary">Sample</button>
+  </div>
+  <div class="code-panel mb-4">
+    <div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Ping Results</span></div>
+    <pre id="pingOutput" class="code-output">Enter a hostname or IP address and click "Ping" to test connectivity.</pre>
+  </div>
+  <div class="grid grid-cols-4 gap-4">
+    <div class="bg-gray-50 rounded-lg p-4 text-center dark:bg-gray-800">
+      <div class="text-2xl font-bold text-blue-600 dark:text-blue-400" id="minTime">-</div>
+      <div class="text-xs text-gray-400 mt-1">Min (ms)</div>
+    </div>
+    <div class="bg-gray-50 rounded-lg p-4 text-center dark:bg-gray-800">
+      <div class="text-2xl font-bold text-green-600 dark:text-green-400" id="avgTime">-</div>
+      <div class="text-xs text-gray-400 mt-1">Avg (ms)</div>
+    </div>
+    <div class="bg-gray-50 rounded-lg p-4 text-center dark:bg-gray-800">
+      <div class="text-2xl font-bold text-orange-600 dark:text-orange-400" id="maxTime">-</div>
+      <div class="text-xs text-gray-400 mt-1">Max (ms)</div>
+    </div>
+    <div class="bg-gray-50 rounded-lg p-4 text-center dark:bg-gray-800">
+      <div class="text-2xl font-bold text-purple-600 dark:text-purple-400" id="pktLoss">-</div>
+      <div class="text-xs text-gray-400 mt-1">Packet Loss</div>
+    </div>
+  </div>
+
+  <section slot="examples" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Ping Time Reference</h2>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left">
+        <thead><tr class="border-b border-gray-200 dark:border-gray-800"><th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">Response Time</th><th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">Rating</th><th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">Typical Scenario</th></tr></thead>
+        <tbody class="text-gray-500 dark:text-gray-400 text-sm">
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">&lt; 20ms</td><td class="py-3 px-4 text-green-500">Excellent</td><td class="py-3 px-4">Same city or nearby data center</td></tr>
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">20-50ms</td><td class="py-3 px-4 text-green-500">Good</td><td class="py-3 px-4">Same country or region</td></tr>
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">50-100ms</td><td class="py-3 px-4 text-yellow-500">Acceptable</td><td class="py-3 px-4">Cross-country within a continent</td></tr>
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">100-200ms</td><td class="py-3 px-4 text-orange-500">Slow</td><td class="py-3 px-4">Intercontinental (e.g., US to Asia)</td></tr>
+          <tr><td class="py-3 px-4">&gt; 200ms</td><td class="py-3 px-4 text-red-500">Poor</td><td class="py-3 px-4">Satellite or severely congested network</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">When to Use Ping</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">Ping is the first tool network engineers reach for when something goes wrong. Before diving into complex diagnostics, a simple ping tells you whether the problem is connectivity (can't reach the server at all) or performance (can reach it, but it's slow).</p>
+      <h3 class="text-lg font-semibold text-gray-900 mt-6 mb-3 dark:text-white">Common Scenarios</h3>
+      <ul class="list-disc list-inside space-y-2 text-gray-500 dark:text-gray-400">
+        <li><strong>Website down?</strong> Ping the server to check if it's reachable. No response = server offline or network issue. Response but website doesn't load = application-level problem.</li>
+        <li><strong>Slow application?</strong> Ping times over 100ms indicate network latency is contributing to slowness. Consistent high times point to distance or routing issues.</li>
+        <li><strong>Cloud migration:</strong> Ping both old and new servers to compare latency from different regions. Choose the region closest to your users.</li>
+        <li><strong>VPN troubleshooting:</strong> Ping your company VPN server to check connectivity before reporting an outage.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="space-y-3">
+      <a href="/guides/ping-tool-guide/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">Ping & Network Latency Guide</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">RTT, jitter, packet loss — what ping metrics mean and how to use them.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+      <a href="/guides/dns-records-guide/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">DNS Records Explained</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">A, AAAA, MX, CNAME, TXT, NS — every record type with examples.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+      <a href="/guides/ip-addresses-guide/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">IP Addresses & Geolocation</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">IPv4 vs IPv6, public vs private, and how IP geolocation works.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+    </div>
+  </section>
+
+  <script>
+    const targetInput = document.getElementById('targetInput') as HTMLInputElement;
+    const pingBtn = document.getElementById('pingBtn')!;
+    const sampleBtn = document.getElementById('sampleBtn')!;
+    const pingOutput = document.getElementById('pingOutput')!;
+    const minTime = document.getElementById('minTime')!;
+    const avgTime = document.getElementById('avgTime')!;
+    const maxTime = document.getElementById('maxTime')!;
+    const pktLoss = document.getElementById('pktLoss')!;
+
+    async function doPing() {
+      const target = targetInput.value.trim();
+      if (!target) return;
+      const url = target.startsWith('http') ? target : 'https://' + target.replace(/\/.*$/, '');
+      pingOutput.textContent = 'Pinging ' + target + '...';
+      minTime.textContent = '-'; avgTime.textContent = '-'; maxTime.textContent = '-'; pktLoss.textContent = '-';
+      const times: number[] = [];
+      const count = 4;
+      for (let i = 0; i < count; i++) {
+        const start = performance.now();
+        try {
+          await fetch(url, { mode: 'no-cors', cache: 'no-cache' });
+          times.push(performance.now() - start);
+        } catch { /* no-cors may throw but request still went through */ }
+      }
+      const successful = times.length;
+      if (successful === 0) {
+        pingOutput.textContent = 'All requests timed out. The target may be unreachable or blocking requests.';
+        pktLoss.textContent = '100%';
+        return;
+      }
+      const min = Math.min(...times);
+      const max = Math.max(...times);
+      const avg = times.reduce((a, b) => a + b, 0) / times.length;
+      minTime.textContent = Math.round(min).toString();
+      avgTime.textContent = Math.round(avg).toString();
+      maxTime.textContent = Math.round(max).toString();
+      pktLoss.textContent = Math.round((count - successful) / count * 100) + '%';
+      pingOutput.textContent = [
+        `Target: ${target}`,
+        `Packets sent: ${count}, Received: ${successful}, Lost: ${count - successful} (${Math.round((count - successful) / count * 100)}% loss)`,
+        `Round-trip times: min=${Math.round(min)}ms, avg=${Math.round(avg)}ms, max=${Math.round(max)}ms`
+      ].join('\n');
+    }
+
+    pingBtn.addEventListener('click', doPing);
+    targetInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') doPing(); });
+    sampleBtn.addEventListener('click', () => { targetInput.value = 'google.com'; doPing(); });
+  </script>
+</ToolLayout>

@@ -1,0 +1,124 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'whois-lookup')!
+
+const steps = [
+  { name: 'Enter a Domain Name', text: 'Type a domain name (like example.com) without the protocol or path. The tool accepts both registered domains and subdomains — it will extract the registered domain automatically.' },
+  { name: 'View WHOIS Results', text: 'The tool queries public WHOIS servers to retrieve domain registration data — registrar name, creation date, expiration date, name servers, and registrant information (if not privacy-protected).' },
+  { name: 'Check Key Details', text: 'Pay attention to the expiration date — expired domains can be registered by anyone. Check the name servers to understand hosting setup. Note that many domains now use WHOIS privacy protection, hiding registrant contact details.' },
+]
+
+const faq = [
+  { question: 'What is WHOIS?', answer: 'WHOIS is a public query protocol and database that stores information about who owns a domain name, when it was registered, when it expires, and which name servers it uses. ICANN requires accredited registrars to maintain WHOIS data for every registered domain. Think of it as the phone book for the domain name system.' },
+  { question: 'Why do some domains hide WHOIS information?', answer: 'Many registrars offer WHOIS privacy protection (also called Private Registration). This replaces the registrant\'s personal contact information with the registrar\'s proxy information. It\'s a privacy feature, not a sign of anything suspicious. GDPR regulations in Europe have also led many registrars to redact personal data from public WHOIS by default.' },
+  { question: 'What can I learn from a WHOIS lookup?', answer: 'WHOIS reveals: when a domain was first registered (creation date), when it expires (critical for domain investors and brand protection), which registrar manages it, which name servers it uses (useful for understanding hosting and DNS setup), and sometimes the registrant\'s organization name and country. The information available varies by TLD and privacy settings.' },
+  { question: 'Is WHOIS lookup legal?', answer: 'Yes, WHOIS is a public protocol. Querying WHOIS is legal and expected — it\'s the standard way to check domain availability, investigate potential trademark infringement, or verify domain ownership during acquisitions. Rate limits apply: excessive automated WHOIS queries from the same IP may be blocked by WHOIS servers.' },
+]
+
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free online WHOIS lookup tool. Check domain registration details — registrar, creation date, expiration date, and name servers. Essential for domain research and brand protection." {steps} {faq}
+>
+  <div class="flex gap-3 mb-6">
+    <input type="text" id="domainInput" class="flex-1 bg-white border border-gray-200 text-gray-900 rounded-lg px-4 py-3 text-sm dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100" placeholder="example.com">
+    <button id="lookupBtn" class="btn btn-primary">Lookup</button>
+    <button id="sampleBtn" class="btn btn-secondary">Sample</button>
+  </div>
+  <div class="code-panel">
+    <div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">WHOIS Results</span></div>
+    <pre id="whoisOutput" class="code-output text-sm">Enter a domain name and click "Lookup" to see WHOIS data.</pre>
+  </div>
+
+  <section slot="examples" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">What WHOIS Tells You</h2>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left">
+        <thead><tr class="border-b border-gray-200 dark:border-gray-800"><th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">Field</th><th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">What It Means</th></tr></thead>
+        <tbody class="text-gray-500 dark:text-gray-400 text-sm">
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">Domain Name</td><td class="py-3 px-4">The registered domain</td></tr>
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">Registrar</td><td class="py-3 px-4">The company where the domain was registered (e.g., GoDaddy, Namecheap)</td></tr>
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">Creation Date</td><td class="py-3 px-4">When the domain was first registered</td></tr>
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">Expiration Date</td><td class="py-3 px-4">When the domain registration expires if not renewed</td></tr>
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">Name Servers</td><td class="py-3 px-4">DNS servers authoritative for this domain</td></tr>
+          <tr><td class="py-3 px-4">Registrant</td><td class="py-3 px-4">The organization or person who registered the domain (often privacy-protected)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">When to Use WHOIS Lookup</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">WHOIS is one of the oldest internet protocols still in active use. Despite privacy changes, it remains an essential tool for domain research, security investigations, and business decisions.</p>
+      <h3 class="text-lg font-semibold text-gray-900 mt-6 mb-3 dark:text-white">Common Scenarios</h3>
+      <ul class="list-disc list-inside space-y-2 text-gray-500 dark:text-gray-400">
+        <li><strong>Domain investing:</strong> Check expiration dates to identify soon-to-expire domains that might become available</li>
+        <li><strong>Brand protection:</strong> Monitor for domains registered with your trademark by unknown parties</li>
+        <li><strong>Security research:</strong> Investigate suspicious domains — recent creation dates are a red flag for phishing sites</li>
+        <li><strong>Competitive research:</strong> Discover which registrar and hosting provider a competitor uses</li>
+        <li><strong>M&A due diligence:</strong> Verify domain ownership and expiration before acquiring a company</li>
+      </ul>
+    </div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="space-y-3">
+      <a href="/guides/whois-lookup-guide/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">WHOIS Lookup Guide</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Domain registration dates, registrars, name servers and post-GDPR privacy.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+      <a href="/guides/dns-records-guide/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">DNS Records Explained</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">A, AAAA, MX, CNAME, TXT, NS — every record type with examples.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+      <a href="/guides/ip-addresses-guide/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">IP Addresses & Geolocation</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">IPv4 vs IPv6, public vs private, and how IP geolocation works.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+    </div>
+  </section>
+
+  <script>
+    const domainInput = document.getElementById('domainInput') as HTMLInputElement;
+    const lookupBtn = document.getElementById('lookupBtn')!;
+    const sampleBtn = document.getElementById('sampleBtn')!;
+    const whoisOutput = document.getElementById('whoisOutput')!;
+
+    function cleanDomain(input: string): string {
+      return input.replace(/^https?:\/\//, '').replace(/\/.*$/, '').replace(/^www\./, '').trim();
+    }
+
+    async function doLookup() {
+      const raw = domainInput.value.trim();
+      if (!raw) return;
+      const domain = cleanDomain(raw);
+      whoisOutput.textContent = 'Looking up WHOIS data for ' + domain + '...';
+      try {
+        // Use a public WHOIS API
+        const resp = await fetch('https://rdap.org/domain/' + encodeURIComponent(domain));
+        if (!resp.ok) throw new Error('WHOIS lookup failed');
+        const data = await resp.json();
+        const lines: string[] = [];
+        lines.push('Domain: ' + (data.ldhName || domain));
+        if (data.registrantName || data.entities?.[0]?.vcardArray?.[1]?.[1]?.[3]) {
+          lines.push('Registrant: ' + (data.registrantName || data.entities[0].vcardArray[1][1][3]));
+        }
+        if (data.events) {
+          data.events.forEach((e: any) => {
+            lines.push(e.eventAction + ': ' + e.eventDate?.substring(0, 10));
+          });
+        }
+        if (data.nameservers) {
+          data.nameservers.forEach((ns: any) => lines.push('Name Server: ' + ns.ldhName));
+        }
+        lines.push('Status: ' + (data.status || []).join(', '));
+        whoisOutput.textContent = lines.join('\n');
+      } catch (e) {
+        whoisOutput.textContent = 'Note: This is a client-side demo. For full WHOIS data, use "whois ' + domain + '" from your terminal, or visit whois.domaintools.com/' + domain + '. Browser-based WHOIS lookups are limited by CORS policies on WHOIS APIs.';
+      }
+    }
+
+    lookupBtn.addEventListener('click', doLookup);
+    domainInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') doLookup(); });
+    sampleBtn.addEventListener('click', () => {
+      domainInput.value = 'example.com';
+      doLookup();
+    });
+  </script>
+</ToolLayout>

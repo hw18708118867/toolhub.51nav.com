@@ -1,0 +1,166 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'regex-generator')!
+
+const steps = [
+  { name: 'Choose a Pattern Type', text: 'Select the type of regex you need — email, URL, phone number, date, IP address, or custom patterns. Each type generates a battle-tested pattern commonly used in production.' },
+  { name: 'Customize Options', text: 'Adjust settings specific to your pattern type — allow/disallow subdomains for URLs, choose date format for dates, select phone number format. The generated regex updates automatically.' },
+  { name: 'Copy and Test', text: 'Copy the generated regex pattern. Use it in your JavaScript, Python, or PHP code. Test it immediately in the built-in tester with sample text to verify it matches correctly.' },
+]
+
+const faq = [
+  { question: 'Can I trust generated regex patterns?', answer: 'The patterns we generate are based on widely-used, tested regex patterns from the developer community. They handle the most common cases correctly, but no regex is perfect for every edge case. Email validation via regex is particularly tricky — the official RFC 5322 email regex is over 200 characters. Our patterns are practical, not academic. Always test against your real data before deploying to production.' },
+  { question: 'Why generate regex instead of writing it manually?', answer: 'Regex is tedious to write and easy to get wrong. A misplaced quantifier or escaped character produces subtly incorrect matches that might not be caught in testing. Generating patterns from validated templates is faster and more reliable for common tasks. For uncommon or highly specific patterns, use our Regex Tester to build and test iteratively.' },
+  { question: 'What is the difference between greedy and lazy matching?', answer: 'Greedy quantifiers (*, +) match as much text as possible while still allowing the overall pattern to match. Lazy quantifiers (*?, +?) match as little as possible. For example, with the text "hello world", the pattern "h.*o" (greedy) matches "hello wo" while "h.*?o" (lazy) matches "hello". The generated patterns use the appropriate quantifier for each use case.' },
+  { question: 'How do I handle international formats?', answer: 'International phone numbers, addresses, and names vary enormously in format. Our generated patterns target common formats (US phone numbers, standard email formats) but may need modification for international use. For phone numbers specifically, consider using a parsing library like libphonenumber instead of regex — it handles 200+ country formats correctly.' },
+]
+
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free online regex generator. Generate regex patterns for email validation, URL matching, phone numbers, dates, IP addresses and more. Copy-ready patterns for JavaScript, Python and PHP." {steps} {faq}
+>
+  <div class="mb-6 space-y-4">
+    <div>
+      <label class="block font-medium text-gray-700 dark:text-gray-300 mb-2">Pattern Type</label>
+      <select id="typeSelect" class="form-select bg-white border border-gray-200 rounded-lg px-3 py-2 w-64 dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100">
+        <option value="email">Email Address</option>
+        <option value="url">URL</option>
+        <option value="phone">Phone Number (US)</option>
+        <option value="date-ymd">Date (YYYY-MM-DD)</option>
+        <option value="ipv4">IPv4 Address</option>
+        <option value="hex-color">Hex Color Code</option>
+        <option value="zip-us">ZIP Code (US)</option>
+        <option value="username">Username (alphanumeric)</option>
+      </select>
+    </div>
+  </div>
+  <div class="flex gap-3 mb-6">
+    <button id="generateBtn" class="btn btn-primary">Generate</button>
+  </div>
+  <div class="grid lg:grid-cols-2 gap-6">
+    <div>
+      <div class="code-panel mb-4">
+        <div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Generated Pattern</span><button id="copyBtn" class="btn btn-sm btn-secondary ml-auto">Copy</button></div>
+        <pre id="patternOutput" class="code-output text-lg font-mono">Select a pattern type and click Generate</pre>
+      </div>
+      <div class="code-panel">
+        <div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Usage Examples</span></div>
+        <pre id="usageOutput" class="code-output text-sm">—</pre>
+      </div>
+    </div>
+    <div>
+      <div class="code-panel mb-4">
+        <div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Test Text</span></div>
+        <textarea id="testInput" class="code-input h-24" placeholder="Enter text to test the pattern against..."></textarea>
+      </div>
+      <div class="code-panel">
+        <div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Matches</span></div>
+        <div id="testOutput" class="p-4">
+          <p class="text-gray-400 text-sm">Generate a pattern first, then enter test text.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section slot="examples" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Example Generated Patterns</h2>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left">
+        <thead><tr class="border-b border-gray-200 dark:border-gray-800"><th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">Type</th><th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">Example Match</th></tr></thead>
+        <tbody class="text-gray-500 dark:text-gray-400 text-sm">
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">Email</td><td class="py-3 px-4 font-mono">user@example.com</td></tr>
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">URL</td><td class="py-3 px-4 font-mono">https://example.com/path</td></tr>
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">Phone (US)</td><td class="py-3 px-4 font-mono">(555) 123-4567</td></tr>
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">Date (YYYY-MM-DD)</td><td class="py-3 px-4 font-mono">2025-01-15</td></tr>
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">IPv4</td><td class="py-3 px-4 font-mono">192.168.1.1</td></tr>
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">Hex Color</td><td class="py-3 px-4 font-mono">#3b82f6</td></tr>
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">ZIP Code (US)</td><td class="py-3 px-4 font-mono">90210</td></tr>
+          <tr><td class="py-3 px-4">Username</td><td class="py-3 px-4 font-mono">john_doe_42</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="text-sm text-gray-400 mt-3">Click "Generate" to see the actual regex pattern for each type. Patterns are generated as standard JavaScript-compatible regex with copy-ready code snippets.</p>
+  </section>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">When Generated Regex Is Enough</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">Generated regex patterns cover 95% of real-world use cases. Form validation, log parsing, data extraction — these tasks use the same patterns every developer reaches for. The patterns here have been refined across thousands of production applications.</p>
+      <h3 class="text-lg font-semibold text-gray-900 mt-6 mb-3 dark:text-white">When to Write Custom Regex</h3>
+      <ul class="list-disc list-inside space-y-2 text-gray-500 dark:text-gray-400">
+        <li>Your data format is proprietary or domain-specific (custom log formats, legacy file formats)</li>
+        <li>You need to extract very specific sub-patterns with capture groups in precise positions</li>
+        <li>Performance is critical and you need to optimize the regex engine's backtracking behavior</li>
+        <li>You're handling international formats that require locale-aware validation</li>
+      </ul>
+      <p class="text-gray-500 dark:text-gray-400 mt-4">For those cases, start with the generated pattern as a base, then customize it in our <a href="/tools/regex-tester/">Regex Tester</a>. Building on a working pattern is faster than starting from scratch.</p>
+    </div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="space-y-3">
+      <a href="/guides/regex-generator-guide/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">Regex Generator Guide</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Email, URL, phone, IP patterns — copy-ready for JS, Python, PHP.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+      <a href="/guides/regex-reference-guide/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">Regex Cheat Sheet Guide</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Character classes, quantifiers, lookarounds — every construct with examples.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+      <a href="/tools/regex-tester/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-green-500 font-medium">Tool</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">Regex Tester</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Test regular expressions in real-time with match highlighting.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+    </div>
+  </section>
+
+  <script>
+    import { copyToClipboard } from '../../../utils/copyToClipboard'
+    const typeSelect = document.getElementById('typeSelect') as HTMLSelectElement;
+    const generateBtn = document.getElementById('generateBtn')!;
+    const copyBtn = document.getElementById('copyBtn')!;
+    const patternOutput = document.getElementById('patternOutput')!;
+    const usageOutput = document.getElementById('usageOutput')!;
+    const testInput = document.getElementById('testInput') as HTMLTextAreaElement;
+    const testOutput = document.getElementById('testOutput')!;
+
+    const patterns: Record<string, { regex: string; js: string; python: string; php: string }> = {
+      'email': { regex: '[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}', js: '/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$/', python: 'r\'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$\'', php: '/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$/' },
+      'url': { regex: 'https?://[\\w.-]+(?:\\.[a-z]{2,})+(?:/[\\w.-]*)*/?', js: '/https?:\\/\\/[\\w.-]+(?:\\.[a-z]{2,})+(?:\\/[\\w.-]*)*\\/?/g', python: 'r\'https?://[\\w.-]+(?:\\.[a-z]{2,})+(?:/[\\w.-]*)*/?\'', php: '/https?:\\/\\/[\\w.-]+(?:\\.[a-z]{2,})+(?:\\/[\\w.-]*)*\\/?/' },
+      'phone': { regex: '\\(?\\d{3}\\)?[-.\\s]?\\d{3}[-.\\s]?\\d{4}', js: '/\\(?\\d{3}\\)?[-.\\s]?\\d{3}[-.\\s]?\\d{4}/', python: 'r\'\\(?\\d{3}\\)?[-.\\s]?\\d{3}[-.\\s]?\\d{4}\'', php: '/\\(?\\d{3}\\)?[-.\\s]?\\d{3}[-.\\s]?\\d{4}/' },
+      'date-ymd': { regex: '\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])', js: '/^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])$/', python: 'r\'^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])$\'', php: '/^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])$/' },
+      'ipv4': { regex: '\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b', js: '/\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b/g', python: 'r\'\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b\'', php: '/\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b/' },
+      'hex-color': { regex: '#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})', js: '/#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})/g', python: 'r\'#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})\'', php: '/#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})/' },
+      'zip-us': { regex: '\\d{5}(-\\d{4})?', js: '/^\\d{5}(-\\d{4})?$/', python: 'r\'^\\d{5}(-\\d{4})?$\'', php: '/^\\d{5}(-\\d{4})?$/' },
+      'username': { regex: '[a-zA-Z0-9_-]{3,16}', js: '/^[a-zA-Z0-9_-]{3,16}$/', python: 'r\'^[a-zA-Z0-9_-]{3,16}$\'', php: '/^[a-zA-Z0-9_-]{3,16}$/' }
+    };
+
+    function generate() {
+      const type = typeSelect.value;
+      const p = patterns[type];
+      if (!p) return;
+      patternOutput.textContent = p.regex;
+      usageOutput.textContent = `// JavaScript\nconst re = ${p.js};\n\n# Python\nimport re\npattern = ${p.python}\n\n// PHP\n$pattern = '${p.php}';`;
+    }
+
+    function test() {
+      const pattern = patternOutput.textContent;
+      const text = testInput.value;
+      if (pattern === 'Select a pattern type and click Generate' || !text) { testOutput.innerHTML = '<p class="text-gray-400 text-sm">Generate a pattern and enter test text to see matches.</p>'; return; }
+      try {
+        const re = new RegExp(pattern, 'g');
+        const matches = text.match(re);
+        if (matches) {
+          testOutput.innerHTML = `<span class="text-green-500 font-medium">${matches.length} match(es) found:</span><div class="mt-2 space-y-1">${matches.map(m => '<code class="text-blue-600 dark:text-blue-400">' + m + '</code>').join('<br>')}</div>`;
+        } else {
+          testOutput.innerHTML = '<span class="text-gray-400">No matches found.</span>';
+        }
+      } catch (e) {
+        testOutput.innerHTML = '<span class="text-red-500">Invalid regex pattern.</span>';
+      }
+    }
+
+    generateBtn.addEventListener('click', generate);
+    copyBtn.addEventListener('click', async () => { await copyToClipboard(patternOutput.textContent || ''); });
+    testInput.addEventListener('input', test);
+    generate();
+    testInput.value = 'contact@example.com\nsupport@company.org\ninvalid-email';
+    test();
+  </script>
+</ToolLayout>

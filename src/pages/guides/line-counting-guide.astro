@@ -31,7 +31,7 @@ const content = `
 </div>
 `
 ---
-<GuideLayout title="Line Counting Guide: Code, Data & Document Metrics | DevTools Hub" description="Complete guide to counting text lines — total lines, non-empty lines, empty lines. Covers use cases for code review, data validation, translation estimation, and academic formatting." breadcrumb="Line Counting Guide">
+<GuideLayout title="Line Counting Guide: Code, Data & Document Metrics | DevTools Hub" description="Complete guide to counting text lines — total lines, non-empty lines, empty lines. Covers use cases for code review, data validation, translation estimation, and academic formatting." breadcrumb="Line Counting Guide" relatedTools={[{"href":"/tools/line-counter/","title":"Line Counter","desc":"Count total, empty and non-empty lines","type":"tool"}]}>
   <Fragment slot="title">Line Counting Guide:<br class="hidden sm:block" />Metrics Beyond Word Count</Fragment>
   <Fragment slot="intro">Line counts reveal structure that word counts miss. From CSV validation to code complexity estimation, learn when total lines matter, when non-empty lines tell the real story, and how to use line counts in data pipelines and code reviews.</Fragment>
   <Fragment set:html={content} />

@@ -39,6 +39,7 @@ export const tools: Tool[] = [
   { id: 'timestamp', name: 'Timestamp Converter', description: 'Unix timestamp converter', icon: 'time', category: 'data' },
   { id: 'hash-generator', name: 'Hash Generator', description: 'MD5, SHA-1, SHA-256', icon: 'hash', category: 'data' },
   { id: 'number-base', name: 'Number Base', description: 'Dec/Hex/Bin/Oct converter', icon: 'number', category: 'data' },
+  { id: 'timezone-converter', name: 'Timezone Converter', description: 'Convert time between different timezones', icon: 'time', category: 'data' },
   { id: 'json-yaml', name: 'JSON ↔ YAML', description: 'Convert JSON/YAML', icon: 'yaml', category: 'data' },
   { id: 'csv-to-json', name: 'CSV to JSON', description: 'Convert CSV data to JSON', icon: 'qr', category: 'data' },
   { id: 'json-compare', name: 'JSON Compare', description: 'Compare and diff two JSON objects', icon: 'diff', category: 'data' },
@@ -60,6 +61,9 @@ export const tools: Tool[] = [
   { id: 'url-parser', name: 'URL Parser', description: 'Parse URL components', icon: 'url', category: 'dev' },
   { id: 'http-status', name: 'HTTP Status Codes', description: 'HTTP status code reference', icon: 'diff', category: 'dev' },
   { id: 'cron-parser', name: 'Cron Expression Parser', description: 'Parse cron schedule expressions', icon: 'time', category: 'dev' },
+  { id: 'cron-generator', name: 'Cron Expression Generator', description: 'Build cron schedule expressions visually', icon: 'time', category: 'dev' },
+  { id: 'regex-cheat-sheet', name: 'Regex Cheat Sheet', description: 'Quick reference for regex syntax and patterns', icon: 'regex', category: 'dev' },
+  { id: 'regex-generator', name: 'Regex Generator', description: 'Generate regex patterns from plain text descriptions', icon: 'regex', category: 'dev' },
 
   // ===== TEXT =====
   { id: 'string-escaper', name: 'String Escaper', description: 'Escape/unescape strings', icon: 'escape', category: 'text' },
@@ -78,7 +82,13 @@ export const tools: Tool[] = [
   { id: 'ip-lookup', name: 'IP Address Lookup', description: 'Lookup IP geolocation & ISP', icon: 'dedupe', category: 'network' },
   { id: 'my-ip', name: 'My IP Address', description: 'Show your public IP address', icon: 'number', category: 'network' },
   { id: 'dns-lookup', name: 'DNS Lookup', description: 'Query DNS records', icon: 'yaml', category: 'network' },
+  { id: 'dns-log-monitor', name: 'DNS Log Monitor', description: 'Real-time DNS query logging via dig.pm', icon: 'time', category: 'network' },
   { id: 'user-agent', name: 'User Agent Parser', description: 'Parse browser user agent', icon: 'escape', category: 'network' },
+  { id: 'query-string-parser', name: 'Query String Parser', description: 'Parse and decode URL query parameters', icon: 'url', category: 'network' },
+  { id: 'http-header-viewer', name: 'HTTP Header Viewer', description: 'View and analyze HTTP request/response headers', icon: 'yaml', category: 'network' },
+  { id: 'whois-lookup', name: 'WHOIS Lookup', description: 'Lookup domain registration and ownership info', icon: 'whois', category: 'network' },
+  { id: 'ping-tool', name: 'Ping Tool', description: 'Test network latency and packet loss', icon: 'ping', category: 'network' },
+  { id: 'port-checker', name: 'Port Checker', description: 'Check if TCP ports are open or closed', icon: 'port', category: 'network' },
 
   // ===== IMAGE =====
   { id: 'image-to-base64', name: 'Image to Base64', description: 'Convert image to Base64 data URI', icon: 'base64', category: 'image' },
@@ -95,6 +105,10 @@ export const tools: Tool[] = [
 
   // ===== CALCULATORS =====
   { id: 'px-to-rem', name: 'PX to REM Converter', description: 'Convert PX to REM/EM units', icon: 'number', category: 'calculators' },
+
+  // ===== SEO =====
+  { id: 'robots-txt-validator', name: 'Robots.txt Validator', description: 'Validate and test robots.txt rules for URLs', icon: 'seo', category: 'seo' },
+  { id: 'sitemap-validator', name: 'Sitemap Validator', description: 'Validate XML sitemap structure and format', icon: 'seo', category: 'seo' },
 ]
 
 export const popularTools = [

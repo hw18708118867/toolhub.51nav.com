@@ -1,0 +1,188 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'regex-cheat-sheet')!
+
+const steps = [
+  { name: 'Find What You Need', text: 'Browse the cheat sheet by category — character classes, quantifiers, anchors, groups, lookarounds, and flags. Each entry shows the pattern syntax and what it matches.' },
+  { name: 'Copy a Pattern', text: 'Click any regex pattern to copy it to your clipboard. Paste it directly into your code editor, IDE search, or our Regex Tester to experiment.' },
+  { name: 'Test Your Regex', text: 'Use the built-in quick tester at the top to try patterns against sample text. See matches highlighted instantly as you type.' },
+]
+
+const faq = [
+  { question: 'What is regex?', answer: 'Regex (regular expression) is a sequence of characters that defines a search pattern. It\'s used to find, match, extract, and replace text based on patterns rather than exact strings. Regex is supported in virtually every programming language — JavaScript, Python, Java, PHP, Ruby, Go — as well as text editors, IDEs, and command-line tools like grep and sed.' },
+  { question: 'Why do I need a cheat sheet?', answer: 'Regex syntax is powerful but not intuitive. Lookaheads (?=), lookbehinds (?<=), non-capturing groups (?:), and backreferences (\\1) are easy to forget if you don\'t use them daily. A cheat sheet gives you the correct syntax instantly, saving time searching Stack Overflow for "regex match everything until character" for the hundredth time.' },
+  { question: 'What regex flavor does this cheat sheet cover?', answer: 'This cheat sheet covers JavaScript/ECMAScript regex syntax, which is the most widely supported flavor in web development. Most patterns work identically in Python (re module), Java (java.util.regex), and PHP (PCRE), but there are some differences — Python uses \\A and \\Z for string boundaries instead of ^ and $ in multiline mode; PCRE supports recursive patterns that JavaScript doesn\'t. Check your language\'s regex documentation for specifics.' },
+  { question: 'How do I test if my regex works?', answer: 'Use our Regex Tester tool — paste your pattern and test text, and matches are highlighted in real time. The tester shows full matches, capture groups, and match positions. This is faster than running code, getting unexpected results, and debugging. Always test regex against both positive cases (text that should match) and negative cases (text that should not match).' },
+]
+
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free regex cheat sheet — quick reference for regex syntax, patterns, and flags. Character classes, quantifiers, anchors, groups, lookarounds, and more. Built-in quick tester to try patterns instantly." {steps} {faq}
+>
+  <!-- Quick Tester -->
+  <div class="mb-6 space-y-3">
+    <input type="text" id="reInput" class="w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-4 py-3 text-sm font-mono dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100" placeholder="Regex pattern, e.g. \d{3}-\d{4}">
+    <input type="text" id="reText" class="w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-4 py-3 text-sm dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100" placeholder="Test text...">
+    <div id="reMatches" class="text-sm text-gray-500 dark:text-gray-400"></div>
+  </div>
+
+  <!-- Cheat Sheet Sections -->
+  <div class="space-y-6">
+    <!-- Character Classes -->
+    <div class="code-panel">
+      <div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Character Classes</span></div>
+      <div class="p-4 overflow-x-auto">
+        <table class="w-full text-left"><thead><tr class="border-b border-gray-200 dark:border-gray-800"><th class="py-2 px-3 text-sm font-semibold text-gray-900 dark:text-white">Pattern</th><th class="py-2 px-3 text-sm font-semibold text-gray-900 dark:text-white">Matches</th></tr></thead><tbody class="text-gray-500 dark:text-gray-400 font-mono text-sm" id="charClassesTable"></tbody></table>
+      </div>
+    </div>
+
+    <!-- Quantifiers -->
+    <div class="code-panel">
+      <div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Quantifiers</span></div>
+      <div class="p-4 overflow-x-auto">
+        <table class="w-full text-left"><thead><tr class="border-b border-gray-200 dark:border-gray-800"><th class="py-2 px-3 text-sm font-semibold text-gray-900 dark:text-white">Pattern</th><th class="py-2 px-3 text-sm font-semibold text-gray-900 dark:text-white">Matches</th></tr></thead><tbody class="text-gray-500 dark:text-gray-400 font-mono text-sm" id="quantifiersTable"></tbody></table>
+      </div>
+    </div>
+
+    <!-- Anchors -->
+    <div class="code-panel">
+      <div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Anchors & Boundaries</span></div>
+      <div class="p-4 overflow-x-auto">
+        <table class="w-full text-left"><thead><tr class="border-b border-gray-200 dark:border-gray-800"><th class="py-2 px-3 text-sm font-semibold text-gray-900 dark:text-white">Pattern</th><th class="py-2 px-3 text-sm font-semibold text-gray-900 dark:text-white">Matches</th></tr></thead><tbody class="text-gray-500 dark:text-gray-400 font-mono text-sm" id="anchorsTable"></tbody></table>
+      </div>
+    </div>
+
+    <!-- Groups -->
+    <div class="code-panel">
+      <div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Groups & Lookarounds</span></div>
+      <div class="p-4 overflow-x-auto">
+        <table class="w-full text-left"><thead><tr class="border-b border-gray-200 dark:border-gray-800"><th class="py-2 px-3 text-sm font-semibold text-gray-900 dark:text-white">Pattern</th><th class="py-2 px-3 text-sm font-semibold text-gray-900 dark:text-white">Matches</th></tr></thead><tbody class="text-gray-500 dark:text-gray-400 font-mono text-sm" id="groupsTable"></tbody></table>
+      </div>
+    </div>
+
+    <!-- Flags -->
+    <div class="code-panel">
+      <div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Flags</span></div>
+      <div class="p-4 overflow-x-auto">
+        <table class="w-full text-left"><thead><tr class="border-b border-gray-200 dark:border-gray-800"><th class="py-2 px-3 text-sm font-semibold text-gray-900 dark:text-white">Flag</th><th class="py-2 px-3 text-sm font-semibold text-gray-900 dark:text-white">Meaning</th></tr></thead><tbody class="text-gray-500 dark:text-gray-400 font-mono text-sm" id="flagsTable"></tbody></table>
+      </div>
+    </div>
+
+    <!-- Common Patterns -->
+    <div class="code-panel">
+      <div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Common Patterns</span></div>
+      <div class="p-4 overflow-x-auto">
+        <table class="w-full text-left"><thead><tr class="border-b border-gray-200 dark:border-gray-800"><th class="py-2 px-3 text-sm font-semibold text-gray-900 dark:text-white">Task</th><th class="py-2 px-3 text-sm font-semibold text-gray-900 dark:text-white">Pattern</th></tr></thead><tbody class="text-gray-500 dark:text-gray-400 text-sm" id="commonPatternsTable"></tbody></table>
+      </div>
+    </div>
+  </div>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">How to Use This Cheat Sheet</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">Regex doesn't need to be memorized. Even developers who write regex daily keep a reference handy. Click any pattern to copy it, then paste into your code or our <a href="/tools/regex-tester/">Regex Tester</a> to experiment.</p>
+      <h3 class="text-lg font-semibold text-gray-900 mt-6 mb-3 dark:text-white">Building Patterns Step by Step</h3>
+      <ul class="list-disc list-inside space-y-2 text-gray-500 dark:text-gray-400">
+        <li><strong>Start with anchors:</strong> Use ^ and $ to define where your match should start and end</li>
+        <li><strong>Define character classes:</strong> Use \\d for digits, \\w for words, or [custom] for specific sets</li>
+        <li><strong>Add quantifiers:</strong> Use + for one or more, * for zero or more, {'{n,m}'} for exact ranges</li>
+        <li><strong>Capture what you need:</strong> Wrap important parts in () to extract them from the match</li>
+        <li><strong>Test against edge cases:</strong> Empty strings, special characters, and boundary conditions</li>
+      </ul>
+    </div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="space-y-3">
+      <a href="/guides/regex-reference-guide/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">Regex Cheat Sheet Guide</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Character classes, quantifiers, lookarounds — every construct with examples.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+      <a href="/guides/regex-generator-guide/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">Regex Generator Guide</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Email, URL, phone, IP patterns — copy-ready for JS, Python, PHP.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+      <a href="/tools/regex-tester/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-green-500 font-medium">Tool</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">Regex Tester</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Test regular expressions in real-time with match highlighting.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+    </div>
+  </section>
+
+  <script>
+    const reInput = document.getElementById('reInput') as HTMLInputElement;
+    const reText = document.getElementById('reText') as HTMLInputElement;
+    const reMatches = document.getElementById('reMatches')!;
+
+    function testRegex() {
+      const pattern = reInput.value;
+      const text = reText.value;
+      if (!pattern || !text) { reMatches.textContent = ''; return; }
+      try {
+        const re = new RegExp(pattern, 'g');
+        const matches = text.match(re);
+        if (matches) {
+          reMatches.innerHTML = `<span class="text-green-500">${matches.length} match(es):</span> ${matches.map(m => '<code class="bg-blue-50 dark:bg-blue-900/20 px-1 rounded">' + m + '</code>').join(', ')}`;
+        } else {
+          reMatches.textContent = 'No matches';
+        }
+      } catch (e) {
+        reMatches.textContent = 'Invalid regex pattern';
+      }
+    }
+
+    reInput.addEventListener('input', testRegex);
+    reText.addEventListener('input', testRegex);
+
+    function renderTable(id, data) {
+      const table = document.getElementById(id)!;
+      table.innerHTML = data.map(([p, d]) => {
+        const escaped = p.replace(/'/g, "\\'");
+        return '<tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-2 px-3 text-blue-600 dark:text-blue-400 cursor-copy" onclick="navigator.clipboard.writeText(\'' + escaped + '\')">' + p + '</td><td class="py-2 px-3">' + d + '</td></tr>';
+      }).join('');
+    }
+
+    renderTable('charClassesTable', [
+      ['.','Any character except newline'],['\\d','Digit (0-9)'],['\\D','Non-digit'],
+      ['\\w','Word character (a-z, A-Z, 0-9, _)'],['\\W','Non-word character'],
+      ['\\s','Whitespace (space, tab, newline)'],['\\S','Non-whitespace'],
+      ['[abc]','Any character in set (a, b, or c)'],['[^abc]','Any character NOT in set'],
+      ['[a-z]','Range from a to z'],['[0-9]','Digit range']
+    ]);
+
+    renderTable('quantifiersTable', [
+      ['*','0 or more (greedy)'],['+','1 or more (greedy)'],['?','0 or 1 (optional)'],
+      ['{n}','Exactly n times'],['{n,}','n or more times'],['{n,m}','Between n and m times'],
+      ['*?','0 or more (lazy)'],['+?','1 or more (lazy)']
+    ]);
+
+    renderTable('anchorsTable', [
+      ['^','Start of string/line'],['$','End of string/line'],
+      ['\\b','Word boundary'],['\\B','Non-word boundary'],
+      ['\\A','Start of string (not line) — Python/PCRE'],
+      ['\\Z','End of string (not line) — Python/PCRE']
+    ]);
+
+    renderTable('groupsTable', [
+      ['(abc)','Capturing group'],['(?:abc)','Non-capturing group'],
+      ['(?&lt;name&gt;abc)','Named capturing group'],['\\1','Backreference to group 1'],
+      ['a|b','Alternation (a OR b)'],['(?=abc)','Positive lookahead'],
+      ['(?!abc)','Negative lookahead'],['(?&lt;=abc)','Positive lookbehind'],
+      ['(?&lt;!abc)','Negative lookbehind']
+    ]);
+
+    renderTable('flagsTable', [
+      ['g','Global — find all matches'],['i','Case-insensitive'],
+      ['m','Multiline — ^ and $ match line start/end'],['s','Dotall — . matches newline'],
+      ['u','Unicode — full Unicode support'],['y','Sticky — match from lastIndex only']
+    ]);
+
+    renderTable('commonPatternsTable', [
+      ['Email','[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}'],
+      ['URL','https?:\\/\\/[\\w.\\-]+(?:\\.[a-z]{2,})+(?:\\/[\\w.\\-]*)*\\/?'],
+      ['Phone (US)','\\(?\\d{3}\\)?[\\-.\\s]?\\d{3}[\\-.\\s]?\\d{4}'],
+      ['IPv4','\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b'],
+      ['Date (YYYY-MM-DD)','\\d{4}-\\d{2}-\\d{2}'],
+      ['Hex Color','#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})'],
+      ['HTML Tag','<(\\w+)[^>]*>.*?<\\/\\1>'],
+      ['Trim Spaces','^\\s+|\\s+$'],
+      ['Non-ASCII','[^\\x00-\\x7F]+']
+    ]);
+  </script>
+</ToolLayout>

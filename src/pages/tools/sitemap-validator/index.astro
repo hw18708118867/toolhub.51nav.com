@@ -1,0 +1,191 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'sitemap-validator')!
+
+const steps = [
+  { name: 'Enter Sitemap Content or URL', text: 'Paste XML sitemap content directly, or enter a sitemap URL to fetch it. The tool accepts standard XML sitemaps and sitemap index files.' },
+  { name: 'Validate the Structure', text: 'Click "Validate" to check the sitemap against the XML Sitemap protocol specification. The validator checks XML syntax, required elements (loc), optional elements (lastmod, changefreq, priority), and URL count.' },
+  { name: 'Fix Issues', text: 'Review any errors or warnings. Common issues include invalid XML syntax, missing loc elements, URLs exceeding the 50,000 URL limit, or invalid date formats in lastmod fields.' },
+]
+
+const faq = [
+  { question: 'What is an XML sitemap?', answer: 'An XML sitemap is a file that lists all the important pages on your website, helping search engines discover and index your content. It includes URLs along with optional metadata like when each page was last updated, how often it changes, and its relative priority. Sitemaps are especially important for large sites, new sites with few backlinks, and sites with rich media content.' },
+  { question: 'What are the sitemap limits?', answer: 'A single sitemap file can contain up to 50,000 URLs and must be no larger than 50MB uncompressed. If your site has more pages, use a sitemap index file (which lists multiple sitemap files). Each sitemap must be UTF-8 encoded. URLs must be absolute (including the https:// protocol) and properly escaped.' },
+  { question: 'What does this validator check?', answer: 'Our validator checks: valid XML syntax (no unclosed tags or illegal characters), that every URL entry has a loc element, that URLs are absolute (start with http:// or https://), that priority values are between 0.0 and 1.0, that changefreq values use valid options (always, hourly, daily, weekly, monthly, yearly, never), and that the total URL count is within limits.' },
+  { question: 'How often should I update my sitemap?', answer: 'Update your sitemap whenever you add or remove important pages. For dynamic sites (e-commerce, news, job boards), consider auto-generating your sitemap daily. Most CMS platforms (WordPress, Shopify) auto-generate sitemaps. After major site changes, submit your updated sitemap to Google Search Console to trigger a recrawl.' },
+]
+
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free online sitemap validator. Check XML sitemap syntax, structure, and compliance with the Sitemap Protocol. Catch errors before submitting to Google Search Console." {steps} {faq}
+>
+  <div class="mb-6">
+    <label class="block font-medium text-gray-700 dark:text-gray-300 mb-2">Sitemap XML Content</label>
+    <textarea id="sitemapInput" class="code-input h-48" placeholder="Paste sitemap XML here..."></textarea>
+  </div>
+  <div class="flex flex-wrap gap-3 mb-6">
+    <button id="validateBtn" class="btn btn-primary">Validate</button>
+    <button id="sampleBtn" class="btn btn-secondary">Load Sample</button>
+    <button id="clearBtn" class="btn btn-secondary">Clear</button>
+  </div>
+  <div class="code-panel">
+    <div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Validation Results</span></div>
+    <div id="resultOutput" class="p-4">
+      <p class="text-gray-400 text-sm">Paste sitemap XML and click "Validate" to check for errors.</p>
+    </div>
+  </div>
+
+  <section slot="examples" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Valid Sitemap Example</h2>
+    <pre class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-700 overflow-x-auto dark:bg-gray-900 dark:border-gray-800 dark:text-gray-300"><code>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"&gt;
+  &lt;url&gt;
+    &lt;loc&gt;https://example.com/&lt;/loc&gt;
+    &lt;lastmod&gt;2025-01-15&lt;/lastmod&gt;
+    &lt;changefreq&gt;daily&lt;/changefreq&gt;
+    &lt;priority&gt;1.0&lt;/priority&gt;
+  &lt;/url&gt;
+  &lt;url&gt;
+    &lt;loc&gt;https://example.com/about&lt;/loc&gt;
+    &lt;lastmod&gt;2025-01-10&lt;/lastmod&gt;
+    &lt;changefreq&gt;monthly&lt;/changefreq&gt;
+    &lt;priority&gt;0.8&lt;/priority&gt;
+  &lt;/url&gt;
+&lt;/urlset&gt;</code></pre>
+  </section>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Sitemap SEO Best Practices</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">A sitemap doesn't guarantee indexing, but a bad sitemap can prevent it. Search engines use sitemaps as hints, not directives — they may choose not to index pages even if they're in your sitemap. Focus on including only canonical, indexable URLs that return HTTP 200.</p>
+      <h3 class="text-lg font-semibold text-gray-900 mt-6 mb-3 dark:text-white">What to Include (and Exclude)</h3>
+      <ul class="list-disc list-inside space-y-2 text-gray-500 dark:text-gray-400">
+        <li><strong>Include:</strong> Your most important pages, new content, pages with few internal links, image and video pages</li>
+        <li><strong>Exclude:</strong> Redirected URLs, non-canonical URLs, paginated pages, search result pages, admin pages, duplicate content</li>
+        <li><strong>Priority:</strong> Use relative values (0.0-1.0) to indicate page importance within YOUR site, not compared to other sites</li>
+        <li><strong>Changefreq:</strong> Be honest — Google uses this as a hint, not a crawl schedule</li>
+        <li><strong>Keep it updated:</strong> An outdated sitemap with 404 errors undermines trust with search engines</li>
+      </ul>
+    </div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="space-y-3">
+      <a href="/guides/sitemap-guide/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">XML Sitemaps Guide</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Required fields, size limits, sitemap indexes and submission workflow.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+      <a href="/guides/robots-txt-guide/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">Robots.txt Guide</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Control search engine crawlers — correct syntax and common mistakes.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+      <a href="/guides/word-count-seo-guide/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">Word Counts & SEO</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Content length benchmarks for titles, meta descriptions, and blog posts.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+    </div>
+  </section>
+
+  <script>
+    const sitemapInput = document.getElementById('sitemapInput') as HTMLTextAreaElement;
+    const validateBtn = document.getElementById('validateBtn')!;
+    const sampleBtn = document.getElementById('sampleBtn')!;
+    const clearBtn = document.getElementById('clearBtn')!;
+    const resultOutput = document.getElementById('resultOutput')!;
+
+    function validate() {
+      const xml = sitemapInput.value.trim();
+      if (!xml) return;
+      const errors: string[] = [];
+      const warnings: string[] = [];
+      const info: string[] = [];
+
+      // Parse XML
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(xml, 'text/xml');
+      const parseError = doc.querySelector('parsererror');
+      if (parseError) {
+        errors.push('Invalid XML syntax: ' + parseError.textContent);
+        renderResults(errors, warnings, info);
+        return;
+      }
+
+      // Check for urlset or sitemapindex
+      const urlset = doc.querySelector('urlset');
+      const sitemapindex = doc.querySelector('sitemapindex');
+      if (!urlset && !sitemapindex) {
+        errors.push('Missing root element: expected <urlset> or <sitemapindex>');
+        renderResults(errors, warnings, info);
+        return;
+      }
+
+      // Count URLs
+      const urls = doc.querySelectorAll('url');
+      const sitemaps = doc.querySelectorAll('sitemap');
+      info.push(urls.length > 0
+        ? 'Found ' + urls.length + ' URL(s) in sitemap'
+        : 'Found ' + sitemaps.length + ' sitemap(s) in sitemap index');
+
+      if (urls.length > 50000) {
+        errors.push('URL count (' + urls.length + ') exceeds the 50,000 limit per sitemap file');
+      }
+
+      let missingLoc = 0, badPriority = 0, badFreq = 0;
+      const validFreqs = ['always', 'hourly', 'daily', 'weekly', 'monthly', 'yearly', 'never'];
+
+      urls.forEach((url: Element) => {
+        const loc = url.querySelector('loc');
+        if (!loc || !loc.textContent?.trim()) {
+          missingLoc++;
+        } else {
+          const locText = loc.textContent.trim();
+          if (!locText.startsWith('http://') && !locText.startsWith('https://')) {
+            warnings.push('URL should be absolute (start with https://): ' + locText.substring(0, 80));
+          }
+        }
+
+        const priority = url.querySelector('priority');
+        if (priority && priority.textContent) {
+          const p = parseFloat(priority.textContent);
+          if (isNaN(p) || p < 0 || p > 1) badPriority++;
+        }
+
+        const freq = url.querySelector('changefreq');
+        if (freq && freq.textContent && !validFreqs.includes(freq.textContent.trim().toLowerCase())) {
+          badFreq++;
+        }
+      });
+
+      if (missingLoc > 0) errors.push(missingLoc + ' URL(s) missing the required <loc> element');
+      if (badPriority > 0) warnings.push(badPriority + ' URL(s) have invalid priority (must be 0.0-1.0)');
+      if (badFreq > 0) warnings.push(badFreq + ' URL(s) have invalid changefreq value');
+
+      if (errors.length === 0) {
+        info.push('XML syntax is valid');
+        info.push('Sitemap structure looks good');
+      }
+
+      renderResults(errors, warnings, info);
+    }
+
+    function renderResults(errors: string[], warnings: string[], info: string[]) {
+      let html = '';
+      if (errors.length > 0) {
+        html += '<div class="mb-3"><span class="text-red-500 font-semibold">Errors (' + errors.length + ')</span>';
+        errors.forEach(e => html += '<div class="text-red-500 text-sm mt-1">• ' + e + '</div>');
+        html += '</div>';
+      }
+      if (warnings.length > 0) {
+        html += '<div class="mb-3"><span class="text-yellow-500 font-semibold">Warnings (' + warnings.length + ')</span>';
+        warnings.forEach(w => html += '<div class="text-yellow-500 text-sm mt-1">• ' + w + '</div>');
+        html += '</div>';
+      }
+      html += '<div><span class="text-green-500 font-semibold">Info</span>';
+      info.forEach(i => html += '<div class="text-green-500 text-sm mt-1">• ' + i + '</div>');
+      html += '</div>';
+      resultOutput.innerHTML = html;
+    }
+
+    validateBtn.addEventListener('click', validate);
+    clearBtn.addEventListener('click', () => { sitemapInput.value = ''; resultOutput.innerHTML = '<p class="text-gray-400 text-sm">Paste sitemap XML and click "Validate" to check for errors.</p>'; });
+    sampleBtn.addEventListener('click', () => {
+      sitemapInput.value = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <url>\n    <loc>https://example.com/</loc>\n    <lastmod>2025-01-15</lastmod>\n    <changefreq>daily</changefreq>\n    <priority>1.0</priority>\n  </url>\n  <url>\n    <loc>https://example.com/about</loc>\n    <lastmod>2025-01-10</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.8</priority>\n  </url>\n</urlset>';
+    });
+  </script>
+</ToolLayout>

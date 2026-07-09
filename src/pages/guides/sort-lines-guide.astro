@@ -31,7 +31,7 @@ const content = `
 </div>
 `
 ---
-<GuideLayout title="Sort Lines: Alphabetical, Numeric & Length Ordering | DevTools Hub" description="Complete guide to sorting text lines. Covers alphabetical vs numeric sort, case sensitivity, sort-by-length for data cleaning, and sorting as a step in merge/compare and deduplication workflows." breadcrumb="Sort Lines Guide">
+<GuideLayout title="Sort Lines: Alphabetical, Numeric & Length Ordering | DevTools Hub" description="Complete guide to sorting text lines. Covers alphabetical vs numeric sort, case sensitivity, sort-by-length for data cleaning, and sorting as a step in merge/compare and deduplication workflows." breadcrumb="Sort Lines Guide" relatedTools={[{"href":"/tools/sort-lines/","title":"Sort Lines","desc":"Sort text lines alphabetically A-Z or Z-A","type":"tool"},{"href":"/tools/text-case/","title":"Text Case","desc":"UPPER/lower/CamelCase","type":"tool"},{"href":"/tools/diff-checker/","title":"Diff Checker","desc":"Compare text differences","type":"tool"}]}>
   <Fragment slot="title">Sort Lines Guide:<br class="hidden sm:block" />Order From Chaos</Fragment>
   <Fragment slot="intro">Sorting lines is the fastest way to make lists scannable, data comparable, and imports verifiable. Learn when alphabetical sort works, when numeric sort is essential, and how sort-by-length surfaces hidden patterns in your data.</Fragment>
   <Fragment set:html={content} />

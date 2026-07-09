@@ -1,0 +1,114 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'query-string-parser')!
+
+const steps = [
+  { name: 'Enter a URL or Query String', text: 'Paste a full URL with query parameters, or just the query string portion (starting with ? or &). The tool accepts both formats.' },
+  { name: 'View Parsed Parameters', text: 'Each query parameter is extracted and displayed as a key-value pair. URL-encoded values like %20 are automatically decoded to their original form.' },
+  { name: 'Use the Data', text: 'The parsed output shows all parameters clearly. Useful for debugging API calls, inspecting tracking parameters, or understanding how a URL passes data to the server.' },
+]
+
+const faq = [
+  { question: 'What is a query string?', answer: 'A query string is the part of a URL after the question mark (?). It contains key=value pairs separated by ampersands (&). For example, in "https://example.com/search?q=hello&page=2", the query string is "q=hello&page=2" with parameters q=hello and page=2. Query strings pass data from the browser to the server — search terms, page numbers, filters, tracking IDs, and more.' },
+  { question: 'What does URL encoding mean?', answer: 'Special characters in URLs must be encoded to avoid ambiguity. Spaces become %20 (or +), ampersands become %26, equals signs become %3D. Our parser automatically decodes these for you. For example, "q=hello%20world" becomes q=hello world. If you need to manually encode or decode, use our URL Encode/Decode tool.' },
+  { question: 'Why would I need to parse query strings?', answer: 'Common use cases include: debugging API requests by inspecting all parameters, understanding UTM tracking parameters in marketing URLs, extracting search terms from referral URLs, checking pagination parameters in scraped URLs, and verifying that OAuth redirect URLs contain the expected parameters like code and state.' },
+  { question: 'Does this handle duplicate parameter names?', answer: 'Yes. Some URLs contain the same parameter multiple times — like ?filter=red&filter=blue for selecting multiple filter values. Our parser groups duplicate keys, showing all values for each parameter name. This matches how web frameworks like Express.js and Django handle repeated query parameters.' },
+]
+
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free online query string parser. Extract and decode URL query parameters instantly. View key-value pairs with automatic URL decoding. Useful for debugging APIs and tracking parameters." {steps} {faq}
+>
+  <div class="code-panel mb-6">
+    <div class="code-panel-header">
+      <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Enter URL or Query String</span>
+      <button id="sampleBtn" class="btn btn-sm btn-secondary ml-auto">Load Sample</button>
+    </div>
+    <input type="text" id="qsInput" class="w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-4 py-3 text-sm dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100" placeholder="Paste a URL with query string...">
+  </div>
+  <div class="code-panel">
+    <div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Parsed Parameters</span></div>
+    <div id="qsOutput" class="p-4">
+      <p class="text-gray-400 text-sm">Enter a URL above to see parsed query parameters.</p>
+    </div>
+  </div>
+
+  <section slot="examples" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Example</h2>
+    <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 font-mono text-sm text-gray-700 break-all dark:bg-gray-900 dark:border-gray-800 dark:text-gray-300">
+      <code>https://example.com/search?q=hello+world&page=2&sort=price&utm_source=google&utm_medium=cpc</code>
+    </div>
+    <div class="mt-4">
+      <table class="w-full text-left">
+        <thead><tr class="border-b border-gray-200 dark:border-gray-800"><th class="py-2 px-4 text-sm font-semibold text-gray-900 dark:text-white">Key</th><th class="py-2 px-4 text-sm font-semibold text-gray-900 dark:text-white">Value</th></tr></thead>
+        <tbody class="text-gray-500 dark:text-gray-400 font-mono text-sm">
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-2 px-4">q</td><td class="py-2 px-4">hello world</td></tr>
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-2 px-4">page</td><td class="py-2 px-4">2</td></tr>
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-2 px-4">sort</td><td class="py-2 px-4">price</td></tr>
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-2 px-4">utm_source</td><td class="py-2 px-4">google</td></tr>
+          <tr><td class="py-2 px-4">utm_medium</td><td class="py-2 px-4">cpc</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Common Uses for Query String Parsing</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">Query strings carry the data that makes the web interactive — search terms, filters, pagination, tracking codes, and authentication tokens. Being able to parse them quickly helps you debug, analyze, and build better web applications.</p>
+      <h3 class="text-lg font-semibold text-gray-900 mt-6 mb-3 dark:text-white">Practical Scenarios</h3>
+      <ul class="list-disc list-inside space-y-2 text-gray-500 dark:text-gray-400">
+        <li><strong>Marketing analytics:</strong> Decode UTM parameters (utm_source, utm_medium, utm_campaign) from referral URLs to understand traffic sources</li>
+        <li><strong>API debugging:</strong> Inspect all query parameters in API request URLs to verify they match the expected contract</li>
+        <li><strong>OAuth troubleshooting:</strong> Check redirect URLs for required parameters like code, state, and scope</li>
+        <li><strong>SEO audit:</strong> Extract search queries from Google referral URLs (look for the "q" parameter)</li>
+      </ul>
+    </div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="space-y-3">
+      <a href="/guides/query-string-parsing-guide/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">Query String Parsing Guide</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Encoding edge cases, OAuth debugging and UTM parameter troubleshooting.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+      <a href="/guides/url-structure-guide/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">URL Structure Demystified</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Protocol, host, path, query — every component explained.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+      <a href="/tools/url-encode/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-green-500 font-medium">Tool</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">URL Encode/Decode</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">URL encode and decode text for safe parameter passing.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+    </div>
+  </section>
+
+  <script>
+    const qsInput = document.getElementById('qsInput') as HTMLInputElement;
+    const qsOutput = document.getElementById('qsOutput')!;
+    const sampleBtn = document.getElementById('sampleBtn')!;
+
+    function parse() {
+      const value = qsInput.value.trim();
+      if (!value) { qsOutput.innerHTML = '<p class="text-gray-400 text-sm">Enter a URL above to see parsed query parameters.</p>'; return; }
+      let queryPart = value;
+      if (value.includes('?')) queryPart = value.split('?').slice(1).join('?');
+      if (queryPart.startsWith('#')) { qsOutput.innerHTML = '<p class="text-gray-400 text-sm">No query string found in this URL.</p>'; return; }
+      const params = new URLSearchParams(queryPart);
+      const entries: [string, string][] = [];
+      params.forEach((v, k) => entries.push([k, v]));
+      if (entries.length === 0) { qsOutput.innerHTML = '<p class="text-gray-400 text-sm">No query parameters found.</p>'; return; }
+      qsOutput.innerHTML = `
+        <div class="overflow-x-auto">
+          <table class="w-full text-left">
+            <thead><tr class="border-b border-gray-200 dark:border-gray-800"><th class="py-2 px-4 text-sm font-semibold text-gray-900 dark:text-white">Key</th><th class="py-2 px-4 text-sm font-semibold text-gray-900 dark:text-white">Value</th></tr></thead>
+            <tbody class="text-gray-500 dark:text-gray-400 font-mono text-sm">
+              ${entries.map(([k, v]) => `<tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-2 px-4">${k}</td><td class="py-2 px-4 break-all">${v || '<span class="text-gray-400 italic">(empty)</span>'}</td></tr>`).join('')}
+            </tbody>
+          </table>
+        </div>`;
+    }
+
+    qsInput.addEventListener('input', parse);
+    sampleBtn.addEventListener('click', () => {
+      qsInput.value = 'https://example.com/search?q=hello+world&page=2&sort=price&utm_source=google&utm_medium=cpc';
+      parse();
+    });
+  </script>
+</ToolLayout>

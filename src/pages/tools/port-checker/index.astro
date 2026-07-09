@@ -1,0 +1,107 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'port-checker')!
+
+const steps = [
+  { name: 'Enter Host and Ports', text: 'Type a hostname or IP address, then enter one or more port numbers to check (separated by commas). Common ports like 80 (HTTP), 443 (HTTPS), and 22 (SSH) are pre-filled for convenience.' },
+  { name: 'Run the Check', text: 'Click "Check Ports" to test each port. The tool attempts to establish a TCP connection to each port and reports whether it succeeded (open) or failed (closed/filtered).' },
+  { name: 'Interpret Results', text: 'Open ports mean a service is listening and accepting connections. Closed ports mean no service is listening. Filtered ports mean a firewall is blocking the connection attempt — you can\'t tell if a service is behind it.' },
+]
+
+const faq = [
+  { question: 'What is a TCP port?', answer: 'A port is a number (0-65535) that identifies a specific service or application on a server. Think of the IP address as the building address and the port number as the apartment number. Port 80 is standard for HTTP, 443 for HTTPS, 22 for SSH, 21 for FTP, 25 for SMTP, and 3306 for MySQL. Well-known ports (0-1023) are assigned by IANA to standard services.' },
+  { question: 'What does "open" vs "closed" vs "filtered" mean?', answer: 'Open: a service is actively listening on this port and accepted the connection. Closed: no service is listening — the server actively rejected the connection with a RST packet. Filtered: no response was received — a firewall is likely dropping packets to this port. Filtered is the most secure state for ports you don\'t want publicly accessible.' },
+  { question: 'Can I check any port on any server?', answer: 'Browser-based port checking is limited. Browsers can only attempt connections to certain ports via HTTP/HTTPS. For comprehensive port scanning, use command-line tools like nmap or netcat. Our tool checks the most common HTTP/HTTPS ports via fetch requests and reports results. For full TCP port scans, use "nmap -p 1-1000 target.com" from your terminal.' },
+  { question: 'Why would I need to check ports?', answer: 'Common reasons: verify your web server is actually listening on port 443 after deploying SSL, check if SSH port 22 is accessible before connecting remotely, confirm database port 3306 is NOT publicly accessible (a security check), troubleshoot "connection refused" errors by verifying the port is open, and audit your own server\'s exposed ports as part of a security review.' },
+]
+
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free online port checker. Test if TCP ports are open on any server. Check common services — HTTP (80), HTTPS (443), SSH (22), FTP (21) and more. Useful for network diagnostics and security audits." {steps} {faq}
+>
+  <div class="flex flex-wrap gap-3 mb-6">
+    <input type="text" id="hostInput" class="flex-1 min-w-[200px] bg-white border border-gray-200 text-gray-900 rounded-lg px-4 py-3 text-sm dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100" placeholder="example.com">
+    <input type="text" id="portsInput" class="w-48 bg-white border border-gray-200 text-gray-900 rounded-lg px-4 py-3 text-sm dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100" placeholder="80, 443, 22" value="80, 443, 22, 8080, 8443">
+    <button id="checkBtn" class="btn btn-primary">Check Ports</button>
+  </div>
+  <div class="code-panel">
+    <div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Check Results</span></div>
+    <div id="portOutput" class="p-4">
+      <p class="text-gray-400 text-sm">Enter a hostname and ports to check above.</p>
+    </div>
+  </div>
+
+  <section slot="examples" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Common Port Numbers</h2>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left">
+        <thead><tr class="border-b border-gray-200 dark:border-gray-800"><th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">Port</th><th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">Service</th><th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">Should It Be Open?</th></tr></thead>
+        <tbody class="text-gray-500 dark:text-gray-400 text-sm">
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4 font-mono">80</td><td class="py-3 px-4">HTTP</td><td class="py-3 px-4 text-green-500">Yes for public web servers</td></tr>
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4 font-mono">443</td><td class="py-3 px-4">HTTPS</td><td class="py-3 px-4 text-green-500">Yes for secure web servers</td></tr>
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4 font-mono">22</td><td class="py-3 px-4">SSH</td><td class="py-3 px-4 text-yellow-500">Only for administrators</td></tr>
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4 font-mono">21</td><td class="py-3 px-4">FTP</td><td class="py-3 px-4 text-red-500">Use SFTP (port 22) instead</td></tr>
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4 font-mono">3306</td><td class="py-3 px-4">MySQL</td><td class="py-3 px-4 text-red-500">Never expose to public internet</td></tr>
+          <tr><td class="py-3 px-4 font-mono">5432</td><td class="py-3 px-4">PostgreSQL</td><td class="py-3 px-4 text-red-500">Never expose to public internet</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Port Checking for Security</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">Every open port is a potential entry point for attackers. A regular port audit — checking which services your servers expose to the internet — is one of the most effective security practices you can adopt. Close everything you don't need. Move administrative services (SSH, database ports, management consoles) to private networks or VPN access only.</p>
+      <h3 class="text-lg font-semibold text-gray-900 mt-6 mb-3 dark:text-white">Security Best Practices</h3>
+      <ul class="list-disc list-inside space-y-2 text-gray-500 dark:text-gray-400">
+        <li>Run periodic port scans on your own infrastructure — know what's exposed before attackers do</li>
+        <li>Close any port that doesn't need to be publicly accessible</li>
+        <li>Use a firewall to restrict access to administrative ports by IP address</li>
+        <li>Move databases to private subnets — never expose MySQL/PostgreSQL ports to the internet</li>
+        <li>After deploying a new service, verify it's only listening on the intended ports</li>
+      </ul>
+    </div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="space-y-3">
+      <a href="/guides/port-checking-guide/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">Port Checking Guide</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Which ports should be open, which should never face the internet.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+      <a href="/guides/ssl-certificates-guide/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">SSL Certificates Explained</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Certificate chains, expiry, verification, and self-signed certs.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+      <a href="/tools/dns-lookup/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-green-500 font-medium">Tool</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">DNS Lookup</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Query DNS records — A, AAAA, MX, CNAME, TXT, NS.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+    </div>
+  </section>
+
+  <script>
+    const hostInput = document.getElementById('hostInput') as HTMLInputElement;
+    const portsInput = document.getElementById('portsInput') as HTMLInputElement;
+    const checkBtn = document.getElementById('checkBtn')!;
+    const portOutput = document.getElementById('portOutput')!;
+
+    async function checkPorts() {
+      const host = hostInput.value.trim().replace(/https?:\/\//, '').replace(/\/.*$/, '');
+      const ports = portsInput.value.split(',').map(p => parseInt(p.trim(), 10)).filter(p => !isNaN(p));
+      if (!host || ports.length === 0) return;
+      portOutput.innerHTML = '<p class="text-gray-400 text-sm">Checking ports on ' + host + '...</p>';
+      const results: string[] = [];
+      for (const port of ports) {
+        const url = (port === 443 || port === 8443 ? 'https' : 'http') + '://' + host + ':' + port + '/';
+        const start = performance.now();
+        try {
+          await fetch(url, { mode: 'no-cors' });
+          const time = Math.round(performance.now() - start);
+          results.push(`Port ${port}: <span class="text-green-500 font-medium">Open</span> (${time}ms)`);
+        } catch {
+          results.push(`Port ${port}: <span class="text-red-500">Closed/Filtered</span> — could not connect`);
+        }
+      }
+      portOutput.innerHTML = results.map(r => `<div class="py-1 font-mono text-sm">${r}</div>`).join('');
+    }
+
+    checkBtn.addEventListener('click', checkPorts);
+  </script>
+</ToolLayout>

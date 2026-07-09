@@ -1,0 +1,162 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'robots-txt-validator')!
+
+const steps = [
+  { name: 'Enter Robots.txt Content or URL', text: 'Paste your robots.txt content directly, or enter a website URL to fetch its existing robots.txt file. The tool works with both.' },
+  { name: 'Test Against URLs', text: 'Enter specific URLs to test against the robots.txt rules. The tool checks whether each URL is allowed or disallowed for a given user agent (default: Googlebot).' },
+  { name: 'Review Results', text: 'Each URL gets a clear Allow or Disallow result with the matching rule shown. Fix any URLs that are incorrectly blocked or allowed before deploying to production.' },
+]
+
+const faq = [
+  { question: 'What is robots.txt?', answer: 'Robots.txt is a text file placed at the root of a website (e.g., example.com/robots.txt) that tells search engine crawlers which pages they can and cannot access. It uses the Robots Exclusion Protocol — a standard that all major search engines (Google, Bing, Yahoo) respect. While it\'s not a security mechanism (malicious bots can ignore it), legitimate crawlers follow robots.txt rules strictly.' },
+  { question: 'What happens if my robots.txt is wrong?', answer: 'A misconfigured robots.txt can have serious consequences. Accidentally disallowing your entire site (Disallow: /) tells search engines to index nothing — your pages will disappear from search results. Accidentally allowing admin pages or staging servers exposes them to search indexing. Always validate your robots.txt before deploying, especially after site migrations or major updates.' },
+  { question: 'How do I test a specific URL against robots.txt?', answer: 'Enter the robots.txt rules and the URL you want to test. Our tool checks which rule matches that URL path for the selected user agent. The longest matching rule wins — if you have "Disallow: /admin/" and "Allow: /admin/login/", the Allow rule takes precedence for /admin/login/ because it\'s more specific.' },
+  { question: 'What are common robots.txt mistakes?', answer: 'Common errors include: using absolute URLs instead of relative paths (Disallow: https://example.com/page is wrong — use Disallow: /page), blocking CSS and JS files (Google needs to render them for mobile-friendly testing), using Disallow without a user-agent line (robots.txt starts with User-agent:), and forgetting that Allow directives override Disallow for more specific paths.' },
+]
+
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free online robots.txt validator. Test and validate your robots.txt file — check if URLs are allowed or disallowed for Googlebot and other crawlers. Prevent SEO disasters before they happen." {steps} {faq}
+>
+  <div class="mb-6 space-y-4">
+    <div>
+      <label class="block font-medium text-gray-700 dark:text-gray-300 mb-2">Robots.txt Content</label>
+      <textarea id="robotsInput" class="code-input h-32" placeholder="User-agent: *&#10;Disallow: /admin/&#10;Allow: /"></textarea>
+    </div>
+    <div class="flex flex-wrap gap-3 items-end">
+      <div class="flex-1 min-w-[200px]">
+        <label class="block font-medium text-gray-700 dark:text-gray-300 mb-2">Test URL Path</label>
+        <input type="text" id="urlInput" class="w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-4 py-3 text-sm dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100" placeholder="/admin/dashboard">
+      </div>
+      <div>
+        <label class="block font-medium text-gray-700 dark:text-gray-300 mb-2">User Agent</label>
+        <select id="agentSelect" class="form-select bg-white border border-gray-200 rounded-lg px-3 py-2 dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100">
+          <option value="*">* (All Bots)</option>
+          <option value="Googlebot">Googlebot</option>
+          <option value="Bingbot">Bingbot</option>
+          <option value="Slurp">Yahoo Slurp</option>
+          <option value="DuckDuckBot">DuckDuckBot</option>
+          <option value="Baiduspider">Baiduspider</option>
+        </select>
+      </div>
+      <button id="testBtn" class="btn btn-primary">Test URL</button>
+      <button id="sampleBtn" class="btn btn-secondary">Load Sample</button>
+    </div>
+  </div>
+  <div class="code-panel">
+    <div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Test Result</span></div>
+    <div id="resultOutput" class="p-4">
+      <p class="text-gray-400 text-sm">Enter robots.txt rules and a URL to test above.</p>
+    </div>
+  </div>
+
+  <section slot="examples" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Example Robots.txt</h2>
+    <pre class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-700 dark:bg-gray-900 dark:border-gray-800 dark:text-gray-300"><code>User-agent: *
+Disallow: /admin/
+Disallow: /wp-admin/
+Allow: /admin/login/
+Disallow: /search
+Allow: /search?
+User-agent: Googlebot
+Disallow: /private/
+Sitemap: https://example.com/sitemap.xml</code></pre>
+    <p class="text-sm text-gray-400 mt-3">This allows all bots except on /admin/ and /wp-admin/. Googlebot is additionally blocked from /private/. The sitemap URL helps crawlers discover all indexable pages.</p>
+  </section>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Robots.txt Best Practices</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">Robots.txt is a simple file with outsized impact. A single misplaced character can de-index your entire site from Google. Every developer who manages a website should know how to write and validate robots.txt correctly.</p>
+      <h3 class="text-lg font-semibold text-gray-900 mt-6 mb-3 dark:text-white">Key Rules</h3>
+      <ul class="list-disc list-inside space-y-2 text-gray-500 dark:text-gray-400">
+        <li>Always start with User-agent: line before any Disallow/Allow directives</li>
+        <li>Use relative paths — Disallow: /private/ not Disallow: https://example.com/private/</li>
+        <li>Don't block CSS, JS, or image files — Google needs them for rendering</li>
+        <li>Include your Sitemap URL at the bottom of robots.txt</li>
+        <li>Test every rule change before deploying to production</li>
+        <li>Use Google Search Console's robots.txt Tester for additional validation</li>
+      </ul>
+    </div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="space-y-3">
+      <a href="/guides/robots-txt-guide/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">Robots.txt Guide</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Control search engine crawlers — correct syntax and common mistakes.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+      <a href="/guides/sitemap-guide/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">XML Sitemaps Guide</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Required fields, size limits, sitemap indexes and submission workflow.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+      <a href="/guides/word-count-seo-guide/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">Word Counts & SEO</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Content length benchmarks for titles, meta descriptions, and blog posts.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+    </div>
+  </section>
+
+  <script>
+    const robotsInput = document.getElementById('robotsInput') as HTMLTextAreaElement;
+    const urlInput = document.getElementById('urlInput') as HTMLInputElement;
+    const agentSelect = document.getElementById('agentSelect') as HTMLSelectElement;
+    const testBtn = document.getElementById('testBtn')!;
+    const sampleBtn = document.getElementById('sampleBtn')!;
+    const resultOutput = document.getElementById('resultOutput')!;
+
+    function parseRobots(rules: string, targetAgent: string): { allow: string[]; disallow: string[] } {
+      const lines = rules.split('\n').map(l => l.split('#')[0].trim());
+      const allow: string[] = [];
+      const disallow: string[] = [];
+      let currentAgent = '';
+      for (const line of lines) {
+        const lc = line.toLowerCase();
+        if (lc.startsWith('user-agent:')) {
+          currentAgent = line.substring(11).trim();
+          continue;
+        }
+        const agentMatch = currentAgent === targetAgent || currentAgent === '*';
+        if (!agentMatch) continue;
+        if (lc.startsWith('disallow:')) {
+          disallow.push(line.substring(9).trim());
+        } else if (lc.startsWith('allow:')) {
+          allow.push(line.substring(6).trim());
+        }
+      }
+      return { allow, disallow };
+    }
+
+    function isAllowed(path: string, rules: { allow: string[]; disallow: string[] }): { result: string; match: string } {
+      let bestAllow = '';
+      let bestDisallow = '';
+      for (const a of rules.allow) {
+        if (path.startsWith(a) && a.length > bestAllow.length) bestAllow = a;
+      }
+      for (const d of rules.disallow) {
+        if (path.startsWith(d) && d.length > bestDisallow.length) bestDisallow = d;
+      }
+      if (!bestAllow && !bestDisallow) return { result: 'Allowed', match: 'No matching rule (default: allow)' };
+      if (bestAllow.length >= bestDisallow.length) return { result: 'Allowed', match: 'Allow: ' + bestAllow };
+      return { result: 'Disallowed', match: 'Disallow: ' + bestDisallow };
+    }
+
+    testBtn.addEventListener('click', () => {
+      const rules = robotsInput.value;
+      const path = urlInput.value.trim() || '/';
+      const agent = agentSelect.value;
+      const parsed = parseRobots(rules, agent);
+      const { result, match } = isAllowed(path, parsed);
+      const color = result === 'Allowed' ? 'text-green-500' : 'text-red-500';
+      resultOutput.innerHTML = `
+        <div class="space-y-2">
+          <div class="text-lg font-semibold ${color}">${result}</div>
+          <p class="text-sm text-gray-500 dark:text-gray-400">Path: <code class="text-gray-700 dark:text-gray-300">${path}</code></p>
+          <p class="text-sm text-gray-500 dark:text-gray-400">User Agent: <code class="text-gray-700 dark:text-gray-300">${agent}</code></p>
+          <p class="text-sm text-gray-500 dark:text-gray-400">Matching Rule: <code class="text-gray-700 dark:text-gray-300">${match}</code></p>
+        </div>`;
+    });
+
+    sampleBtn.addEventListener('click', () => {
+      robotsInput.value = 'User-agent: *\nDisallow: /admin/\nDisallow: /wp-admin/\nAllow: /admin/login/\nDisallow: /search\nUser-agent: Googlebot\nDisallow: /private/\nSitemap: https://example.com/sitemap.xml';
+      urlInput.value = '/admin/login';
+    });
+  </script>
+</ToolLayout>

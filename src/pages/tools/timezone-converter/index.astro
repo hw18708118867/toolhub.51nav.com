@@ -1,0 +1,168 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'timezone-converter')!
+
+const steps = [
+  { name: 'Enter the Time to Convert', text: 'Type a date and time, or use the current time. The tool accepts ISO 8601 format (2025-01-15T14:30:00) and common date/time formats.' },
+  { name: 'Choose Source and Target Timezones', text: 'Select the source timezone (where the original time is from) and the target timezone (where you want to convert to). Choose from all IANA timezone identifiers — region/city format like America/New_York or Asia/Tokyo.' },
+  { name: 'View the Converted Time', text: 'The converted time shows the equivalent local time in the target timezone, accounting for DST rules. The UTC offset for both timezones is displayed for verification.' },
+]
+
+const faq = [
+  { question: 'What is a timezone?', answer: 'A timezone is a region of the Earth that observes a uniform standard time. Timezones are identified by IANA identifiers like "America/New_York" (Eastern Time), "Europe/London" (GMT/BST), or "Asia/Tokyo" (JST). There are roughly 40 timezones worldwide, ranging from UTC-12 to UTC+14. Timezones also include daylight saving time (DST) rules, which automatically adjust the offset at specific dates.' },
+  { question: 'Why does my converted time show a different day?', answer: 'When converting between timezones with large offsets, the date can shift. 9:00 PM Friday in New York (UTC-5) is 11:00 AM Saturday in Sydney (UTC+11). This is completely normal and is why calendar apps always store times in UTC internally — to avoid date confusion when scheduling meetings across timezones.' },
+  { question: 'What is UTC?', answer: 'UTC (Coordinated Universal Time) is the primary time standard by which the world regulates clocks and time. It does not observe daylight saving time. All other timezones are expressed as offsets from UTC, like UTC+8 (China Standard Time) or UTC-5 (Eastern Standard Time). For servers and databases, storing all timestamps in UTC and converting to local timezone only for display is a best practice.' },
+  { question: 'How does daylight saving time affect conversions?', answer: 'DST rules are timezone-specific and change historically. Our converter uses your browser\'s built-in Intl.DateTimeFormat API, which includes the current IANA timezone database. This means it correctly handles DST transitions for all timezones. A time in March may have a different UTC offset than the same clock time in July due to DST.' },
+]
+
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free online timezone converter. Convert time between any timezone — UTC, EST, PST, GMT, IST, JST and more. Handles daylight saving time automatically. Perfect for scheduling international meetings." {steps} {faq}
+>
+  <div class="mb-6 space-y-4">
+    <div>
+      <label class="block font-medium text-gray-700 dark:text-gray-300 mb-2">Date & Time</label>
+      <div class="flex gap-3 flex-wrap">
+        <input type="datetime-local" id="timeInput" class="w-64 bg-white border border-gray-200 text-gray-900 rounded-lg px-4 py-3 text-sm dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100">
+        <button id="nowBtn" class="btn btn-secondary">Use Current Time</button>
+      </div>
+    </div>
+    <div class="grid sm:grid-cols-2 gap-4">
+      <div>
+        <label class="block font-medium text-gray-700 dark:text-gray-300 mb-2">From Timezone</label>
+        <select id="fromTz" class="form-select bg-white border border-gray-200 rounded-lg px-3 py-2 w-full dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100">
+          <option value="America/New_York">Eastern Time (US) — America/New_York</option>
+          <option value="America/Chicago">Central Time (US) — America/Chicago</option>
+          <option value="America/Denver">Mountain Time (US) — America/Denver</option>
+          <option value="America/Los_Angeles">Pacific Time (US) — America/Los_Angeles</option>
+          <option value="Europe/London">London — Europe/London</option>
+          <option value="Europe/Paris">Paris — Europe/Paris</option>
+          <option value="Asia/Tokyo">Tokyo — Asia/Tokyo</option>
+          <option value="Asia/Shanghai">Shanghai — Asia/Shanghai</option>
+          <option value="Asia/Kolkata">India — Asia/Kolkata</option>
+          <option value="Australia/Sydney">Sydney — Australia/Sydney</option>
+          <option value="UTC" selected>UTC</option>
+        </select>
+      </div>
+      <div>
+        <label class="block font-medium text-gray-700 dark:text-gray-300 mb-2">To Timezone</label>
+        <select id="toTz" class="form-select bg-white border border-gray-200 rounded-lg px-3 py-2 w-full dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100">
+          <option value="America/New_York" selected>Eastern Time (US) — America/New_York</option>
+          <option value="America/Chicago">Central Time (US) — America/Chicago</option>
+          <option value="America/Denver">Mountain Time (US) — America/Denver</option>
+          <option value="America/Los_Angeles">Pacific Time (US) — America/Los_Angeles</option>
+          <option value="Europe/London">London — Europe/London</option>
+          <option value="Europe/Paris">Paris — Europe/Paris</option>
+          <option value="Asia/Tokyo">Tokyo — Asia/Tokyo</option>
+          <option value="Asia/Shanghai">Shanghai — Asia/Shanghai</option>
+          <option value="Asia/Kolkata">India — Asia/Kolkata</option>
+          <option value="Australia/Sydney">Sydney — Australia/Sydney</option>
+          <option value="UTC">UTC</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  <button id="convertBtn" class="btn btn-primary mb-6">Convert</button>
+  <div class="grid md:grid-cols-2 gap-6">
+    <div class="code-panel">
+      <div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Source Time</span></div>
+      <pre id="sourceOutput" class="code-output text-lg">—</pre>
+    </div>
+    <div class="code-panel">
+      <div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Converted Time</span></div>
+      <pre id="targetOutput" class="code-output text-lg">—</pre>
+    </div>
+  </div>
+
+  <section slot="examples" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Common Timezone Conversions</h2>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left">
+        <thead><tr class="border-b border-gray-200 dark:border-gray-800"><th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">When it's 9:00 AM in...</th><th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">Time in...</th></tr></thead>
+        <tbody class="text-gray-500 dark:text-gray-400 text-sm">
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">New York (EST/EDT)</td><td class="py-3 px-4">2:00 PM in London, 11:00 PM in Tokyo</td></tr>
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">San Francisco (PST/PDT)</td><td class="py-3 px-4">5:00 PM in London, 2:00 AM next day in Tokyo</td></tr>
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">London (GMT/BST)</td><td class="py-3 px-4">4:00 AM in New York, 6:00 PM in Tokyo</td></tr>
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">Beijing (CST, UTC+8)</td><td class="py-3 px-4">8:00 PM previous day in New York, 1:00 AM in London</td></tr>
+          <tr><td class="py-3 px-4">Sydney (AEST/AEDT)</td><td class="py-3 px-4">6:00 PM previous day in New York, 11:00 PM previous day in London</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Timezone Conversion Best Practices</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">Timezone bugs are one of the most common and frustrating categories of software defects. A meeting scheduled for 9:00 doesn't show up at 9:00 in someone's calendar. An event published at midnight UTC appears to happen the wrong day in some timezones. Following a few rules prevents these issues.</p>
+      <h3 class="text-lg font-semibold text-gray-900 mt-6 mb-3 dark:text-white">Rules to Follow</h3>
+      <ul class="list-disc list-inside space-y-2 text-gray-500 dark:text-gray-400">
+        <li><strong>Store in UTC:</strong> All timestamps in databases and APIs should be in UTC. Convert to local timezone only at the display layer.</li>
+        <li><strong>Include timezone info:</strong> When sending timestamps, include the offset or timezone identifier — "2025-01-15T14:30:00+05:30" is unambiguous; "2025-01-15T14:30:00" is not.</li>
+        <li><strong>Use IANA identifiers:</strong> "America/New_York" correctly handles DST. "EST" is ambiguous (Eastern Standard Time exists in the US and Australia).</li>
+        <li><strong>Test DST boundaries:</strong> Always test your timezone logic at DST transition dates — the second Sunday in March and first Sunday in November for US timezones.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="space-y-3">
+      <a href="/guides/timezone-converter-guide/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">Timezone Conversion Guide</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Store in UTC, display local time, handle DST transitions correctly.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+      <a href="/guides/unix-timestamps-guide/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">Unix Timestamps & Timezone Handling</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Epoch time, seconds vs milliseconds, and timezone best practices.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+      <a href="/tools/timestamp/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-green-500 font-medium">Tool</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">Timestamp Converter</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Convert between Unix timestamps and human-readable dates.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+    </div>
+  </section>
+
+  <script>
+    const timeInput = document.getElementById('timeInput') as HTMLInputElement;
+    const nowBtn = document.getElementById('nowBtn')!;
+    const fromTz = document.getElementById('fromTz') as HTMLSelectElement;
+    const toTz = document.getElementById('toTz') as HTMLSelectElement;
+    const convertBtn = document.getElementById('convertBtn')!;
+    const sourceOutput = document.getElementById('sourceOutput')!;
+    const targetOutput = document.getElementById('targetOutput')!;
+
+    function convert() {
+      const dtStr = timeInput.value;
+      if (!dtStr) return;
+      const dt = new Date(dtStr);
+      const opts: Intl.DateTimeFormatOptions = {
+        year: 'numeric', month: 'short', day: 'numeric',
+        hour: '2-digit', minute: '2-digit', second: '2-digit',
+        timeZoneName: 'short'
+      };
+      try {
+        sourceOutput.textContent = new Intl.DateTimeFormat('en-US', { ...opts, timeZone: fromTz.value }).format(dt);
+        targetOutput.textContent = new Intl.DateTimeFormat('en-US', { ...opts, timeZone: toTz.value }).format(dt);
+      } catch {
+        sourceOutput.textContent = 'Invalid timezone or date';
+        targetOutput.textContent = '—';
+      }
+    }
+
+    // Set current time
+    const now = new Date();
+    const localStr = now.getFullYear() + '-' +
+      String(now.getMonth() + 1).padStart(2, '0') + '-' +
+      String(now.getDate()).padStart(2, '0') + 'T' +
+      String(now.getHours()).padStart(2, '0') + ':' +
+      String(now.getMinutes()).padStart(2, '0');
+    timeInput.value = localStr;
+
+    nowBtn.addEventListener('click', () => {
+      const n = new Date();
+      timeInput.value = n.getFullYear() + '-' +
+        String(n.getMonth() + 1).padStart(2, '0') + '-' +
+        String(n.getDate()).padStart(2, '0') + 'T' +
+        String(n.getHours()).padStart(2, '0') + ':' +
+        String(n.getMinutes()).padStart(2, '0');
+      convert();
+    });
+    convertBtn.addEventListener('click', convert);
+    convert();
+  </script>
+</ToolLayout>
