@@ -1,0 +1,37 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+const content = `
+<div class="prose prose-gray max-w-none dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-strong:text-gray-900 dark:prose-strong:text-white prose-code:text-blue-600 dark:prose-code:text-blue-400 prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-pre:bg-gray-50 dark:prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-gray-800">
+
+<h2>The Art of CSS Shadows</h2>
+<p>A well-designed shadow makes an element feel physical — lifted off the page, floating above its neighbors. A poorly designed shadow makes an element feel like it's from 2005. The difference is entirely in the CSS. <code>box-shadow: 2px 4px 8px rgba(0,0,0,0.15)</code> is subtle and modern. <code>box-shadow: 5px 5px 0px #000000</code> is harsh and dated. The parameters are the same — offset, blur, spread, color — but the values transform the result from amateur to professional. Our <a href="/tools/box-shadow-generator/">box shadow generator</a> lets you design shadows visually with live preview. Adjust the sliders, see the result, copy the CSS.</p>
+
+<h2>The Five Box-Shadow Parameters</h2>
+<p><strong>Offset-X.</strong> Horizontal position. Positive values move the shadow right. Negative values move it left. <code>0</code> centers the shadow horizontally. Natural light sources are typically overhead, so shadows should have a small positive offset (a few pixels to the right) to simulate light from above-left.</p>
+<p><strong>Offset-Y.</strong> Vertical position. Positive moves down (shadow below the element — the most common direction). Negative moves up (shadow above — creates a "sunken" or "pressed" effect when combined with inset). <code>2px 4px</code> means 2px right and 4px down — a natural drop shadow.</p>
+<p><strong>Blur Radius.</strong> How soft the shadow edge is. <code>0</code> creates a hard, sharp shadow (good for flat design, neumorphism, or deliberate retro looks). <code>8-16px</code> creates a soft, natural shadow. Higher values spread the shadow wider but make it fainter. The sweet spot for most UI elements is 8-20px blur combined with low opacity (10-20%).</p>
+<p><strong>Spread Radius.</strong> How much the shadow expands or contracts. Positive values make the shadow larger than the element. Negative values make it smaller. <code>0</code> keeps it the same size. Spread is the least-used parameter — most shadows work fine with spread at 0. Use positive spread for glowing effects (like focus rings) or negative spread for tight inner shadows.</p>
+<p><strong>Color.</strong> Any CSS color value. Always use rgba() or hsla() to control opacity. <code>rgba(0,0,0,0.1)</code> is a barely-visible black at 10% opacity — perfect for subtle elevation. Pure black with low opacity is the most natural shadow color for most designs. Colored shadows (blue, purple) create neon/glow effects.</p>
+
+<h2>Layering Multiple Shadows</h2>
+<p>CSS supports multiple box-shadows on one element, separated by commas. Each shadow layers on top of the previous one. This is the key to realistic shadows: combine a tight, dark shadow (small offset, small blur, higher opacity) with a wide, light shadow (larger offset, larger blur, lower opacity). Example: <code>box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.08);</code> — the first shadow provides edge definition, the second provides ambient depth. This two-layer approach is used by Stripe, Linear, Vercel, and virtually every modern design system.</p>
+<p>Use our <a href="/tools/box-shadow-generator/">box shadow generator</a> to design each layer individually, then combine them manually in your CSS. For rounded corners that complement shadows, use the <a href="/tools/border-radius-generator/">border radius generator</a> — rounded elements with layered shadows achieve the "floating card" look common in modern SaaS interfaces.</p>
+
+<h2>Inset Shadows and Special Effects</h2>
+<p>Adding <code>inset</code> before the shadow values creates an inner shadow — the shadow appears inside the element, not outside. Inset shadows make elements look pressed, indented, or recessed. Common uses: active button states (the button looks pressed when clicked), input fields (the field looks indented into the page), and wells or containers that should appear to sink below the surface. Combine an outer shadow (for elevation) with an inset shadow (for depth within): the element appears both raised above the page AND containing an indented area.</p>
+
+<h2>Performance Considerations</h2>
+<p>Box shadows are rendered by the GPU in modern browsers and have minimal performance impact for static elements. However, avoid animating box-shadow directly (changing values on hover or in transitions) — it triggers expensive repaints. For animated shadows, use the opacity transition technique: create a pseudo-element (<code>::after</code>) with the final shadow, set its opacity to 0, and transition opacity to 1 on hover. The shadow values don't change; only opacity does. This is GPU-accelerated and smooth at 60fps even on mobile devices.</p>
+</div>
+`
+---
+<GuideLayout
+  title="CSS Box Shadow: Design, Layering & Performance | DevTools Hub"
+  description="Complete guide to CSS box-shadow — offset, blur, spread, color, RGBA opacity, layering multiple shadows, inset effects, and performance-optimized shadow animations."
+  breadcrumb="Box Shadow Guide"
+  relatedTools={[{href:'/tools/box-shadow-generator/',title:'Box Shadow Generator',desc:'Generate CSS box-shadow styles visually',type:'tool'},{href:'/tools/border-radius-generator/',title:'Border Radius Generator',desc:'Generate CSS border-radius styles',type:'tool'},{href:'/tools/flexbox-generator/',title:'Flexbox Generator',desc:'Visual CSS flexbox layout generator',type:'tool'}]}
+>
+  <Fragment slot="title">CSS Box Shadow Guide:<br class="hidden sm:block" />Design, Layering & Performance</Fragment>
+  <Fragment slot="intro">Box shadows create depth in flat interfaces. Learn the five parameters, how to layer shadows for realism, when to use inset, and how to animate shadows without tanking performance.</Fragment>
+  <Fragment set:html={content} />
+</GuideLayout>

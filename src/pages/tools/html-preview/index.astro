@@ -1,0 +1,89 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'html-preview')!
+
+const steps = [
+  { name: 'Write or Paste HTML', text: 'Type or paste HTML code into the editor panel. The tool accepts full documents, partial snippets, inline CSS (style tags), and inline JavaScript. No server upload — everything stays in your browser.' },
+  { name: 'See Live Preview', text: 'The preview updates in real-time as you type. Your HTML renders exactly as a browser would display it — with working styles, images, links, and forms.' },
+  { name: 'Copy the Code', text: 'Once your HTML looks right, copy it and use it in your project. The tool is great for quickly testing HTML snippets, email templates, or UI components without setting up a full dev environment.' },
+]
+
+const faq = [
+  { question: 'Does the preview execute JavaScript?', answer: 'Yes. JavaScript in your HTML (both inline and in script tags) runs in the preview. This allows you to test interactive components, event handlers, and DOM manipulation. For security, the preview runs inside an iframe sandbox — scripts can\'t access the parent page or make requests to other origins unless you add allow-scripts permissions.' },
+  { question: 'Can I use external CSS or JavaScript?', answer: 'Yes. External stylesheets (link rel="stylesheet") and scripts (script src="...") work as long as the URLs are accessible. Keep in mind that some CDN resources may have CORS policies that block loading from local previews. For the most reliable preview, use inline styles and scripts or CDN links you know are accessible.' },
+  { question: 'How is this different from a code editor?', answer: 'This is a quick preview tool, not a full editor. It doesn\'t have syntax highlighting, autocomplete, or file management. Use it when you need to quickly test an HTML snippet — an email template, a landing page section, a form layout. For full development, use a proper editor like VS Code. For sharing work, use CodePen or JSFiddle.' },
+  { question: 'Will my HTML be saved?', answer: 'No. Nothing is saved or sent anywhere. The preview runs entirely in your browser. If you close the tab, your work is gone. Copy your HTML before leaving the page if you want to keep it.' },
+]
+
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free online HTML preview tool. Write and preview HTML code in real-time with live rendering. Test snippets, email templates and UI components instantly. All processing is local and private." {steps} {faq}
+>
+  <div class="grid lg:grid-cols-2 gap-6">
+    <div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">HTML Editor</span><button id="sampleBtn" class="btn btn-sm btn-secondary ml-auto">Load Sample</button></div><textarea id="htmlEditor" class="code-input" placeholder="Write HTML here..."></textarea></div>
+    <div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Live Preview</span></div><div class="bg-white dark:bg-gray-100" style="min-height:400px"><iframe id="previewFrame" class="w-full border-0" style="min-height:400px" sandbox="allow-scripts allow-same-origin" title="HTML Preview"></iframe></div></div>
+  </div>
+
+  <section slot="examples" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Quick Start Templates</h2>
+    <div class="space-y-3">
+      <a href="/guides/html-minification-guide/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">HTML Minification Guide</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Why, how and when to minify HTML for production.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+      <button class="btn btn-secondary text-sm" data-template="card">Simple Card</button>
+      <button class="btn btn-secondary text-sm" data-template="form">Contact Form</button>
+      <button class="btn btn-secondary text-sm" data-template="table">Data Table</button>
+    </div>
+  </section>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">When to Use an HTML Preview</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">An HTML preview tool bridges the gap between writing code and seeing results. It's faster than setting up a local dev server for small experiments and safer than pasting untested code directly into a production page.</p>
+      <h3 class="text-lg font-semibold text-gray-900 mt-6 mb-3 dark:text-white">Common Use Cases</h3>
+      <ul class="list-disc list-inside space-y-2 text-gray-500 dark:text-gray-400">
+        <li>Quickly testing HTML email templates before sending</li>
+        <li>Prototyping a UI component (button, card, form) in isolation</li>
+        <li>Debugging CSS layout issues without affecting your main project</li>
+        <li>Teaching HTML/CSS — students can see results instantly</li>
+      </ul>
+    </div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="space-y-3">
+      <a href="/tools/html-formatter/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-green-500 font-medium">Tool</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">HTML Formatter</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Format and beautify HTML with proper indentation.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+      <a href="/tools/css-formatter/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-green-500 font-medium">Tool</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">CSS Formatter</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Format and beautify CSS stylesheets.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+    </div>
+  </section>
+
+  <script>
+    const htmlEditor = document.getElementById('htmlEditor') as HTMLTextAreaElement;
+    const previewFrame = document.getElementById('previewFrame') as HTMLIFrameElement;
+    const sampleBtn = document.getElementById('sampleBtn')!;
+
+    function updatePreview() {
+      const doc = previewFrame.contentDocument || previewFrame.contentWindow?.document;
+      if (doc) { doc.open(); doc.write(htmlEditor.value); doc.close(); }
+    }
+
+    const templates: Record<string, string> = {
+      card: '<div style="max-width:320px;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;font-family:sans-serif"><div style="background:#3b82f6;height:120px"></div><div style="padding:20px"><h2 style="margin:0 0 8px;font-size:18px">Card Title</h2><p style="margin:0 0 16px;color:#6b7280;font-size:14px">This is a simple card component with a header image, title, and description text.</p><button style="background:#3b82f6;color:#fff;border:0;padding:8px 16px;border-radius:8px;cursor:pointer">Learn More</button></div></div>',
+      form: '<form style="max-width:360px;font-family:sans-serif" onsubmit="event.preventDefault();alert(\'Submitted!\')"><h2 style="font-size:20px;margin-bottom:16px">Contact Us</h2><div style="margin-bottom:12px"><label style="display:block;margin-bottom:4px;font-size:14px;font-weight:500">Name</label><input style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;box-sizing:border-box" placeholder="Your name"></div><div style="margin-bottom:12px"><label style="display:block;margin-bottom:4px;font-size:14px;font-weight:500">Email</label><input type="email" style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;box-sizing:border-box" placeholder="you@example.com"></div><div style="margin-bottom:16px"><label style="display:block;margin-bottom:4px;font-size:14px;font-weight:500">Message</label><textarea style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;box-sizing:border-box;min-height:80px" placeholder="Your message"></textarea></div><button type="submit" style="width:100%;padding:10px;background:#3b82f6;color:#fff;border:0;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer">Send Message</button></form>',
+      table: '<table style="width:100%;border-collapse:collapse;font-family:sans-serif;font-size:14px"><thead><tr style="background:#f3f4f6"><th style="text-align:left;padding:12px;border-bottom:2px solid #e5e7eb">Name</th><th style="text-align:left;padding:12px;border-bottom:2px solid #e5e7eb">Role</th><th style="text-align:left;padding:12px;border-bottom:2px solid #e5e7eb">Status</th></tr></thead><tbody><tr><td style="padding:10px 12px;border-bottom:1px solid #f3f4f6">Alice Chen</td><td style="padding:10px 12px;border-bottom:1px solid #f3f4f6">Developer</td><td style="padding:10px 12px;border-bottom:1px solid #f3f4f6"><span style="background:#d1fae5;color:#065f46;padding:2px 8px;border-radius:12px;font-size:12px">Active</span></td></tr><tr><td style="padding:10px 12px;border-bottom:1px solid #f3f4f6">Bob Miller</td><td style="padding:10px 12px;border-bottom:1px solid #f3f4f6">Designer</td><td style="padding:10px 12px;border-bottom:1px solid #f3f4f6"><span style="background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:12px;font-size:12px">Away</span></td></tr></tbody></table>'
+    };
+
+    htmlEditor.addEventListener('input', updatePreview);
+    sampleBtn.addEventListener('click', () => { htmlEditor.value = templates.card; updatePreview(); });
+    document.querySelectorAll('[data-template]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const key = (btn as HTMLElement).dataset.template!;
+        htmlEditor.value = templates[key] || '';
+        updatePreview();
+      });
+    });
+  </script>
+</ToolLayout>

@@ -1,0 +1,111 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'flexbox-generator')!
+
+const steps = [
+  { name: 'Configure the Container', text: 'Set the flex container properties — flex direction (row/column), justify content (alignment along main axis), align items (alignment along cross axis), and gap between items.' },
+  { name: 'Add and Style Flex Items', text: 'Add items to the container. Each item can have its own flex-grow, flex-shrink, align-self, and order values. The items are displayed as numbered blocks in the preview.' },
+  { name: 'Copy the CSS', text: 'As you adjust settings, the generated CSS updates in real-time. Copy the container and item CSS directly into your project. The preview shows exactly how the layout will render.' },
+]
+
+const faq = [
+  { question: 'What is CSS Flexbox?', answer: 'Flexbox (Flexible Box Layout) is a CSS layout module designed for one-dimensional layouts — arranging items in a row or column. It handles alignment, spacing, and distribution of space between items far better than floats or positioning. Flexbox is supported in all modern browsers since IE11 and is the standard approach for component-level layouts (navbars, card grids, form layouts).' },
+  { question: 'What is the difference between justify-content and align-items?', answer: 'justify-content controls alignment along the main axis — horizontally if flex-direction is row, vertically if column. align-items controls alignment along the cross axis (perpendicular to main). For a horizontal flex container: justify-content: center centers items horizontally, align-items: center centers them vertically. This is one of the most common points of confusion with flexbox.' },
+  { question: 'When should I use Flexbox vs CSS Grid?', answer: 'Use Flexbox for one-dimensional layouts — a row of buttons, a navigation bar, centering a single element, distributing space in a single direction. Use CSS Grid for two-dimensional layouts — page layouts with rows AND columns, image galleries, dashboard layouts. They work well together: use Grid for the page structure, Flexbox for the components inside each grid cell.' },
+  { question: 'Are the generated styles production-ready?', answer: 'Yes. The generated CSS uses standard flexbox properties that work in all modern browsers. Copy the CSS directly into your stylesheet. For production use, you may want to add responsive breakpoints (change flex-direction from row to column on mobile) and vendor prefixes for older browser support — though most flexbox properties no longer require prefixes.' },
+]
+
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free visual CSS flexbox generator. Configure flex containers and items with live preview. Generate and copy production-ready flexbox CSS. All processing is local and private." {steps} {faq}
+>
+  <div class="grid lg:grid-cols-2 gap-6 mb-6">
+    <div class="space-y-4">
+      <div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Container Properties</span></div>
+        <div class="p-4 space-y-3">
+          <div class="flex items-center gap-3"><label class="text-sm text-gray-600 dark:text-gray-400 w-32">flex-direction</label><select id="flexDir" class="form-select bg-white border border-gray-200 rounded-lg px-2 py-1 text-sm flex-1 dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100"><option value="row" selected>row</option><option value="row-reverse">row-reverse</option><option value="column">column</option><option value="column-reverse">column-reverse</option></select></div>
+          <div class="flex items-center gap-3"><label class="text-sm text-gray-600 dark:text-gray-400 w-32">justify-content</label><select id="justify" class="form-select bg-white border border-gray-200 rounded-lg px-2 py-1 text-sm flex-1 dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100"><option value="flex-start" selected>flex-start</option><option value="center">center</option><option value="flex-end">flex-end</option><option value="space-between">space-between</option><option value="space-around">space-around</option><option value="space-evenly">space-evenly</option></select></div>
+          <div class="flex items-center gap-3"><label class="text-sm text-gray-600 dark:text-gray-400 w-32">align-items</label><select id="align" class="form-select bg-white border border-gray-200 rounded-lg px-2 py-1 text-sm flex-1 dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100"><option value="stretch" selected>stretch</option><option value="flex-start">flex-start</option><option value="center">center</option><option value="flex-end">flex-end</option><option value="baseline">baseline</option></select></div>
+          <div class="flex items-center gap-3"><label class="text-sm text-gray-600 dark:text-gray-400 w-32">flex-wrap</label><select id="flexWrap" class="form-select bg-white border border-gray-200 rounded-lg px-2 py-1 text-sm flex-1 dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100"><option value="nowrap" selected>nowrap</option><option value="wrap">wrap</option><option value="wrap-reverse">wrap-reverse</option></select></div>
+          <div class="flex items-center gap-3"><label class="text-sm text-gray-600 dark:text-gray-400 w-32">gap</label><input type="range" id="gap" class="flex-1" min="0" max="48" value="16"><span id="gapVal" class="text-sm text-gray-500 w-10">16px</span></div>
+        </div>
+      </div>
+      <div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Number of Items</span></div><div class="p-4"><input type="range" id="itemCount" min="2" max="8" value="4" class="w-full"><div class="text-center text-sm text-gray-400 mt-1"><span id="countVal">4</span> items</div></div></div>
+    </div>
+    <div>
+      <div class="code-panel mb-4"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Live Preview</span></div><div id="flexPreview" class="p-4 bg-gray-50 dark:bg-gray-800 rounded-b-xl" style="min-height:200px"><div id="flexContainer" class="flex border-2 border-dashed border-blue-300 rounded-lg dark:border-blue-700" style="min-height:180px;padding:8px"></div></div></div>
+      <div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Generated CSS</span><button id="copyCssBtn" class="btn btn-sm btn-secondary ml-auto">Copy</button></div><pre id="cssOutput" class="code-output text-sm"></pre></div>
+    </div>
+  </div>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">When to Use Flexbox</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">Flexbox excels at distributing space and aligning content in one dimension. It replaced floats and table-based layouts for component design and made vertical centering trivial (something that was notoriously difficult before flexbox).</p>
+      <ul class="list-disc list-inside space-y-2 text-gray-500 dark:text-gray-400">
+        <li>Navigation bars with evenly spaced links</li>
+        <li>Centering content both horizontally and vertically</li>
+        <li>Card layouts where cards should be equal height</li>
+        <li>Form layouts with labels and inputs aligned</li>
+        <li>Media objects (image + text side by side)</li>
+      </ul>
+    </div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="space-y-3">
+      <a href="/guides/flexbox-guide/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">CSS Flexbox Guide</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Layout, alignment and spacing with every flexbox property.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+      <a href="/tools/grid-generator/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-green-500 font-medium">Tool</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">CSS Grid Generator</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Visual CSS grid layout generator for two-dimensional layouts.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+      <a href="/guides/css-color-gradient-guide/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">CSS Colors & Gradients Guide</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">HEX, RGB, HSL explained. Build palettes and gradients.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+    </div>
+  </section>
+
+  <script>
+    import { copyToClipboard } from '../../../utils/copyToClipboard'
+    const flexDir = document.getElementById('flexDir') as HTMLSelectElement;
+    const justify = document.getElementById('justify') as HTMLSelectElement;
+    const align = document.getElementById('align') as HTMLSelectElement;
+    const flexWrap = document.getElementById('flexWrap') as HTMLSelectElement;
+    const gap = document.getElementById('gap') as HTMLInputElement;
+    const gapVal = document.getElementById('gapVal')!;
+    const itemCount = document.getElementById('itemCount') as HTMLInputElement;
+    const countVal = document.getElementById('countVal')!;
+    const flexContainer = document.getElementById('flexContainer')!;
+    const cssOutput = document.getElementById('cssOutput')!;
+    const copyCssBtn = document.getElementById('copyCssBtn')!;
+
+    const colors = ['#3b82f6','#ef4444','#10b981','#f59e0b','#8b5cf6','#ec4899','#06b6d4','#84cc16'];
+
+    function update() {
+      const dir = flexDir.value, jc = justify.value, ai = align.value, wr = flexWrap.value, g = gap.value;
+      gapVal.textContent = g + 'px';
+      countVal.textContent = itemCount.value;
+      const count = parseInt(itemCount.value, 10);
+
+      flexContainer.style.flexDirection = dir;
+      flexContainer.style.justifyContent = jc;
+      flexContainer.style.alignItems = ai;
+      flexContainer.style.flexWrap = wr;
+      flexContainer.style.gap = g + 'px';
+
+      let itemsHtml = '';
+      for (let i = 0; i < count; i++) {
+        const w = 50 + Math.floor(Math.random() * 40);
+        itemsHtml += `<div style="background:${colors[i]};color:#fff;border-radius:8px;padding:12px;text-align:center;font-weight:600;font-size:14px;width:${w}px">${i + 1}</div>`;
+      }
+      flexContainer.innerHTML = itemsHtml;
+
+      cssOutput.textContent = `.container {\n  display: flex;\n  flex-direction: ${dir};\n  justify-content: ${jc};\n  align-items: ${ai};\n  flex-wrap: ${wr};\n  gap: ${g}px;\n}`;
+    }
+
+    [flexDir, justify, align, flexWrap, gap, itemCount].forEach(el => el.addEventListener('input', update));
+    [gap, itemCount].forEach(el => el.addEventListener('change', update));
+    copyCssBtn.addEventListener('click', async () => { await copyToClipboard(cssOutput.textContent || ''); });
+    update();
+  </script>
+</ToolLayout>

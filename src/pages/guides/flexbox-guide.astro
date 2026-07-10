@@ -1,0 +1,34 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+const content = `
+<div class="prose prose-gray max-w-none dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-strong:text-gray-900 dark:prose-strong:text-white prose-code:text-blue-600 dark:prose-code:text-blue-400 prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-pre:bg-gray-50 dark:prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-gray-800">
+
+<h2>Flexbox: The Layout Tool That Replaced Floats</h2>
+<p>Before flexbox, centering a div vertically required table-cell hacks, absolute positioning with negative margins, or prayer. Horizontal layouts used floats with clearfixes that broke in creative ways. Flexbox changed all of that in one CSS module. <code>display: flex</code> on a container turns its children into flexible items that distribute themselves along a main axis (horizontal by default, or vertical with <code>flex-direction: column</code>). The browser handles spacing, alignment, and wrapping. No floats, no clearfixes, no JavaScript layout calculations.</p>
+<p>Our <a href="/tools/flexbox-generator/">flexbox generator</a> lets you configure a flex container and its items visually — choose direction, justification, alignment, wrapping, and gap — and get the CSS instantly. The preview shows exactly how items will arrange. For two-dimensional page layouts, use the <a href="/tools/grid-generator/">CSS Grid Generator</a> instead.</p>
+
+<h2>Core Flexbox Properties</h2>
+<p><strong>flex-direction.</strong> Sets the main axis. <code>row</code> (default): items flow left to right. <code>column</code>: items stack top to bottom. Reverse variants (<code>row-reverse</code>, <code>column-reverse</code>) flip the order visually without changing the DOM. Use reverse carefully — screen readers don't read visual order.</p>
+<p><strong>justify-content.</strong> Controls spacing along the main axis. <code>flex-start</code>: items cluster at the start. <code>center</code>: cluster in the middle. <code>flex-end</code>: cluster at the end. <code>space-between</code>: first item at start, last at end, equal gaps between all. <code>space-around</code>: equal space around each item (half-space at edges). <code>space-evenly</code>: equal space everywhere, including edges. This is the most commonly customized flexbox property — it's the one that makes navigation bars, card grids, and button groups look right.</p>
+<p><strong>align-items.</strong> Controls alignment along the cross axis (perpendicular to main axis). <code>stretch</code> (default): items fill the container height (or width, if column). <code>center</code>: items center along the cross axis — this is what finally made vertical centering easy. <code>flex-start</code> / <code>flex-end</code>: align to start or end of cross axis. <code>baseline</code>: align items so their text baselines line up — useful when items have different font sizes.</p>
+<p><strong>flex-wrap.</strong> Determines whether items wrap to a new line when they overflow. <code>nowrap</code> (default): all items stay on one line, potentially overflowing. <code>wrap</code>: items wrap to new lines as needed. Combining flex-wrap with a fixed item width (via flex-basis) creates responsive grids without media queries.</p>
+<p><strong>gap.</strong> The space between flex items. Replaces the old pattern of margin-right on every item except the last. <code>gap: 16px</code> creates 16px gaps between all items, both horizontally and vertically. Simpler, cleaner, and works correctly when items wrap.</p>
+
+<h2>Flex Items: Children That Flex</h2>
+<p>Flex items have their own properties. <strong>flex-grow</strong> (default 0): how much an item grows relative to others when extra space is available. <strong>flex-shrink</strong> (default 1): how much an item shrinks when space is tight. <strong>flex-basis</strong> (default auto): the starting size before growing or shrinking. The shorthand <code>flex: 1</code> means <code>flex-grow: 1; flex-shrink: 1; flex-basis: 0</code> — the item takes equal share of available space. <strong>align-self</strong> overrides align-items for a single item. <strong>order</strong> changes visual order (use sparingly — screen readers ignore it).</p>
+
+<h2>Flexbox vs. CSS Grid</h2>
+<p>Flexbox is one-dimensional: it handles either a row OR a column, not both simultaneously. Grid is two-dimensional: rows AND columns. Use flexbox for components — a navigation bar, a row of cards, a centered hero section. Use grid for page layouts — header, sidebar, content, footer arranged in a defined grid. They work together: grid defines the page structure, flexbox handles the components inside each grid area. Neither is "better" — they solve different problems. Our <a href="/tools/flexbox-generator/">flexbox generator</a> and <a href="/tools/grid-generator/">grid generator</a> complement each other for complete layout control.</p>
+</div>
+`
+---
+<GuideLayout
+  title="CSS Flexbox: Layout, Alignment & Spacing | DevTools Hub"
+  description="Complete guide to CSS Flexbox — flex-direction, justify-content, align-items, flex-wrap, gap. Plus flex item properties and when to use Flexbox vs CSS Grid for layout."
+  breadcrumb="CSS Flexbox Guide"
+  relatedTools={[{href:'/tools/flexbox-generator/',title:'Flexbox Generator',desc:'Visual CSS flexbox layout generator',type:'tool'},{href:'/tools/grid-generator/',title:'CSS Grid Generator',desc:'Visual CSS grid layout generator',type:'tool'},{href:'/tools/box-shadow-generator/',title:'Box Shadow Generator',desc:'Generate CSS box-shadow styles',type:'tool'}]}
+>
+  <Fragment slot="title">CSS Flexbox Guide:<br class="hidden sm:block" />Layout, Alignment & Spacing</Fragment>
+  <Fragment slot="intro">Flexbox replaced floats and table hacks for component layout. Learn every flexbox property — from justify-content to flex-wrap — and when to use Flexbox vs CSS Grid.</Fragment>
+  <Fragment set:html={content} />
+</GuideLayout>

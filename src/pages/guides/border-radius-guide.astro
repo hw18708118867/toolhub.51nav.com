@@ -1,0 +1,39 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+const content = `
+<div class="prose prose-gray max-w-none dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-strong:text-gray-900 dark:prose-strong:text-white prose-code:text-blue-600 dark:prose-code:text-blue-400 prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-pre:bg-gray-50 dark:prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-gray-800">
+
+<h2>Border Radius: The Property That Softened the Web</h2>
+<p>In the early web, every element was a rectangle with sharp 90-degree corners. Buttons, cards, images, inputs — all rectangles. CSS <code>border-radius</code> introduced in CSS3 changed the visual language of the web. Rounded corners feel approachable, friendly, and modern. They soften hard edges and guide the eye. The property is simple — one value rounds all four corners — but its flexibility allows each corner to have a different radius, creating asymmetrical and organic shapes. Our <a href="/tools/border-radius-generator/">border radius generator</a> lets you design corners visually. Adjust sliders, see the preview, copy the CSS.</p>
+
+<h2>Border Radius Syntax and Values</h2>
+<p>The shorthand <code>border-radius</code> accepts one to four values, applied clockwise from top-left: <code>border-radius: 8px</code> (all four corners), <code>border-radius: 8px 16px</code> (top-left/bottom-right = 8px, top-right/bottom-left = 16px), <code>border-radius: 8px 16px 24px 32px</code> (each corner individually). Individual corner properties exist for clarity: <code>border-top-left-radius</code>, <code>border-top-right-radius</code>, <code>border-bottom-right-radius</code>, <code>border-bottom-left-radius</code>.</p>
+<p>For elliptical corners, use the slash syntax: <code>border-radius: 20px / 10px</code> creates corners with 20px horizontal radius and 10px vertical radius — wider than they are tall. Each corner can have different horizontal and vertical radii, enabling complex organic shapes. This is useful for pill-shaped containers, speech bubbles, and decorative elements.</p>
+
+<h2>Design Guidelines by Element Type</h2>
+<p><strong>Buttons:</strong> 4-8px for standard buttons. 24-48px for pill-shaped buttons (popular in mobile design and modern SaaS). The trend has moved from slightly rounded (4-6px) to moderately rounded (8-12px) for primary CTAs — the extra rounding makes buttons feel more clickable. Fully rounded (50px+) creates "pill" buttons that stand out as alternative actions.</p>
+<p><strong>Cards:</strong> 8-16px. Cards represent contained content, and rounding reinforces the containment. Larger cards (dashboard widgets, feature sections) benefit from larger radii. Cards with small border-radius (4px or less) look like older design systems or enterprise software.</p>
+<p><strong>Images and Avatars:</strong> <code>border-radius: 50%</code> on a square image creates a perfect circle — the standard for user avatars. For rectangular images, 4-8px prevents the sharp corners from drawing attention away from the content. Rounded image corners also make inconsistent image aspect ratios feel more cohesive in a grid.</p>
+<p><strong>Input Fields:</strong> 4-8px. Text inputs need to feel like places to type. Matching the border-radius of inputs and buttons in a form creates visual consistency. A form where buttons are round (24px) and inputs are square (0px) looks mismatched. Use the same radius for both, or deliberately contrast them.</p>
+<p><strong>Modals and Dialogs:</strong> 12-20px. Modals overlay the page and should feel separate from the content beneath. Larger rounding helps the modal feel like a distinct surface. The top corners of a bottom sheet on mobile often use 16-24px to create a smooth transition.</p>
+
+<h2>Border Radius with Other Properties</h2>
+<p><strong>Overflow hidden.</strong> Apply <code>overflow: hidden</code> to a container with border-radius, and any child content (images, backgrounds) gets clipped to the rounded shape. This is the standard technique for circular avatars and rounded image thumbnails — set border-radius on the image itself, or on a container with overflow hidden.</p>
+<p><strong>Combining with box-shadow.</strong> Shadows follow the border-radius of the element. A rounded card with <code>border-radius: 12px</code> casts a shadow with 12px rounded corners. This consistency is what gives modern UI cards their polished look. Use our <a href="/tools/box-shadow-generator/">box shadow generator</a> alongside this tool for the complete card styling package.</p>
+<p><strong>Border vs. outline.</strong> <code>border</code> follows border-radius. <code>outline</code> (used for focus indicators) does not follow border-radius in all browsers. For consistent rounded focus rings, use <code>box-shadow</code> instead of outline: <code>box-shadow: 0 0 0 3px rgba(59,130,246,0.5)</code> — the shadow respects border-radius and provides the same visual feedback.</p>
+
+<h2>Accessibility Note</h2>
+<p>Extreme border-radius on interactive elements (buttons, inputs) can reduce the clickable area at corners for users who struggle with precise mouse movements. Keep primary action buttons at 12px radius or lower. Use larger radii for decorative elements and containers, not for critical interactive controls. For focus indicators, use box-shadow with matching border-radius to ensure the focus ring is visible at all zoom levels.</p>
+</div>
+`
+---
+<GuideLayout
+  title="CSS Border Radius: Corners, Circles & Design | DevTools Hub"
+  description="Complete guide to CSS border-radius — syntax, values, elliptical corners, element-specific guidelines (buttons, cards, avatars, modals), and combining with overflow, shadow, and focus indicators."
+  breadcrumb="Border Radius Guide"
+  relatedTools={[{href:'/tools/border-radius-generator/',title:'Border Radius Generator',desc:'Generate CSS border-radius styles',type:'tool'},{href:'/tools/box-shadow-generator/',title:'Box Shadow Generator',desc:'Generate CSS box-shadow styles',type:'tool'},{href:'/tools/flexbox-generator/',title:'Flexbox Generator',desc:'Visual CSS flexbox layout generator',type:'tool'}]}
+>
+  <Fragment slot="title">Border Radius Guide:<br class="hidden sm:block" />Corners, Circles & Design</Fragment>
+  <Fragment slot="intro">Rounded corners transformed web design from sharp rectangles to soft, approachable interfaces. Learn border-radius syntax, design guidelines for every element type, and how to combine with shadows.</Fragment>
+  <Fragment set:html={content} />
+</GuideLayout>

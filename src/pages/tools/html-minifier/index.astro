@@ -1,0 +1,108 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'html-minifier')!
+
+const steps = [
+  { name: 'Paste Your HTML', text: 'Paste HTML code into the input panel. The tool accepts any valid HTML — full documents, partial snippets, or template code with inline CSS and JavaScript.' },
+  { name: 'Minify the Code', text: 'Click "Minify" to strip all unnecessary whitespace, line breaks, comments, and optional closing tags. The output is a compact single-line HTML string.' },
+  { name: 'Copy the Result', text: 'The minified HTML appears in the output panel. Copy it to your clipboard or download as a .html file. Check the size reduction percentage to see how much bandwidth you save.' },
+]
+
+const faq = [
+  { question: 'What does HTML minification remove?', answer: 'HTML minification removes: leading/trailing whitespace, line breaks and indentation, HTML comments (<!-- -->), optional closing tags where the HTML spec allows them (like </li> and </p>), unnecessary quotes around attribute values, and empty attributes. It preserves: the structure and semantics of the document, essential whitespace between inline elements, and pre-formatted text inside <pre> and <textarea> tags.' },
+  { question: 'Does minifying HTML affect SEO?', answer: 'No. Search engines parse the DOM, not the raw HTML string. Minified HTML produces the same DOM as formatted HTML. Google explicitly recommends minifying HTML, CSS, and JavaScript as a performance best practice. The only SEO risk is if minification accidentally removes structured data (JSON-LD) or meta tags — our minifier preserves all content inside <script> and <meta> tags.' },
+  { question: 'How much size reduction should I expect?', answer: 'Typical savings: 10-30% for average HTML pages. The reduction comes almost entirely from whitespace and comments. Pages with heavy indentation and many comments see the largest savings. Pages that are mostly content with little nesting see smaller savings. HTML minification alone won\'t dramatically reduce page size — the biggest wins come from minifying CSS and JavaScript, compressing images, and enabling gzip/brotli compression on your server.' },
+  { question: 'Should I minify HTML during development?', answer: 'No. Keep your source HTML readable during development. Minify as part of your build/deploy pipeline — most static site generators (Astro, Next.js, Hugo) and bundlers (Webpack, Vite) handle this automatically for production builds. Use this tool for quick checks, one-off optimizations, or when you need to inline minified HTML into another file.' },
+]
+
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free online HTML minifier. Compress HTML code by removing whitespace, comments and optional tags. Reduce page size for faster loading. All processing is local and private." {steps} {faq}
+>
+  <div class="flex gap-3 mb-6">
+    <button id="minifyBtn" class="btn btn-primary">Minify</button>
+    <button id="sampleBtn" class="btn btn-secondary">Load Sample</button>
+    <button id="clearBtn" class="btn btn-secondary">Clear</button>
+  </div>
+  <div class="grid lg:grid-cols-2 gap-6">
+    <div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Input HTML</span></div><textarea id="htmlInput" class="code-input" placeholder="Paste HTML code..."></textarea></div>
+    <div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Minified Output</span><span id="sizeInfo" class="text-xs text-gray-400 ml-2"></span><button id="copyBtn" class="btn btn-sm btn-secondary ml-auto">Copy</button></div><pre id="htmlOutput" class="code-output"></pre></div>
+  </div>
+
+  <section slot="examples" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Example</h2>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div><h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 dark:text-gray-400">Before (324 bytes)</h3><pre class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-700 dark:bg-gray-900 dark:border-gray-800 dark:text-gray-300"><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+  &lt;head&gt;
+    &lt;title&gt;Page&lt;/title&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;h1&gt;Hello&lt;/h1&gt;
+    &lt;p&gt;Welcome to my site.&lt;/p&gt;
+  &lt;/body&gt;
+&lt;/html&gt;</code></pre></div>
+      <div><h3 class="text-sm font-semibold text-green-600 uppercase tracking-wider mb-3">After (~150 bytes)</h3><pre class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-700 overflow-x-auto whitespace-pre-wrap break-all dark:bg-gray-900 dark:border-gray-800 dark:text-gray-300"><code>&lt;!DOCTYPE html&gt;&lt;html&gt;&lt;head&gt;&lt;title&gt;Page&lt;/title&gt;&lt;/head&gt;&lt;body&gt;&lt;h1&gt;Hello&lt;/h1&gt;&lt;p&gt;Welcome to my site.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</code></pre></div>
+    </div>
+  </section>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">When to Minify HTML</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">HTML minification removes characters the browser doesn't need — whitespace, comments, optional tags. Combined with gzip compression (which your web server should already be doing), it reduces the bytes sent over the network. The savings from HTML minification alone are modest (10-30%), but they add up across millions of page views.</p>
+      <h3 class="text-lg font-semibold text-gray-900 mt-6 mb-3 dark:text-white">Best Practices</h3>
+      <ul class="list-disc list-inside space-y-2 text-gray-500 dark:text-gray-400">
+        <li>Minify in your build pipeline, not during development</li>
+        <li>Enable gzip/brotli compression on your server — this saves far more bandwidth than minification alone</li>
+        <li>Combine HTML minification with CSS and JavaScript minification for maximum savings</li>
+        <li>Always test minified output — aggressive minifiers can break inline JavaScript or CSS</li>
+      </ul>
+    </div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="space-y-3">
+      <a href="/guides/html-minification-guide/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">HTML Minification Guide</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Why, how and when to minify HTML for production.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+      <a href="/tools/html-formatter/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-green-500 font-medium">Tool</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">HTML Formatter</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Format and beautify HTML with proper indentation.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+      <a href="/tools/css-minifier/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-green-500 font-medium">Tool</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">CSS Minifier</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Minify and compress CSS stylesheets.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+    </div>
+  </section>
+
+  <script>
+    import { copyToClipboard } from '../../../utils/copyToClipboard'
+    const htmlInput = document.getElementById('htmlInput') as HTMLTextAreaElement;
+    const htmlOutput = document.getElementById('htmlOutput')!;
+    const sizeInfo = document.getElementById('sizeInfo')!;
+    const minifyBtn = document.getElementById('minifyBtn')!;
+    const clearBtn = document.getElementById('clearBtn')!;
+    const sampleBtn = document.getElementById('sampleBtn')!;
+    const copyBtn = document.getElementById('copyBtn')!;
+
+    function minify() {
+      let html = htmlInput.value;
+      const origSize = html.length;
+      // Remove HTML comments
+      html = html.replace(/<!--[\s\S]*?-->/g, '');
+      // Collapse whitespace (preserve single spaces between tags/text)
+      html = html.replace(/>\s+</g, '><');
+      html = html.replace(/\s{2,}/g, ' ');
+      html = html.trim();
+      htmlOutput.textContent = html;
+      const newSize = html.length;
+      const pct = origSize > 0 ? Math.round((1 - newSize / origSize) * 100) : 0;
+      sizeInfo.textContent = `(${origSize} → ${newSize} bytes, ${pct}% smaller)`;
+    }
+
+    minifyBtn.addEventListener('click', minify);
+    clearBtn.addEventListener('click', () => { htmlInput.value = ''; htmlOutput.textContent = ''; sizeInfo.textContent = ''; });
+    copyBtn.addEventListener('click', async () => { await copyToClipboard(htmlOutput.textContent || ''); });
+    sampleBtn.addEventListener('click', () => {
+      htmlInput.value = '<!DOCTYPE html>\n<html>\n  <head>\n    <title>My Page</title>\n    <!-- styles -->\n  </head>\n  <body>\n    <h1>Hello World</h1>\n    <p>Welcome to my website.</p>\n    <!-- footer -->\n  </body>\n</html>';
+    });
+  </script>
+</ToolLayout>

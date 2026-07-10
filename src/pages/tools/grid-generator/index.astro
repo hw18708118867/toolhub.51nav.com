@@ -1,0 +1,106 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'grid-generator')!
+
+const steps = [
+  { name: 'Configure the Grid', text: 'Set the number of columns and rows, plus the gap between grid cells. The column and row sizes can use any CSS unit — fr (fraction), px, %, em, or auto.' },
+  { name: 'Adjust Grid Items', text: 'Add items to the grid. Use the controls to set how many columns or rows each item spans (grid-column and grid-row). The preview updates instantly.' },
+  { name: 'Copy the CSS', text: 'The generated CSS shows both the grid container styles and any item-specific span styles. Copy it directly into your project. Use our Grid Generator alongside the Flexbox Generator for complete layout control.' },
+]
+
+const faq = [
+  { question: 'What is CSS Grid?', answer: 'CSS Grid Layout is a two-dimensional layout system — it handles both columns and rows simultaneously. Unlike Flexbox (which is one-dimensional), Grid lets you define a complete page layout with header, sidebar, content area, and footer — all aligned to a grid. Grid is supported in all modern browsers since 2017 and is the standard approach for page-level layouts.' },
+  { question: 'What does the fr unit mean?', answer: 'fr stands for "fraction" — it divides available space proportionally. grid-template-columns: 1fr 2fr 1fr creates three columns where the middle column is twice as wide as the outer columns. fr units distribute remaining space after fixed-size tracks (px, em) are allocated. This makes responsive layouts much easier than percentage-based approaches.' },
+  { question: 'Grid vs Flexbox — which should I use?', answer: 'Use Grid for page layouts and any two-dimensional arrangement. Use Flexbox for one-dimensional components (nav bars, button groups, centering). They\'re complementary, not competing. A typical page uses Grid for the overall layout and Flexbox for the components inside each grid area. Both are well-supported and neither is "better" — they solve different problems.' },
+  { question: 'Does Grid work with older browsers?', answer: 'CSS Grid works in all modern browsers (Chrome 57+, Firefox 52+, Safari 10.1+, Edge 16+). IE11 supports an older version of the Grid specification with different syntax (the -ms- prefix). If you need IE11 support, use autoprefixer or provide flexbox fallbacks. For most projects in 2025 and beyond, IE11 support is no longer necessary.' },
+]
+
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free visual CSS grid generator. Create two-dimensional grid layouts with live preview. Configure columns, rows, gaps and item spans. Copy production-ready grid CSS. All processing is local and private." {steps} {faq}
+>
+  <div class="grid lg:grid-cols-2 gap-6 mb-6">
+    <div class="space-y-4">
+      <div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Grid Settings</span></div>
+        <div class="p-4 space-y-3">
+          <div class="flex items-center gap-3"><label class="text-sm text-gray-600 dark:text-gray-400 w-32">Columns</label><input type="range" id="gridCols" class="flex-1" min="1" max="6" value="3"><span id="colsVal" class="text-sm text-gray-500 w-10">3</span></div>
+          <div class="flex items-center gap-3"><label class="text-sm text-gray-600 dark:text-gray-400 w-32">Rows</label><input type="range" id="gridRows" class="flex-1" min="1" max="4" value="2"><span id="rowsVal" class="text-sm text-gray-500 w-10">2</span></div>
+          <div class="flex items-center gap-3"><label class="text-sm text-gray-600 dark:text-gray-400 w-32">Column Gap</label><input type="range" id="colGap" class="flex-1" min="0" max="32" value="16"><span id="colGapVal" class="text-sm text-gray-500 w-10">16px</span></div>
+          <div class="flex items-center gap-3"><label class="text-sm text-gray-600 dark:text-gray-400 w-32">Row Gap</label><input type="range" id="rowGap" class="flex-1" min="0" max="32" value="16"><span id="rowGapVal" class="text-sm text-gray-500 w-10">16px</span></div>
+          <div class="flex items-center gap-3"><label class="text-sm text-gray-600 dark:text-gray-400 w-32">Items</label><input type="range" id="itemCount" class="flex-1" min="2" max="12" value="6"><span id="countVal" class="text-sm text-gray-500 w-10">6</span></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="code-panel mb-4"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Live Preview</span></div><div class="p-3 bg-gray-50 dark:bg-gray-800 rounded-b-xl" style="min-height:200px"><div id="gridContainer" class="rounded-lg border-2 border-dashed border-blue-300 dark:border-blue-700" style="min-height:180px;padding:4px"></div></div></div>
+      <div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Generated CSS</span><button id="copyCssBtn" class="btn btn-sm btn-secondary ml-auto">Copy</button></div><pre id="cssOutput" class="code-output text-sm"></pre></div>
+    </div>
+  </div>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">When to Use CSS Grid</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">CSS Grid is the right tool when you need to control both rows and columns. Page layouts, image galleries, dashboard panels, and any design where items need to align in two dimensions.</p>
+      <ul class="list-disc list-inside space-y-2 text-gray-500 dark:text-gray-400">
+        <li>Full page layouts (header, sidebar, content, footer)</li>
+        <li>Image galleries with consistent spacing</li>
+        <li>Dashboard widgets in a grid arrangement</li>
+        <li>Form layouts with complex field arrangements</li>
+        <li>Card grids where items can span multiple columns or rows</li>
+      </ul>
+    </div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="space-y-3">
+      <a href="/guides/css-grid-guide/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">CSS Grid Guide</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Two-dimensional layout with fr units and template areas.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+      <a href="/tools/flexbox-generator/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-green-500 font-medium">Tool</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">Flexbox Generator</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Visual CSS flexbox layout generator for one-dimensional layouts.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+      <a href="/guides/css-color-gradient-guide/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">CSS Colors & Gradients Guide</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">HEX, RGB, HSL explained. Build palettes and gradients.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+    </div>
+  </section>
+
+  <script>
+    import { copyToClipboard } from '../../../utils/copyToClipboard'
+    const gridCols = document.getElementById('gridCols') as HTMLInputElement;
+    const gridRows = document.getElementById('gridRows') as HTMLInputElement;
+    const colGap = document.getElementById('colGap') as HTMLInputElement;
+    const rowGap = document.getElementById('rowGap') as HTMLInputElement;
+    const itemCount = document.getElementById('itemCount') as HTMLInputElement;
+    const colsVal = document.getElementById('colsVal')!, rowsVal = document.getElementById('rowsVal')!;
+    const colGapVal = document.getElementById('colGapVal')!, rowGapVal = document.getElementById('rowGapVal')!;
+    const countVal = document.getElementById('countVal')!;
+    const gridContainer = document.getElementById('gridContainer')!;
+    const cssOutput = document.getElementById('cssOutput')!;
+    const copyCssBtn = document.getElementById('copyCssBtn')!;
+    const colors = ['#3b82f6','#ef4444','#10b981','#f59e0b','#8b5cf6','#ec4899','#06b6d4','#84cc16','#f97316','#14b8a6','#6366f1','#e11d48'];
+
+    function update() {
+      const cols = parseInt(gridCols.value), rows = parseInt(gridRows.value), cg = colGap.value, rg = rowGap.value, count = parseInt(itemCount.value);
+      colsVal.textContent = cols; rowsVal.textContent = rows;
+      colGapVal.textContent = cg + 'px'; rowGapVal.textContent = rg + 'px'; countVal.textContent = count;
+
+      gridContainer.style.display = 'grid';
+      gridContainer.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+      gridContainer.style.gridTemplateRows = `repeat(${rows}, minmax(60px, auto))`;
+      gridContainer.style.columnGap = cg + 'px';
+      gridContainer.style.rowGap = rg + 'px';
+
+      let html = '';
+      for (let i = 0; i < count; i++) {
+        html += `<div style="background:${colors[i]};color:#fff;border-radius:8px;padding:12px;text-align:center;font-weight:600;font-size:14px;display:flex;align-items:center;justify-content:center">${i + 1}</div>`;
+      }
+      gridContainer.innerHTML = html;
+
+      cssOutput.textContent = `.container {\n  display: grid;\n  grid-template-columns: repeat(${cols}, 1fr);\n  grid-template-rows: repeat(${rows}, minmax(60px, auto));\n  column-gap: ${cg}px;\n  row-gap: ${rg}px;\n}`;
+    }
+
+    [gridCols, gridRows, colGap, rowGap, itemCount].forEach(el => el.addEventListener('input', update));
+    copyCssBtn.addEventListener('click', async () => { await copyToClipboard(cssOutput.textContent || ''); });
+    update();
+  </script>
+</ToolLayout>

@@ -1,0 +1,35 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+const content = `
+<div class="prose prose-gray max-w-none dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-strong:text-gray-900 dark:prose-strong:text-white prose-code:text-blue-600 dark:prose-code:text-blue-400 prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-pre:bg-gray-50 dark:prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-gray-800">
+
+<h2>CSS Minification: Smaller Stylesheets, Same Visuals</h2>
+<p>CSS files grow. A small site might start with 500 lines of hand-written styles. Add a framework, a component library, third-party widgets, and design iterations over two years, and your stylesheet is 5,000 lines. Much of that is whitespace — indentation, blank lines between rules, spaces around colons and semicolons. None of it affects rendering. The browser's CSS parser reads the same selectors and properties whether they're beautifully formatted or packed into one dense line. CSS minification removes the formatting and keeps the logic. A <a href="/tools/css-minifier/">CSS minifier</a> does exactly this: paste styles, get compressed output, same visual result.</p>
+
+<h2>What CSS Minification Removes</h2>
+<p><strong>Comments:</strong> CSS comments (<code>/* like this */</code>) are for developers, not browsers. Minification strips them all. If you have license comments that must be preserved (like open-source font licenses), use a build tool that supports comment preservation with special markers (<code>/*! preserve me */</code> with an exclamation mark).</p>
+<p><strong>Whitespace:</strong> Spaces, tabs, and line breaks between tokens. The browser doesn't need a space between <code>color</code> and <code>:</code> or between <code>:</code> and <code>red</code>. Minification collapses or removes these. One exception: whitespace in selector combinators (<code>.parent .child</code> — the space between class names is a descendant combinator and must be preserved). Good minifiers know the difference.</p>
+<p><strong>Trailing semicolons:</strong> The last declaration in a rule block doesn't need a semicolon. Minifiers remove it. Same for the last rule in a stylesheet.</p>
+<p><strong>Leading zeros:</strong> <code>0.5em</code> becomes <code>.5em</code>. <code>0.8</code> becomes <code>.8</code>. The leading zero is optional in CSS. This saves one byte per decimal value.</p>
+<p><strong>Color compression:</strong> Hex colors with repeated digits compress: <code>#ffffff</code> becomes <code>#fff</code>, <code>#336699</code> becomes <code>#369</code>, <code>#aabbcc</code> becomes <code>#abc</code>. Named colors like <code>red</code> can replace <code>#ff0000</code>. This saves 1-4 bytes per color value.</p>
+<p><strong>Zero units:</strong> <code>0px</code> becomes <code>0</code>. <code>0ms</code> becomes <code>0</code>. When the value is zero, the unit is meaningless — zero is zero in any unit. Removing the unit saves 2 bytes per zero value.</p>
+
+<h2>Minification vs. Optimization</h2>
+<p>Minification changes formatting. Optimization changes logic. CSS optimization removes unused rules (dead code elimination via PurgeCSS), merges identical selectors, inlines critical CSS for above-the-fold rendering, and converts duplicate declarations into shared classes. Minification is safe — the output renders identically. Optimization can break things if done incorrectly. Always optimize before minifying: remove dead code first, then compress what remains. Minifying 5,000 lines that contain 2,000 lines of unused styles wastes effort on bytes that shouldn't exist in the first place.</p>
+<p>Our <a href="/tools/css-minifier/">CSS minifier</a> handles the minification step. For optimization, use dedicated tools: PurgeCSS for dead code elimination, Autoprefixer for vendor prefixes, cssnano for advanced minification with structural optimizations. The combination — optimize with PurgeCSS, prefix with Autoprefixer, minify with our tool or cssnano — produces the smallest possible production stylesheet.</p>
+
+<h2>Building a CSS Pipeline</h2>
+<p>A production CSS pipeline has three stages. Stage 1: Write. Use modern CSS, nesting (with PostCSS if needed), custom properties, and readable structure. Stage 2: Process. Run Autoprefixer for browser compatibility, PurgeCSS to remove unused styles, and combine multiple CSS files into one. Stage 3: Compress. Minify the output, then enable gzip or brotli on your server. The processing and compression stages are automated in CI/CD. The writing stage is where you spend your time. For quick one-off minification — a standalone CSS file that won't go through your normal pipeline — use our <a href="/tools/css-minifier/">CSS minifier</a>. For production systems, integrate cssnano into your build tool. For HTML minification, use the <a href="/tools/html-minifier/">HTML Minifier</a>.</p>
+</div>
+`
+---
+<GuideLayout
+  title="CSS Minification: Compressing Stylesheets for Production | DevTools Hub"
+  description="Guide to CSS minification — what gets removed (comments, whitespace, trailing values), minification vs optimization, and building a production CSS pipeline with PurgeCSS and cssnano."
+  breadcrumb="CSS Minification"
+  relatedTools={[{href:'/tools/css-minifier/',title:'CSS Minifier',desc:'Minify and compress CSS code',type:'tool'},{href:'/tools/css-formatter/',title:'CSS Formatter',desc:'Format and beautify CSS',type:'tool'},{href:'/tools/html-minifier/',title:'HTML Minifier',desc:'Minify and compress HTML code',type:'tool'}]}
+>
+  <Fragment slot="title">CSS Minification:<br class="hidden sm:block" />Compressing Stylesheets</Fragment>
+  <Fragment slot="intro">CSS minification strips comments, whitespace, and unnecessary values from stylesheets without changing how they render. Learn what gets removed and how to build a production CSS pipeline.</Fragment>
+  <Fragment set:html={content} />
+</GuideLayout>

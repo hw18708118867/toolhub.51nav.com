@@ -51,6 +51,13 @@ const guideSlugs = [
   'user-agent-guide',
   'web-encoding-guide',
   'whois-lookup-guide',
+  'html-minification-guide',
+  'css-minification-guide',
+  'flexbox-guide',
+  'css-grid-guide',
+  'box-shadow-guide',
+  'border-radius-guide',
+  'svg-workflow-guide',
   'word-count-seo-guide',
 ]
 

@@ -33,6 +33,10 @@ export const tools: Tool[] = [
   { id: 'css-gradient', name: 'CSS Gradient', description: 'Create gradient CSS', icon: 'gradient', category: 'color' },
   { id: 'color-contrast', name: 'Color Contrast Checker', description: 'Check WCAG contrast ratios', icon: 'count', category: 'color' },
   { id: 'color-palette', name: 'Color Palette Generator', description: 'Generate harmonious color palettes', icon: 'lorem', category: 'color' },
+  { id: 'flexbox-generator', name: 'Flexbox Generator', description: 'Visual CSS flexbox layout generator', icon: 'layout', category: 'color' },
+  { id: 'grid-generator', name: 'CSS Grid Generator', description: 'Visual CSS grid layout generator', icon: 'layout', category: 'color' },
+  { id: 'box-shadow-generator', name: 'Box Shadow Generator', description: 'Generate CSS box-shadow styles visually', icon: 'shadow', category: 'color' },
+  { id: 'border-radius-generator', name: 'Border Radius Generator', description: 'Generate CSS border-radius styles visually', icon: 'color', category: 'color' },
 
   // ===== DATA =====
   { id: 'json-formatter', name: 'JSON Formatter', description: 'Format, validate, minify JSON', icon: 'json', category: 'data' },
@@ -52,6 +56,7 @@ export const tools: Tool[] = [
   { id: 'json-tree-viewer', name: 'JSON Tree Viewer', description: 'Visualize JSON structure as a tree', icon: 'json', category: 'data' },
 
   // ===== DEV =====
+  { id: 'html-preview', name: 'HTML Preview', description: 'Preview HTML code in real-time', icon: 'html', category: 'dev' },
   { id: 'jwt-decoder', name: 'JWT Decoder', description: 'Decode JSON Web Tokens', icon: 'jwt', category: 'dev' },
   { id: 'jwt-encoder', name: 'JWT Encoder', description: 'Create and sign JSON Web Tokens', icon: 'jwt', category: 'dev' },
   { id: 'jwt-inspector', name: 'JWT Inspector', description: 'Inspect JWT claims, expiry, and structure', icon: 'jwt', category: 'dev' },
@@ -93,6 +98,9 @@ export const tools: Tool[] = [
   // ===== IMAGE =====
   { id: 'image-to-base64', name: 'Image to Base64', description: 'Convert image to Base64 data URI', icon: 'base64', category: 'image' },
   { id: 'base64-image-viewer', name: 'Base64 Image Viewer', description: 'Decode and view Base64-encoded images', icon: 'base64', category: 'image' },
+  { id: 'svg-viewer', name: 'SVG Viewer', description: 'View and preview SVG code in real-time', icon: 'base64', category: 'image' },
+  { id: 'svg-optimizer', name: 'SVG Optimizer', description: 'Optimize and clean up SVG markup', icon: 'base64', category: 'image' },
+  { id: 'svg-minifier', name: 'SVG Minifier', description: 'Minify and compress SVG code', icon: 'base64', category: 'image' },
 
   // ===== SECURITY =====
   { id: 'ssl-checker', name: 'SSL Certificate Checker', description: 'Check SSL certificate details', icon: 'jwt', category: 'security' },
@@ -100,7 +108,9 @@ export const tools: Tool[] = [
 
   // ===== FORMATTERS =====
   { id: 'css-formatter', name: 'CSS Formatter', description: 'Format & beautify CSS', icon: 'gradient', category: 'formatters' },
+  { id: 'css-minifier', name: 'CSS Minifier', description: 'Minify and compress CSS code', icon: 'gradient', category: 'formatters' },
   { id: 'html-formatter', name: 'HTML Formatter', description: 'Format & beautify HTML', icon: 'html', category: 'formatters' },
+  { id: 'html-minifier', name: 'HTML Minifier', description: 'Minify and compress HTML code', icon: 'html', category: 'formatters' },
   { id: 'js-formatter', name: 'JavaScript Formatter', description: 'Format & beautify JavaScript', icon: 'regex', category: 'formatters' },
 
   // ===== CALCULATORS =====

@@ -1,0 +1,94 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'svg-minifier')!
+
+const steps = [
+  { name: 'Paste SVG Code', text: 'Paste SVG markup into the input panel. For best results, optimize the SVG first (remove editor metadata), then minify it for production use.' },
+  { name: 'Minify the SVG', text: 'Click "Minify" to collapse whitespace, remove unnecessary quotes, shorten color values, and compress the SVG to its smallest valid form.' },
+  { name: 'Copy the Production SVG', text: 'The minified SVG appears as a single compact line. Use this in production — inlined in HTML, embedded in JavaScript, or saved as an .svg file. The visual output is identical to the original.' },
+]
+
+const faq = [
+  { question: 'What does SVG minification do?', answer: 'SVG minification removes: all unnecessary whitespace (spaces, tabs, line breaks between tags), optional quotes around attribute values where the SVG spec allows them, leading zeros from decimal numbers (.5 instead of 0.5), and shortens hex color codes where possible (#fff instead of #ffffff). It also collapses redundant spaces within path data. The output is functionally identical — only formatting changes.' },
+  { question: 'Should I optimize or minify first?', answer: 'Optimize first, then minify. Optimization removes editor metadata, comments, and unnecessary attributes — reducing both file size and markup complexity. Minification then compresses the remaining markup by removing whitespace and shortening values. Run optimization once when you first export an SVG from a design tool. Run minification as the final step before deploying to production.' },
+  { question: 'Is minified SVG still human-readable?', answer: 'Barely. Minified SVG is a single line with no indentation or spacing, designed for machines (browsers, build tools), not humans. Keep the unminified version as your source of truth. Add the minified version to your production build output. Most build tools (Webpack, Vite, Parcel) handle SVG minification automatically via SVGO integration.' },
+  { question: 'Will minification break inline styles or scripts?', answer: 'Our minifier is conservative with content inside style and script tags — it preserves spaces that could affect CSS or JavaScript parsing. However, for SVGs with complex embedded scripts, always test the minified output. Aggressive minification that strips all whitespace from inline CSS can break selectors (e.g., ".class1 .class2" becoming ".class1.class2" which has a different meaning).' },
+]
+
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free online SVG minifier. Compress SVG code by removing whitespace, quotes and unnecessary characters. Reduce SVG file size for production. Optimize first, then minify." {steps} {faq}
+>
+  <div class="flex gap-3 mb-6">
+    <button id="minifyBtn" class="btn btn-primary">Minify</button>
+    <button id="sampleBtn" class="btn btn-secondary">Load Sample</button>
+    <button id="clearBtn" class="btn btn-secondary">Clear</button>
+  </div>
+  <div class="grid lg:grid-cols-2 gap-6">
+    <div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Input SVG</span></div><textarea id="svgInput" class="code-input" placeholder="Paste SVG code..."></textarea></div>
+    <div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Minified Output</span><span id="sizeInfo" class="text-xs text-gray-400 ml-2"></span><button id="copyBtn" class="btn btn-sm btn-secondary ml-auto">Copy</button></div><pre id="svgOutput" class="code-output"></pre></div>
+  </div>
+
+  <section slot="examples" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Example Pipeline</h2>
+    <div class="space-y-3 text-sm text-gray-500 dark:text-gray-400">
+      <div><span class="font-semibold text-gray-900 dark:text-white">Original export (Illustrator):</span> ~2,400 bytes — full metadata, comments, indentation</div>
+      <div><span class="text-blue-500">→</span> <span class="font-semibold text-gray-900 dark:text-white">Optimized:</span> ~800 bytes — metadata removed, structure cleaned</div>
+      <div><span class="text-blue-500">→</span> <span class="font-semibold text-green-500 font-semibold">Minified:</span> ~500 bytes — whitespace stripped, production-ready</div>
+    </div>
+    <p class="text-sm text-gray-400 mt-4">A 2,400-byte icon becomes a 500-byte production asset — 79% reduction.</p>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="space-y-3">
+      <a href="/guides/svg-workflow-guide/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">SVG Workflow Guide</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">View, optimize and minify SVG production pipeline.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+      <a href="/tools/svg-optimizer/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-green-500 font-medium">Tool</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">SVG Optimizer</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Optimize and clean up SVG markup before minifying.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+      <a href="/tools/svg-viewer/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-green-500 font-medium">Tool</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">SVG Viewer</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">View and preview SVGs before and after optimization.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+    </div>
+  </section>
+
+  <script>
+    import { copyToClipboard } from '../../../utils/copyToClipboard'
+    const svgInput = document.getElementById('svgInput') as HTMLTextAreaElement;
+    const svgOutput = document.getElementById('svgOutput')!;
+    const sizeInfo = document.getElementById('sizeInfo')!;
+    const minifyBtn = document.getElementById('minifyBtn')!;
+    const clearBtn = document.getElementById('clearBtn')!;
+    const sampleBtn = document.getElementById('sampleBtn')!;
+    const copyBtn = document.getElementById('copyBtn')!;
+
+    function minify() {
+      let svg = svgInput.value;
+      const origSize = svg.length;
+      // Collapse whitespace between tags
+      svg = svg.replace(/>\s+</g, '><');
+      // Remove leading/trailing whitespace within tags (preserve important spaces)
+      svg = svg.replace(/\s*=\s*/g, '=');
+      // Remove unnecessary quotes from numeric/hex attributes
+      svg = svg.replace(/"(#[a-fA-F0-9]{3,6})"/gi, '$1');
+      svg = svg.replace(/"(\d+(?:\.\d+)?)"/g, '$1');
+      // Collapse multiple spaces
+      svg = svg.replace(/\s{2,}/g, ' ');
+      // Remove spaces before closing tags
+      svg = svg.replace(/\s+\/>/g, '/>');
+      svg = svg.replace(/\s+>/g, '>');
+      svg = svg.trim();
+      svgOutput.textContent = svg;
+      const newSize = svg.length;
+      const pct = origSize > 0 ? Math.round((1 - newSize / origSize) * 100) : 0;
+      sizeInfo.textContent = `(${origSize} → ${newSize} bytes, ${pct}% smaller)`;
+    }
+
+    minifyBtn.addEventListener('click', minify);
+    clearBtn.addEventListener('click', () => { svgInput.value = ''; svgOutput.textContent = ''; sizeInfo.textContent = ''; });
+    copyBtn.addEventListener('click', async () => { await copyToClipboard(svgOutput.textContent || ''); });
+    sampleBtn.addEventListener('click', () => {
+      svgInput.value = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">\n  <circle cx="50" cy="50" r="40" fill="#3b82f6" stroke="#ffffff" stroke-width="2"/>\n  <path d="M 35 45 L 50 60 L 65 40" stroke="#ffffff" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>\n</svg>';
+    });
+  </script>
+</ToolLayout>

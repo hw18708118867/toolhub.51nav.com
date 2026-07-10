@@ -1,0 +1,117 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'border-radius-generator')!
+
+const steps = [
+  { name: 'Adjust Corner Values', text: 'Use the sliders to set the border radius for each corner individually, or toggle "Uniform" to set the same value for all four corners at once. Values are in pixels.' },
+  { name: 'View the Preview', text: 'The preview box shows exactly how the rounded corners will look. The box has a blue background so you can clearly see the border radius effect against the page background.' },
+  { name: 'Copy the CSS', text: 'The generated border-radius CSS updates in real-time. Copy the shorthand or individual corner values directly into your stylesheet. The shorthand format shows all four values (top-left, top-right, bottom-right, bottom-left).' },
+]
+
+const faq = [
+  { question: 'What does border-radius do?', answer: 'border-radius rounds the corners of an element. Each corner can have a different radius. The shorthand order is: top-left, top-right, bottom-right, bottom-left — clockwise from top-left. A single value applies to all four corners. Two values set top-left/bottom-right and top-right/bottom-left alternately. border-radius: 8px gives all corners 8px rounding. border-radius: 50% makes a perfect circle (on a square element).' },
+  { question: 'Can I create elliptical corners?', answer: 'Yes, CSS border-radius supports elliptical corners using a slash: border-radius: 20px / 10px creates corners with 20px horizontal radius and 10px vertical radius. Each corner can have different horizontal and vertical radii, creating asymmetrical curves. Our tool generates standard circular corners — for elliptical corners, manually use the slash syntax.' },
+  { question: 'What is the difference between border-radius and clip-path?', answer: 'border-radius only rounds the corners of the element box — the element remains rectangular with curved corners. clip-path can create arbitrary shapes (circles, polygons, custom paths) by clipping the element to that shape. border-radius preserves the element box model and layout; clip-path changes the visible shape but the original box (and its margins/padding) stays the same. Use border-radius for rounded corners and clip-path for custom shapes.' },
+  { question: 'Does border-radius work on images?', answer: 'Yes. Apply border-radius directly to an img element to round its corners. For a circular avatar, use border-radius: 50% on a square image. For images inside containers, apply overflow: hidden to the container along with border-radius — the image gets clipped to the rounded shape. This is the standard technique for circular user avatars and rounded image thumbnails.' },
+]
+
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free visual CSS border-radius generator. Design rounded corners with live preview. Adjust each corner individually or uniformly. Copy production-ready border-radius CSS. All processing is local and private." {steps} {faq}
+>
+  <div class="grid lg:grid-cols-2 gap-6 mb-6">
+    <div class="space-y-4">
+      <div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Corner Settings</span></div>
+        <div class="p-4 space-y-3">
+          <label class="flex items-center gap-3 cursor-pointer mb-3"><input type="checkbox" id="uniform" checked class="w-4 h-4 rounded"><span class="text-sm text-gray-600 dark:text-gray-400">Uniform (same radius for all corners)</span></label>
+          <div id="cornerSliders" class="space-y-3">
+            <div class="flex items-center gap-3"><label class="text-sm text-gray-600 dark:text-gray-400 w-28">Top Left</label><input type="range" class="corner-slider flex-1" data-corner="tl" min="0" max="120" value="16"><span class="corner-val text-sm text-gray-500 w-12">16px</span></div>
+            <div class="flex items-center gap-3"><label class="text-sm text-gray-600 dark:text-gray-400 w-28">Top Right</label><input type="range" class="corner-slider flex-1" data-corner="tr" min="0" max="120" value="16"><span class="corner-val text-sm text-gray-500 w-12">16px</span></div>
+            <div class="flex items-center gap-3"><label class="text-sm text-gray-600 dark:text-gray-400 w-28">Bottom Right</label><input type="range" class="corner-slider flex-1" data-corner="br" min="0" max="120" value="16"><span class="corner-val text-sm text-gray-500 w-12">16px</span></div>
+            <div class="flex items-center gap-3"><label class="text-sm text-gray-600 dark:text-gray-400 w-28">Bottom Left</label><input type="range" class="corner-slider flex-1" data-corner="bl" min="0" max="120" value="16"><span class="corner-val text-sm text-gray-500 w-12">16px</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="code-panel mb-4"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Live Preview</span></div><div class="p-10 bg-gray-100 dark:bg-gray-800 rounded-b-xl flex items-center justify-center" style="min-height:240px"><div id="previewBox" class="w-48 h-48 bg-blue-500"></div></div></div>
+      <div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Generated CSS</span><button id="copyBtn" class="btn btn-sm btn-secondary ml-auto">Copy</button></div><pre id="cssOutput" class="code-output text-sm"></pre></div>
+    </div>
+  </div>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Border Radius Design Tips</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">Rounded corners soften visual design. The right radius makes buttons feel clickable, cards feel contained, and images feel polished.</p>
+      <ul class="list-disc list-inside space-y-2 text-gray-500 dark:text-gray-400">
+        <li><strong>Buttons:</strong> 6-12px radius for standard buttons. Fully rounded (24px+) for pill-shaped buttons.</li>
+        <li><strong>Cards:</strong> 8-16px radius for content cards. Larger cards can use larger radii.</li>
+        <li><strong>Avatars:</strong> 50% for circular avatars. Use on a square img element for a perfect circle.</li>
+        <li><strong>Input fields:</strong> 4-8px radius for text inputs. Matches most design systems.</li>
+        <li><strong>Modals:</strong> 12-20px radius for modal dialogs. Creates visual distinction from the page.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="space-y-3">
+      <a href="/guides/border-radius-guide/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">Border Radius Guide</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Corners, circles and design guidelines for every element.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+      <a href="/tools/box-shadow-generator/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-green-500 font-medium">Tool</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">Box Shadow Generator</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Generate CSS box-shadow styles visually.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+      <a href="/guides/css-color-gradient-guide/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">CSS Colors & Gradients Guide</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">HEX, RGB, HSL explained. Build palettes and gradients.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+    </div>
+  </section>
+
+  <script>
+    import { copyToClipboard } from '../../../utils/copyToClipboard'
+    const uniformCheck = document.getElementById('uniform') as HTMLInputElement;
+    const previewBox = document.getElementById('previewBox')!;
+    const cssOutput = document.getElementById('cssOutput')!;
+    const copyBtn = document.getElementById('copyBtn')!;
+    const sliders = document.querySelectorAll('.corner-slider') as NodeListOf<HTMLInputElement>;
+
+    function update() {
+      const tl = parseInt((document.querySelector('[data-corner="tl"]') as HTMLInputElement).value);
+      const tr = parseInt((document.querySelector('[data-corner="tr"]') as HTMLInputElement).value);
+      const br = parseInt((document.querySelector('[data-corner="br"]') as HTMLInputElement).value);
+      const bl = parseInt((document.querySelector('[data-corner="bl"]') as HTMLInputElement).value);
+
+      document.querySelectorAll('.corner-val').forEach((el, i) => {
+        el.textContent = [tl, tr, br, bl][i] + 'px';
+      });
+
+      previewBox.style.borderRadius = `${tl}px ${tr}px ${br}px ${bl}px`;
+
+      if (tl === tr && tr === br && br === bl) {
+        cssOutput.textContent = `border-radius: ${tl}px;`;
+      } else {
+        cssOutput.textContent = `border-radius: ${tl}px ${tr}px ${br}px ${bl}px;`;
+      }
+    }
+
+    uniformCheck.addEventListener('change', () => {
+      if (uniformCheck.checked) {
+        const masterVal = (document.querySelector('[data-corner="tl"]') as HTMLInputElement).value;
+        sliders.forEach(s => { s.value = masterVal; (s.nextElementSibling as HTMLElement).textContent = masterVal + 'px'; });
+      }
+      update();
+    });
+
+    sliders.forEach(slider => {
+      slider.addEventListener('input', () => {
+        if (uniformCheck.checked) {
+          const masterVal = slider.value;
+          sliders.forEach(s => { s.value = masterVal; (s.nextElementSibling as HTMLElement).textContent = masterVal + 'px'; });
+        }
+        update();
+      });
+    });
+
+    copyBtn.addEventListener('click', async () => { await copyToClipboard(cssOutput.textContent || ''); });
+    update();
+  </script>
+</ToolLayout>

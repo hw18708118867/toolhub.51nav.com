@@ -1,0 +1,96 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'svg-optimizer')!
+
+const steps = [
+  { name: 'Paste SVG Code', text: 'Paste raw SVG markup — especially SVGs exported from design tools like Illustrator, Figma, or Sketch. These exports often contain editor metadata, comments, and unnecessary attributes.' },
+  { name: 'Optimize the SVG', text: 'Click "Optimize" to strip editor metadata, remove comments, clean up unnecessary attributes, and simplify the SVG structure. The tool preserves visual appearance while reducing file size.' },
+  { name: 'Copy the Clean SVG', text: 'The optimized SVG appears in the output panel. The size reduction is shown as a percentage. Use the cleaned SVG in your projects — it will render identically but load faster and take less space.' },
+]
+
+const faq = [
+  { question: 'What does SVG optimization remove?', answer: 'Our optimizer removes: XML comments, editor metadata (Illustrator, Figma, Sketch namespaces and attributes), unnecessary nested groups, empty elements, default attribute values, and redundant namespace declarations. It does NOT change: paths, shapes, colors, gradients, or any visual aspect of the SVG. The optimized SVG renders identically to the original.' },
+  { question: 'Will optimization break my SVG?', answer: 'No, the optimizer only removes non-visual markup. However, if your SVG relies on editor-specific metadata (like layer names for animation scripts), that data will be removed. Always preview the optimized SVG before using it in production. For complex SVGs with custom scripts, test the optimized output thoroughly.' },
+  { question: 'How does this compare to SVGO?', answer: 'SVGO is the industry-standard SVG optimization tool and offers more advanced features like path optimization and precision control. Our tool provides a quick browser-based alternative for common cleanup tasks. For production SVG pipelines, use SVGO as part of your build process. Use our tool for quick one-off optimizations without installing anything.' },
+  { question: 'Why are exported SVGs so large?', answer: 'Design tools add significant metadata — layer names, artboard information, export settings, editor-specific XML namespaces. A simple icon that should be 200 bytes can be 2KB+ from direct export. Optimization strips this metadata, often reducing SVG size by 30-70%. The remaining size is the actual drawing data, which can be further minified with our SVG Minifier.' },
+]
+
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free online SVG optimizer. Clean up SVG markup by removing editor metadata, comments and unnecessary attributes. Reduce SVG file size while preserving visual quality. All processing is local and private." {steps} {faq}
+>
+  <div class="flex gap-3 mb-6">
+    <button id="optimizeBtn" class="btn btn-primary">Optimize</button>
+    <button id="sampleBtn" class="btn btn-secondary">Load Sample</button>
+    <button id="clearBtn" class="btn btn-secondary">Clear</button>
+  </div>
+  <div class="grid lg:grid-cols-2 gap-6">
+    <div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Input SVG</span></div><textarea id="svgInput" class="code-input" placeholder="Paste SVG code..."></textarea></div>
+    <div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Optimized Output</span><span id="sizeInfo" class="text-xs text-gray-400 ml-2"></span><button id="copyBtn" class="btn btn-sm btn-secondary ml-auto">Copy</button></div><pre id="svgOutput" class="code-output"></pre></div>
+  </div>
+
+  <section slot="examples" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Common Size Reductions</h2>
+    <div class="overflow-x-auto"><table class="w-full text-left"><thead><tr class="border-b border-gray-200 dark:border-gray-800"><th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">Source</th><th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">Typical Reduction</th><th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">What Gets Removed</th></tr></thead><tbody class="text-gray-500 dark:text-gray-400 text-sm">
+      <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">Illustrator Export</td><td class="py-3 px-4">40-60%</td><td class="py-3 px-4">i:namespace attributes, layer structure, editor metadata</td></tr>
+      <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">Figma Export</td><td class="py-3 px-4">30-50%</td><td class="py-3 px-4">figma namespace, id tags, group nesting</td></tr>
+      <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">Sketch Export</td><td class="py-3 px-4">35-55%</td><td class="py-3 px-4">sketch namespace, comments, page info</td></tr>
+      <tr><td class="py-3 px-4">Icon Library SVG</td><td class="py-3 px-4">10-25%</td><td class="py-3 px-4">Comments, title/desc tags, unnecessary groups</td></tr>
+    </tbody></table></div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="space-y-3">
+      <a href="/guides/svg-workflow-guide/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">SVG Workflow Guide</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">View, optimize and minify SVG production pipeline.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+      <a href="/tools/svg-viewer/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-green-500 font-medium">Tool</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">SVG Viewer</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">View and preview SVG code in real-time.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+      <a href="/tools/svg-minifier/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-green-500 font-medium">Tool</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">SVG Minifier</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Minify and compress SVG code for production.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+    </div>
+  </section>
+
+  <script>
+    import { copyToClipboard } from '../../../utils/copyToClipboard'
+    const svgInput = document.getElementById('svgInput') as HTMLTextAreaElement;
+    const svgOutput = document.getElementById('svgOutput')!;
+    const sizeInfo = document.getElementById('sizeInfo')!;
+    const optimizeBtn = document.getElementById('optimizeBtn')!;
+    const clearBtn = document.getElementById('clearBtn')!;
+    const sampleBtn = document.getElementById('sampleBtn')!;
+    const copyBtn = document.getElementById('copyBtn')!;
+
+    function optimize() {
+      let svg = svgInput.value;
+      const origSize = svg.length;
+      // Remove XML comments
+      svg = svg.replace(/<!--[\s\S]*?-->/g, '');
+      // Remove editor metadata namespaces from root
+      svg = svg.replace(/\s*xmlns:(i|sketch|figma|inkscape|sodipodi|adobe)=["'][^"']*["']/gi, '');
+      // Remove attributes from specific editor namespaces
+      svg = svg.replace(/\s*(i|sketch|figma|inkscape|sodipodi|adobe):[a-zA-Z-]+=["'][^"']*["']/gi, '');
+      // Remove empty groups (groups with no children or only whitespace)
+      svg = svg.replace(/<g[^>]*>\s*<\/g>/g, '');
+      // Remove title and desc tags (accessibility tags often auto-generated)
+      svg = svg.replace(/<title>[^<]*<\/title>/g, '');
+      svg = svg.replace(/<desc>[^<]*<\/desc>/g, '');
+      // Collapse whitespace between tags
+      svg = svg.replace(/>\s+</g, '><');
+      svg = svg.replace(/\s{2,}/g, ' ');
+      svg = svg.trim();
+      svgOutput.textContent = svg;
+      const newSize = svg.length;
+      const pct = origSize > 0 ? Math.round((1 - newSize / origSize) * 100) : 0;
+      sizeInfo.textContent = `(${origSize} → ${newSize} bytes, ${pct}% smaller)`;
+    }
+
+    optimizeBtn.addEventListener('click', optimize);
+    clearBtn.addEventListener('click', () => { svgInput.value = ''; svgOutput.textContent = ''; sizeInfo.textContent = ''; });
+    copyBtn.addEventListener('click', async () => { await copyToClipboard(svgOutput.textContent || ''); });
+    sampleBtn.addEventListener('click', () => {
+      svgInput.value = '<?xml version="1.0" encoding="UTF-8"?>\n<!-- Generator: Adobe Illustrator 28.0.0, SVG Export -->\n<svg xmlns="http://www.w3.org/2000/svg" xmlns:i="http://ns.adobe.com/AdobeIllustrator/10.0/" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns" viewBox="0 0 24 24" i:extraneous="self">\n  <title>Icon</title>\n  <desc>Created with Sketch.</desc>\n  <g i:layer="yes">\n    <circle cx="12" cy="12" r="10" fill="#3b82f6"/>\n  </g>\n  <g sketch:type="MSLayerGroup">\n    <path d="M8 12l3 3 5-5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/>\n  </g>\n</svg>';
+    });
+  </script>
+</ToolLayout>

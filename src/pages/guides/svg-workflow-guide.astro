@@ -1,0 +1,37 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+const content = `
+<div class="prose prose-gray max-w-none dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-strong:text-gray-900 dark:prose-strong:text-white prose-code:text-blue-600 dark:prose-code:text-blue-400 prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-pre:bg-gray-50 dark:prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-gray-800">
+
+<h2>SVG: The Format That Powers Modern Graphics</h2>
+<p>SVG (Scalable Vector Graphics) is the standard format for icons, logos, illustrations, and any graphic that needs to look crisp at every size. Unlike raster images (PNG, JPEG, WebP) which store pixel data, SVG stores drawing instructions — paths, shapes, colors, gradients — as XML text. A circle is a <code>&lt;circle cx="50" cy="50" r="40"/&gt;</code> element, not a grid of colored squares. This means SVGs are resolution-independent: an icon that looks sharp at 16x16 pixels also looks sharp at 1600x1600, with no file size increase. They're also text files, which means they can be edited, compressed, and embedded directly in HTML.</p>
+
+<h2>The SVG Workflow: View, Optimize, Minify</h2>
+<p>A typical SVG workflow has three steps, each handled by a dedicated tool on this site. Step 1: <strong>View</strong> the SVG. Use the <a href="/tools/svg-viewer/">SVG Viewer</a> to paste SVG code and see it render in real-time. This confirms the file is valid, the colors are correct, and the graphic looks as expected. Many SVG errors — wrong viewBox, missing namespace, broken paths — are immediately visible in a live preview and invisible in the raw code.</p>
+<p>Step 2: <strong>Optimize</strong> the SVG. SVGs exported from design tools (Illustrator, Figma, Sketch) contain significant metadata — layer names, artboard information, editor-specific XML namespaces, comments. None of this affects rendering. The <a href="/tools/svg-optimizer/">SVG Optimizer</a> strips editor metadata, comments, empty groups, and unnecessary attributes. A typical Figma icon export might be 2,400 bytes; after optimization, it's 800 bytes — a 67% reduction with zero visual change.</p>
+<p>Step 3: <strong>Minify</strong> the SVG. After optimizing, minification strips remaining whitespace, optional quotes, and leading zeros. The <a href="/tools/svg-minifier/">SVG Minifier</a> produces a single-line compact SVG suitable for production — inlined in HTML, embedded in JavaScript bundles, or saved as a standalone .svg file. An optimized SVG at 800 bytes might minify to 500 bytes. Combined with the original optimization, that's a 2,400-byte exported icon reduced to 500 production bytes — 79% savings.</p>
+
+<h2>What SVG Optimization Removes</h2>
+<p>Design tool exports include several categories of unnecessary markup. <strong>Editor namespaces:</strong> Illustrator adds <code>xmlns:i</code>, Figma adds <code>xmlns:figma</code>, Sketch adds <code>xmlns:sketch</code>. These declare XML namespaces for editor-specific attributes. Once the SVG leaves the design tool, these namespaces serve no purpose. <strong>Layer metadata:</strong> <code>i:layer="yes"</code>, <code>figma:type="frame"</code> — properties that track which design layer each element came from. <strong>Auto-generated elements:</strong> <code>&lt;title&gt;</code> and <code>&lt;desc&gt;</code> tags that editors insert automatically, often with generic text like "Created with Sketch." <strong>Empty groups:</strong> <code>&lt;g&gt;&lt;/g&gt;</code> elements that contained layers that were deleted but whose group wrappers remain. Our <a href="/tools/svg-optimizer/">SVG optimizer</a> handles all of these automatically.</p>
+
+<h2>Inline SVG vs. External Files</h2>
+<p>SVGs can be used two ways: as external files (<code>&lt;img src="icon.svg"&gt;</code> or CSS <code>background-image</code>) or inlined directly in HTML (<code>&lt;svg&gt;...&lt;/svg&gt;</code>). External files cache well and keep HTML clean. Inline SVGs can be styled with CSS and animated — you can change fill colors on hover, animate paths, and respond to JavaScript events. Inline SVGs also eliminate an HTTP request. The tradeoff: inline SVGs increase HTML size and can't be cached independently. For a site's logo (used on every page, needs to be cacheable), use an external file. For an icon that changes color on hover (a common UI pattern), use inline SVG. Minify both — external files for smaller downloads, inline SVGs to reduce HTML bloat. Our <a href="/tools/svg-minifier/">SVG minifier</a> handles both cases.</p>
+
+<h2>Common SVG Issues and Fixes</h2>
+<p><strong>SVG renders blank:</strong> The most common cause is a missing or incorrect <code>viewBox</code> attribute. Without viewBox, the SVG uses its width/height as absolute pixel dimensions, which may not match the display context. Always include <code>viewBox="0 0 width height"</code>. Also check for <code>xmlns="http://www.w3.org/2000/svg"</code> — without this namespace declaration, the browser treats the SVG as generic XML, not a graphic.</p>
+<p><strong>Colors are wrong:</strong> SVGs from icon libraries often use <code>fill="currentColor"</code>, which inherits the text color from the parent element. If your icon appears black when you expected blue, check if currentColor is being inherited correctly. Explicitly set <code>fill="#yourcolor"</code> or style the parent element's <code>color</code> property.</p>
+<p><strong>Text looks wrong or is missing:</strong> Fonts used in SVGs must be available on the viewing system. Design tools may reference fonts installed on your machine that don't exist on web servers. For production SVGs with text, either embed the font as a data URI inside the SVG, or convert text to paths in your design tool before exporting (this turns letter shapes into drawing instructions, eliminating the font dependency).</p>
+<p>For previewing SVGs before and after optimization, use the <a href="/tools/svg-viewer/">SVG Viewer</a>. The three tools — viewer, optimizer, minifier — form a complete SVG production pipeline.</p>
+</div>
+`
+---
+<GuideLayout
+  title="SVG Workflow: View, Optimize & Minify Vector Graphics | DevTools Hub"
+  description="Complete SVG production workflow — viewing SVGs in real-time, optimizing editor exports to remove metadata, and minifying for production. Covers inline vs external SVG and common issues."
+  breadcrumb="SVG Workflow"
+  relatedTools={[{href:'/tools/svg-viewer/',title:'SVG Viewer',desc:'View and preview SVG code in real-time',type:'tool'},{href:'/tools/svg-optimizer/',title:'SVG Optimizer',desc:'Optimize and clean up SVG markup',type:'tool'},{href:'/tools/svg-minifier/',title:'SVG Minifier',desc:'Minify and compress SVG code',type:'tool'}]}
+>
+  <Fragment slot="title">SVG Workflow:<br class="hidden sm:block" />View, Optimize & Minify</Fragment>
+  <Fragment slot="intro">SVGs power every icon, logo, and illustration on the modern web. Learn the complete workflow — viewing, optimizing editor exports, and minifying for production — plus common SVG issues and fixes.</Fragment>
+  <Fragment set:html={content} />
+</GuideLayout>

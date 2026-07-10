@@ -1,0 +1,90 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'svg-viewer')!
+
+const steps = [
+  { name: 'Paste SVG Code', text: 'Paste raw SVG markup into the editor panel. The tool accepts any valid SVG — icons, illustrations, logos, or full SVG documents with embedded styles.' },
+  { name: 'View the Rendered SVG', text: 'The SVG renders in real-time in the preview panel as you type. You see exactly what the SVG looks like — colors, gradients, paths, and text all render correctly.' },
+  { name: 'Inspect and Export', text: 'Review the rendered output. You can also see the SVG dimensions and copy the code. Use this to verify SVG files before using them in your projects or to quickly preview SVG icons from icon libraries.' },
+]
+
+const faq = [
+  { question: 'Does it support all SVG features?', answer: 'Yes — paths, circles, rects, ellipses, lines, polylines, polygons, text, gradients, patterns, clip paths, masks, and filters all render correctly. CSS embedded in style tags works. External references (images, fonts) may not load due to sandbox restrictions. For production testing of SVGs with external dependencies, open the SVG file directly in a browser tab.' },
+  { question: 'Why is my SVG not rendering?', answer: 'Common issues: missing xmlns attribute (must have xmlns="http://www.w3.org/2000/svg"), invalid XML syntax (unclosed tags, mismatched quotes), or JavaScript-based animations that require script execution (blocked in sandboxed iframe). Check that your SVG starts with a valid root element and has proper namespace declarations.' },
+  { question: 'Can I view animated SVGs?', answer: 'CSS animations inside SVGs work. SMIL animations (animate, animateTransform elements) also work in most browsers. JavaScript-based animations don\'t work because the preview is sandboxed. If your SVG uses JavaScript for animation, open it directly in a browser for the full experience.' },
+  { question: 'Is this tool useful for optimizing SVGs?', answer: 'Viewing is the first step before optimizing. Preview the SVG to confirm it renders correctly, then use our SVG Optimizer to clean up markup (remove editor metadata, comments, unnecessary attributes) and SVG Minifier to compress it for production. The viewer lets you verify the optimized SVG still renders identically to the original.' },
+]
+
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free online SVG viewer. Preview and inspect SVG code in real-time. View paths, gradients, icons and illustrations instantly. Verify SVGs before using in projects. All processing is local and private." {steps} {faq}
+>
+  <div class="grid lg:grid-cols-2 gap-6 mb-6">
+    <div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">SVG Code</span><button id="sampleBtn" class="btn btn-sm btn-secondary ml-auto">Load Sample</button></div><textarea id="svgInput" class="code-input" placeholder="Paste SVG code..."></textarea></div>
+    <div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Preview</span><span id="svgSize" class="text-xs text-gray-400 ml-2"></span></div><div class="p-6 bg-white dark:bg-gray-100 rounded-b-xl flex items-center justify-center" style="min-height:300px" id="previewContainer"></div></div>
+  </div>
+
+  <section slot="examples" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Common SVG Issues</h2>
+    <div class="overflow-x-auto"><table class="w-full text-left"><thead><tr class="border-b border-gray-200 dark:border-gray-800"><th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">Issue</th><th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">Fix</th></tr></thead><tbody class="text-gray-500 dark:text-gray-400 text-sm">
+      <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">SVG blank/empty</td><td class="py-3 px-4">Check for xmlns="http://www.w3.org/2000/svg" on root element</td></tr>
+      <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">Wrong size</td><td class="py-3 px-4">Set viewBox attribute; remove fixed width/height if scaling is needed</td></tr>
+      <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">Colors wrong</td><td class="py-3 px-4">Check for fill="currentColor" — requires parent element text color</td></tr>
+      <tr><td class="py-3 px-4">Text not showing</td><td class="py-3 px-4">Embed fonts or convert text to paths before exporting from design tool</td></tr>
+    </tbody></table></div>
+  </section>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Working with SVG Files</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">SVG is the standard format for vector graphics on the web. Unlike raster images (PNG, JPEG), SVGs are resolution-independent — they render crisply at any size. They're also text files, which means you can edit them directly, animate them with CSS, and style them dynamically.</p>
+      <h3 class="text-lg font-semibold text-gray-900 mt-6 mb-3 dark:text-white">Tips for Production SVG Use</h3>
+      <ul class="list-disc list-inside space-y-2 text-gray-500 dark:text-gray-400">
+        <li>Always run SVGs through an optimizer to remove editor metadata and unnecessary attributes</li>
+        <li>Use viewBox for responsive scaling rather than fixed width/height</li>
+        <li>For icons, consider using SVG sprites to reduce HTTP requests</li>
+        <li>Minify SVGs before production deployment to save bandwidth</li>
+      </ul>
+    </div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="space-y-3">
+      <a href="/guides/svg-workflow-guide/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">SVG Workflow Guide</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">View, optimize and minify SVG production pipeline.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+      <a href="/tools/svg-optimizer/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-green-500 font-medium">Tool</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">SVG Optimizer</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Optimize and clean up SVG markup.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+      <a href="/tools/svg-minifier/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-green-500 font-medium">Tool</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">SVG Minifier</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Minify and compress SVG code for production.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+    </div>
+  </section>
+
+  <script>
+    const svgInput = document.getElementById('svgInput') as HTMLTextAreaElement;
+    const previewContainer = document.getElementById('previewContainer')!;
+    const svgSize = document.getElementById('svgSize')!;
+    const sampleBtn = document.getElementById('sampleBtn')!;
+
+    function updatePreview() {
+      const code = svgInput.value.trim();
+      if (!code) { previewContainer.innerHTML = '<p class="text-gray-400 text-sm">Paste SVG code to see preview.</p>'; svgSize.textContent = ''; return; }
+      previewContainer.innerHTML = code;
+      const svgEl = previewContainer.querySelector('svg');
+      if (svgEl) {
+        svgEl.style.maxWidth = '100%';
+        svgEl.style.maxHeight = '300px';
+        const w = svgEl.getAttribute('width') || svgEl.getBoundingClientRect().width;
+        const h = svgEl.getAttribute('height') || svgEl.getBoundingClientRect().height;
+        svgSize.textContent = Math.round(Number(w)) + '×' + Math.round(Number(h));
+      }
+    }
+
+    svgInput.addEventListener('input', updatePreview);
+    sampleBtn.addEventListener('click', () => {
+      svgInput.value = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#3b82f6"/><circle cx="35" cy="40" r="6" fill="#fff"/><circle cx="65" cy="40" r="6" fill="#fff"/><path d="M35 65 Q50 80 65 65" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round"/></svg>';
+      updatePreview();
+    });
+  </script>
+</ToolLayout>

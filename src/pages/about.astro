@@ -2,14 +2,17 @@
 import BaseLayout from '../layouts/BaseLayout.astro'
 import Header from '../components/Header.astro'
 import Footer from '../components/Footer.astro'
+import { tools } from '../data/tools'
+
+const toolCount = tools.length
 ---
 
-<BaseLayout title="About DevTools Hub | 40+ Free Developer Tools" description="DevTools Hub provides 40+ free, private, browser-based developer tools. No sign-ups, no data collection, no limits.">
+<BaseLayout title={`About DevTools Hub | ${toolCount}+ Free Developer Tools`} description={`DevTools Hub provides ${toolCount}+ free, private, browser-based developer tools. No sign-ups, no data collection, no limits.`}>
   <Header />
   <main class="flex-1 py-16">
     <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
       <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-4 dark:text-white">About DevTools Hub</h1>
-      <p class="text-lg text-gray-500 mb-12 dark:text-gray-400">40+ free developer tools. No sign-ups. No data collection. No limits.</p>
+      <p class="text-lg text-gray-500 mb-12 dark:text-gray-400">{toolCount}+ free developer tools. No sign-ups. No data collection. No limits.</p>
 
       <div class="prose prose-gray max-w-none dark:prose-invert space-y-6">
         <h2 class="text-xl font-bold text-gray-900 dark:text-white">What We Do</h2>

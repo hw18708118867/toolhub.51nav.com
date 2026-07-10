@@ -2,6 +2,10 @@
 import BaseLayout from '../layouts/BaseLayout.astro'
 import Header from '../components/Header.astro'
 import Footer from '../components/Footer.astro'
+
+const now = new Date()
+const month = now.toLocaleString('en-US', { month: 'long' })
+const year = now.getFullYear()
 ---
 
 <BaseLayout title="Privacy Policy | DevTools Hub" description="DevTools Hub privacy policy. Learn what data we collect and how we use it.">
@@ -9,7 +13,7 @@ import Footer from '../components/Footer.astro'
   <main class="flex-1 py-16">
     <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
       <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-4 dark:text-white">Privacy Policy</h1>
-      <p class="text-lg text-gray-500 mb-12 dark:text-gray-400">Last updated: June 2026</p>
+      <p class="text-lg text-gray-500 mb-12 dark:text-gray-400">Last updated: {month} {year}</p>
 
       <div class="prose prose-gray max-w-none dark:prose-invert space-y-6">
         <h2 class="text-xl font-bold text-gray-900 dark:text-white">1. Tool Data</h2>
