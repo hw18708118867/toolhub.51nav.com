@@ -1,0 +1,62 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import { tools } from '../../../data/tools'
+const tool = tools.find(t => t.id === 'color-converter')!
+const steps = [
+  { name: 'Enter a Color Value', text: 'Type or paste a color in any format — HEX (#3b82f6), RGB (59,130,246), HSL (217,91%,60%), or CMYK (76%,47%,0%,4%). The tool auto-detects the format.' },
+  { name: 'View All Conversions', text: 'Once you enter a value, all other formats update instantly — HEX, RGB, HSL, and CMYK. Each field shows the exact equivalent color in that format.' },
+  { name: 'Copy Any Format', text: 'Click the copy button next to any format to copy its value. Use in CSS, design tools, or code. The color preview swatch updates to show the exact color across all formats.' },
+]
+const faq = [
+  { question: 'What is the difference between HEX, RGB, and HSL?', answer: 'HEX (#3b82f6) and RGB (rgb(59,130,246)) describe the same thing — amounts of red, green, and blue light — in different notations. HSL (hsl(217,91%,60%)) describes the same color in terms of hue (color on the wheel), saturation (intensity), and lightness (brightness). HSL is more intuitive for designers: "a desaturated blue at 60% brightness" is easier to reason about than "59 red, 130 green, 246 blue." CMYK (76%,47%,0%,4%) describes ink percentages for print and uses cyan, magenta, yellow, and key (black).' },
+  { question: 'Why do my CMYK values look different from the HEX color?', answer: 'CMYK and RGB/HEX have different color gamuts — the range of colors they can represent. RGB (used by screens) can display brighter, more saturated colors than CMYK (used by printing). When converting from RGB to CMYK, colors near the edge of the RGB gamut get shifted to the nearest printable equivalent. This is normal and expected — always preview printed colors physically, not on a screen.' },
+  { question: 'Can I convert between all formats both ways?', answer: 'Yes. The tool converts in all directions: HEX → RGB → HSL → CMYK and back. Each conversion is mathematically precise for RGB and HSL. The RGB ↔ CMYK conversion is an approximation because the two color spaces have different gamuts. For professional print work, use a calibrated color management system rather than mathematical conversion alone.' },
+]
+---
+<ToolLayout tool={tool} description="Free online color converter. Convert between HEX, RGB, HSL and CMYK color formats instantly. Auto-detects input format with live preview. All processing is local and private." {steps} {faq}>
+  <div class="mb-6"><div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Enter Color Value</span></div><div class="p-4"><input type="text" id="colorInput" class="w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-4 py-3 text-sm font-mono dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100" placeholder="#3b82f6 or rgb(59,130,246) or hsl(217,91%,60%)" autocomplete="off"></div></div></div>
+  <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6" id="formatCards"></div>
+  <div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Color Preview</span></div><div class="p-6 flex items-center justify-center"><div id="preview" class="w-32 h-32 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-lg" style="background:#3b82f6"></div></div></div>
+  <section slot="examples" class="mb-10"><h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Common Colors Reference</h2><div class="overflow-x-auto"><table class="w-full text-left" id="colorRefTable"><thead><tr class="border-b border-gray-200 dark:border-gray-800"><th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">Name</th><th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">HEX</th><th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">RGB</th></tr></thead><tbody class="text-gray-500 dark:text-gray-400 text-sm font-mono"></tbody></table></div></section>
+  <section slot="relatedArticles" class="mb-10"><h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2><div class="space-y-3">
+      <a href="/guides/color-tools-guide/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">Color Tools Guide</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Convert, generate and check colors for the web.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+    <a href="/tools/color-picker/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-green-500 font-medium">Tool</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 dark:text-white">Color Picker</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Pick and convert HEX, RGB, HSL colors.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+    <a href="/tools/color-contrast/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-green-500 font-medium">Tool</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 dark:text-white">Color Contrast Checker</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Check WCAG contrast between colors.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+  </div></section>
+  <script>
+    // Build format cards
+    const formatCards=document.getElementById('formatCards')!;
+    ['HEX','RGB','HSL','CMYK'].forEach(f=>{
+      formatCards.innerHTML+=`<div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">${f}</span><button class="btn btn-sm btn-secondary ml-auto copy-btn" data-format="${f.toLowerCase()}">Copy</button></div><div id="${f.toLowerCase()}Val" class="p-4 text-center text-lg font-mono text-gray-700 dark:text-gray-300">—</div></div>`;
+    });
+    // Build color reference table
+    const refTable=document.getElementById('colorRefTable')!.querySelector('tbody')!;
+    [['Blue 500','#3b82f6','59,130,246'],['Red 500','#ef4444','239,68,68'],['Green 500','#10b981','16,185,129'],['Amber 500','#f59e0b','245,158,11'],['Purple 500','#8b5cf6','139,92,246']].forEach(([n,h,r])=>{
+      refTable.innerHTML+=`<tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">${n}</td><td class="py-3 px-4">${h}</td><td class="py-3 px-4">${r}</td></tr>`;
+    });
+
+    const input=document.getElementById('colorInput') as HTMLInputElement,preview=document.getElementById('preview')!;
+    const els={hex:document.getElementById('hexVal')!,rgb:document.getElementById('rgbVal')!,hsl:document.getElementById('hslVal')!,cmyk:document.getElementById('cmykVal')!};
+    function hexToRgb(h:string):[number,number,number]|null{const m=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(h);return m?[parseInt(m[1],16),parseInt(m[2],16),parseInt(m[3],16)]:null}
+    function rgbToHsl(r:number,g:number,b:number):[number,number,number]{r/=255;g/=255;b/=255;const max=Math.max(r,g,b),min=Math.min(r,g,b);let h=0;const l=(max+min)/2;if(max!==min){const d=max-min;const s=l>.5?d/(2-max-min):d/(max+min);switch(max){case r:h=((g-b)/d+(g<b?6:0))/6;break;case g:h=((b-r)/d+2)/6;break;case b:h=((r-g)/d+4)/6;break}return[Math.round(h*360),Math.round(s*100),Math.round(l*100)]}return[0,0,Math.round(l*100)]}
+    function rgbToCmyk(r:number,g:number,b:number):[number,number,number,number]{const k=1-Math.max(r,g,b)/255;if(k===1)return[0,0,0,100];const c=Math.round((1-r/255-k)/(1-k)*100),m=Math.round((1-g/255-k)/(1-k)*100),y=Math.round((1-b/255-k)/(1-k)*100);return[c,m,y,Math.round(k*100)]}
+    function hslToRgb(h:number,s:number,l:number):[number,number,number]{s/=100;l/=100;const c=(1-Math.abs(2*l-1))*s,x=c*(1-Math.abs((h/60)%2-1)),m=l-c/2;let r=0,g=0,b=0;if(h<60){r=c;g=x}else if(h<120){r=x;g=c}else if(h<180){g=c;b=x}else if(h<240){g=x;b=c}else if(h<300){r=x;b=c}else{r=c;b=x}return[Math.round((r+m)*255),Math.round((g+m)*255),Math.round((b+m)*255)]}
+    function parseColor(v:string):[number,number,number]|null{
+      if(/^#?[a-f\d]{6}$/i.test(v))return hexToRgb(v);
+      const rgbM=/rgba?\s*\(\s*(\d+)\s*[, ]\s*(\d+)\s*[, ]\s*(\d+)/i.exec(v);if(rgbM)return[+rgbM[1],+rgbM[2],+rgbM[3]];
+      const hslM=/hsla?\s*\(\s*(\d+)\s*[, ]\s*(\d+)%\s*[, ]\s*(\d+)%/i.exec(v);if(hslM)return hslToRgb(+hslM[1],+hslM[2],+hslM[3]);
+      return null
+    }
+    function update(){
+      const v=input.value.trim();if(!v){Object.values(els).forEach(e=>e.textContent='—');return}
+      const rgb=parseColor(v);if(!rgb)return;
+      const [r,g,b]=rgb,hex='#'+[r,g,b].map(c=>c.toString(16).padStart(2,'0')).join('');
+      const [h,s,l]=rgbToHsl(r,g,b),[c,m,y,k]=rgbToCmyk(r,g,b);
+      els.hex.textContent=hex;els.rgb.textContent=`rgb(${r}, ${g}, ${b})`;els.hsl.textContent=`hsl(${h}, ${s}%, ${l}%)`;els.cmyk.textContent=`cmyk(${c}%, ${m}%, ${y}%, ${k}%)`;
+      preview.style.background=hex;
+    }
+    input.addEventListener('input',update);
+    document.querySelectorAll('.copy-btn').forEach(b=>b.addEventListener('click',()=>{const f=(b as HTMLElement).dataset.format!;navigator.clipboard.writeText(els[f as keyof typeof els].textContent||'')}));
+    input.value='#3b82f6';update();
+  </script>
+</ToolLayout>

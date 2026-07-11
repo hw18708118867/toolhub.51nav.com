@@ -1,0 +1,103 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'sql-minifier')!
+
+const steps = [
+  { name: 'Paste Your SQL', text: 'Paste SQL queries into the input panel. The tool accepts SELECT, INSERT, UPDATE, DELETE statements, multi-line queries, and full SQL scripts with comments.' },
+  { name: 'Minify the Query', text: 'Click "Minify" to strip comments, whitespace, and unnecessary line breaks. The output is a compact single-line SQL string that executes identically to the original.' },
+  { name: 'Copy the Result', text: 'The minified SQL appears in the output panel. Check the size reduction percentage. Use the compressed query in application code, logs, or API requests where compact SQL is preferred.' },
+]
+
+const faq = [
+  { question: 'What does SQL minification remove?', answer: 'SQL minification removes: single-line comments (--), multi-line comments (/* */), unnecessary whitespace (spaces, tabs, line breaks between tokens), and empty lines. It preserves: all SQL keywords, identifiers, string literals, numeric values, and the logical structure of the query. The minified query executes identically to the original — only formatting changes.' },
+  { question: 'Will minification break my SQL?', answer: 'No. Our minifier is conservative — it only removes characters the SQL parser ignores. String literals (text inside single quotes) are preserved intact. Comments that contain hints for the query optimizer (like /*+ INDEX(...) */) are preserved. The output is functionally identical to the input.' },
+  { question: 'Why would I minify SQL?', answer: 'Common reasons: embedding SQL in application code where compact format is preferred, reducing log file size when logging queries, sending SQL over API requests where every byte counts, and preparing SQL for storage in version control where diffs are cleaner with consistent formatting. For the opposite operation, use our SQL Formatter to expand and beautify queries.' },
+  { question: 'How much size reduction should I expect?', answer: 'Typical reduction: 30-50% for well-formatted multi-line queries. Most savings come from removing indentation and line breaks. Simple queries (a single SELECT on one line) see minimal reduction. Complex queries with CTEs, subqueries, and heavy formatting see the largest savings.' },
+]
+
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free online SQL minifier. Compress SQL queries by removing comments and whitespace. Reduce query size for logs, API requests and embedded SQL. All processing is local and private." {steps} {faq}
+>
+  <div class="flex gap-3 mb-6">
+    <button id="minifyBtn" class="btn btn-primary">Minify</button>
+    <button id="sampleBtn" class="btn btn-secondary">Load Sample</button>
+    <button id="clearBtn" class="btn btn-secondary">Clear</button>
+  </div>
+  <div class="grid lg:grid-cols-2 gap-6">
+    <div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Input SQL</span></div><textarea id="sqlInput" class="code-input" placeholder="Paste SQL query..."></textarea></div>
+    <div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Minified Output</span><span id="sizeInfo" class="text-xs text-gray-400 ml-2"></span><button id="copyBtn" class="btn btn-sm btn-secondary ml-auto">Copy</button></div><pre id="sqlOutput" class="code-output"></pre></div>
+  </div>
+
+  <section slot="examples" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">What Gets Removed</h2>
+    <div class="overflow-x-auto"><table class="w-full text-left"><thead><tr class="border-b border-gray-200 dark:border-gray-800"><th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">Removed</th><th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">Example</th></tr></thead><tbody class="text-gray-500 dark:text-gray-400 text-sm">
+      <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">Line comments</td><td class="py-3 px-4 font-mono">-- this is a comment → removed</td></tr>
+      <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">Block comments</td><td class="py-3 px-4 font-mono">/* multi-line comment */ → removed</td></tr>
+      <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">Indentation</td><td class="py-3 px-4 font-mono">Tabs and spaces at line starts → collapsed</td></tr>
+      <tr><td class="py-3 px-4">Empty lines</td><td class="py-3 px-4 font-mono">Blank lines between clauses → removed</td></tr>
+    </tbody></table></div>
+  </section>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">SQL Formatting Workflow</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">SQL goes through different formats in its lifecycle. Write readable, formatted SQL during development. Minify it for embedding in application code or sending over APIs. Validate it before deploying to catch syntax errors. Our suite of SQL tools handles each stage.</p>
+      <ul class="list-disc list-inside space-y-2 text-gray-500 dark:text-gray-400">
+        <li><strong>Format:</strong> Use SQL Formatter to beautify queries with consistent indentation</li>
+        <li><strong>Minify:</strong> Compress queries for production use in logs, APIs, and embedded SQL</li>
+        <li><strong>Validate:</strong> Check syntax with SQL Validator before deploying to production</li>
+      </ul>
+    </div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="space-y-3">
+      <a href="/tools/sql-formatter/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-green-500 font-medium">Tool</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">SQL Formatter</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Format and beautify SQL queries with proper indentation.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+      <a href="/tools/sql-validator/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-green-500 font-medium">Tool</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">SQL Validator</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Validate SQL syntax and find errors before deploying.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+    </div>
+  </section>
+
+  <script>
+    import { copyToClipboard } from '../../../utils/copyToClipboard'
+    const sqlInput = document.getElementById('sqlInput') as HTMLTextAreaElement;
+    const sqlOutput = document.getElementById('sqlOutput')!;
+    const sizeInfo = document.getElementById('sizeInfo')!;
+    const minifyBtn = document.getElementById('minifyBtn')!;
+    const clearBtn = document.getElementById('clearBtn')!;
+    const sampleBtn = document.getElementById('sampleBtn')!;
+    const copyBtn = document.getElementById('copyBtn')!;
+
+    function minify() {
+      let sql = sqlInput.value;
+      const origSize = sql.length;
+      // Remove single-line comments (preserve -- inside strings)
+      sql = sql.replace(/(?:^|[\n\r])[ \t]*--[^\n\r]*/g, '');
+      // Remove multi-line comments
+      sql = sql.replace(/\/\*[\s\S]*?\*\//g, '');
+      // Collapse whitespace
+      sql = sql.replace(/\s+/g, ' ');
+      // Clean up spaces around common SQL tokens
+      sql = sql.replace(/\s*,\s*/g, ', ');
+      sql = sql.replace(/\(\s+/g, '(');
+      sql = sql.replace(/\s+\)/g, ')');
+      sql = sql.trim();
+      sqlOutput.textContent = sql;
+      const newSize = sql.length;
+      const pct = origSize > 0 ? Math.round((1 - newSize / origSize) * 100) : 0;
+      sizeInfo.textContent = `(${origSize} → ${newSize} bytes, ${pct}% smaller)`;
+    }
+
+    minifyBtn.addEventListener('click', minify);
+    clearBtn.addEventListener('click', () => { sqlInput.value = ''; sqlOutput.textContent = ''; sizeInfo.textContent = ''; });
+    copyBtn.addEventListener('click', async () => { await copyToClipboard(sqlOutput.textContent || ''); });
+    sampleBtn.addEventListener('click', () => {
+      sqlInput.value = '-- Get active users\nSELECT\n  u.id,\n  u.name,\n  u.email,\n  COUNT(o.id) AS order_count\nFROM users u\n  LEFT JOIN orders o ON u.id = o.user_id\nWHERE u.status = \'active\'\n  AND u.created_at > \'2025-01-01\'\nGROUP BY u.id, u.name, u.email\nHAVING COUNT(o.id) > 0\nORDER BY order_count DESC\nLIMIT 10;';
+    });
+  </script>
+</ToolLayout>

@@ -1,0 +1,40 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+const content = `
+<div class="prose prose-gray max-w-none dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-strong:text-gray-900 dark:prose-strong:text-white prose-code:text-blue-600 dark:prose-code:text-blue-400 prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-pre:bg-gray-50 dark:prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-gray-800">
+
+<h2>Color in Web Development: More Than Just Picking a Shade</h2>
+<p>Color drives user perception. Studies consistently show that users form an opinion about a website within 50 milliseconds, and color is the dominant factor in that split-second judgment. But color in web development involves more than aesthetics: it requires understanding color spaces (HEX, RGB, HSL, CMYK), accessibility standards (WCAG contrast ratios), harmonious palette generation, and framework integration (Tailwind config). This site provides a complete suite of color tools — each solving a specific problem in the color workflow.</p>
+<p>The <a href="/tools/color-converter/">Color Converter</a> translates between HEX, RGB, HSL, and CMYK in real-time. The <a href="/tools/color-picker/">Color Picker</a> lets you visually select colors and get their values. The <a href="/tools/color-contrast/">Contrast Checker</a> verifies text meets WCAG accessibility standards. The <a href="/tools/grid-generator/">CSS Gradient Generator</a> creates background gradients. The <a href="/tools/tailwind-color-generator/">Tailwind Color Generator</a> produces full 50-950 shade palettes from a base color. The <a href="/tools/color-palette/">Color Palette Generator</a> generates harmonious color combinations.</p>
+
+<h2>Understanding Color Formats: HEX, RGB, HSL, and CMYK</h2>
+<p><strong>HEX (#3b82f6).</strong> The most common format on the web. A six-character hexadecimal string where each pair represents red (3b), green (82), and blue (f6) on a scale of 00-FF (0-255). Compact, copy-paste friendly, and universally supported. HEX is a notation, not a color model — it describes the same RGB values as rgb() in a different format. When to use: anywhere in CSS, config files, and design handoff. It's the default format most developers reach for.</p>
+<p><strong>RGB (rgb(59, 130, 246)).</strong> Explicit red, green, blue values from 0-255. The rgba() variant adds an alpha channel for transparency: rgba(59, 130, 246, 0.5). RGB is the native color model of computer displays — every pixel on your screen is a combination of red, green, and blue light at varying intensities. When to use: when you need alpha transparency, when programmatically manipulating colors in JavaScript, or when the explicit values matter more than compact notation.</p>
+<p><strong>HSL (hsl(217, 91%, 60%)).</strong> Hue (position on the color wheel, 0-360), Saturation (intensity, 0-100%), Lightness (brightness, 0-100%). HSL is designed to match how humans think about color: "a bright, saturated blue" is easier to understand than "59 red, 130 green, 246 blue." When to use: when manually adjusting colors — changing a color's brightness in HSL is one number; in RGB it requires recalculating all three channels. HSL is also the basis for generating color palettes programmatically, which is how our <a href="/tools/tailwind-color-generator/">Tailwind Color Generator</a> works.</p>
+<p><strong>CMYK (cmyk(76%, 47%, 0%, 4%)).</strong> Cyan, Magenta, Yellow, Key (black) — the subtractive color model used for print. Percentages of each ink. CMYK has a smaller gamut (range of reproducible colors) than RGB — bright screen colors can't be exactly reproduced in print. When to use: when preparing assets for print, when coordinating with print designers, or when checking if a web color will print acceptably. The <a href="/tools/color-converter/">Color Converter</a> provides approximate CMYK values — for professional print work, always verify with a calibrated proof.</p>
+
+<h2>Color Accessibility: Why Contrast Matters</h2>
+<p>The Web Content Accessibility Guidelines (WCAG) define minimum contrast ratios between text and background colors. Level AA requires 4.5:1 for normal text and 3:1 for large text (18px+ bold or 24px+ regular). Level AAA requires 7:1 and 4.5:1 respectively. These aren't suggestions — they're legal requirements in many jurisdictions and best practices everywhere. Roughly 8% of men have some form of color vision deficiency. Low-contrast text affects them disproportionately, but it also affects everyone in bright sunlight or on dim screens.</p>
+<p>Use the <a href="/tools/color-contrast/">Contrast Checker</a> to test any color combination. Enter a text color and background color, and it shows the contrast ratio with a pass/fail indicator for each WCAG level. Gray text on white backgrounds is the most common failure: #999 on #fff has a ratio of 2.8:1 — failing even AA for normal text. Darken that gray to #595959 and it passes at 4.5:1. These are the micro-adjustments that make interfaces usable for everyone.</p>
+
+<h2>Generating Color Palettes for Design Systems</h2>
+<p><strong>Tailwind color scales.</strong> Tailwind's built-in colors use an 11-shade scale: 50 (lightest) through 950 (darkest), with 500 as the "base" shade. Each step follows a consistent lightness curve designed for visual rhythm. When you need a custom brand color, the <a href="/tools/tailwind-color-generator/">Tailwind Color Generator</a> takes your base color and produces the full 50-950 scale. The generated config drops directly into tailwind.config.js. Combined with our other CSS tools like the <a href="/guides/flexbox-guide/">Flexbox Guide</a> and <a href="/guides/css-grid-guide/">CSS Grid Guide</a>, you have complete control over layout and styling.</p>
+<p><strong>Harmonious palettes.</strong> For multi-color palettes (primary, secondary, accent, neutral), the <a href="/tools/color-palette/">Color Palette Generator</a> uses color theory — complementary, analogous, triadic, and tetradic relationships on the color wheel — to produce sets of colors that work together. These mathematical relationships are starting points, not final answers. A generated palette should be adjusted by a designer who understands the brand's context, audience, and emotional goals.</p>
+</div>
+`
+---
+<GuideLayout
+  title="Color Tools: Convert, Generate & Check Accessibility | DevTools Hub"
+  description="Complete guide to color in web development — HEX, RGB, HSL, CMYK conversion, WCAG contrast checking, Tailwind palette generation, and harmonious color selection."
+  breadcrumb="Color Tools Guide"
+  relatedTools={[
+    {href:'/tools/color-converter/',title:'Color Converter',desc:'Convert between HEX, RGB, HSL and CMYK',type:'tool'},
+    {href:'/tools/color-picker/',title:'Color Picker',desc:'Pick and convert HEX, RGB, HSL colors',type:'tool'},
+    {href:'/tools/color-contrast/',title:'Color Contrast Checker',desc:'Check WCAG contrast ratios',type:'tool'},
+    {href:'/tools/tailwind-color-generator/',title:'Tailwind Color Generator',desc:'Generate Tailwind CSS color palettes',type:'tool'},
+  ]}
+>
+  <Fragment slot="title">Color Tools Guide:<br class="hidden sm:block" />Convert, Generate & Check</Fragment>
+  <Fragment slot="intro">Color is more than picking a shade. Learn HEX, RGB, HSL, and CMYK formats, check WCAG accessibility, generate Tailwind palettes, and build harmonious color systems.</Fragment>
+  <Fragment set:html={content} />
+</GuideLayout>

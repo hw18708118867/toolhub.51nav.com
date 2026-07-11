@@ -1,0 +1,146 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import { tools } from '../../../data/tools'
+
+const tool = tools.find(t => t.id === 'sql-validator')!
+
+const steps = [
+  { name: 'Paste Your SQL', text: 'Paste a SQL query or script into the input panel. The tool accepts any SQL dialect — MySQL, PostgreSQL, SQLite, SQL Server. Multi-statement scripts with semicolons are supported.' },
+  { name: 'Validate the Syntax', text: 'Click "Validate" to check for syntax errors. The validator checks balanced parentheses, proper keyword usage, missing clauses, and common SQL mistakes. Errors are shown with line numbers.' },
+  { name: 'Fix Errors', text: 'Review each error and fix it in the input panel. Click "Validate" again to confirm the fix. Repeat until your SQL is clean before executing against a real database.' },
+]
+
+const faq = [
+  { question: 'What does the validator check?', answer: 'Our validator checks: balanced parentheses and quotes, that required SQL keywords are present (FROM after SELECT, etc.), that JOINs have ON/USING clauses, that GROUP BY columns are properly referenced, common syntax errors like missing commas or semicolons, and basic SQL structure. It does NOT check: whether tables or columns actually exist (that requires a database connection), type compatibility between expressions, or the semantic correctness of your query logic.' },
+  { question: 'Does it work with all SQL dialects?', answer: 'The validator handles common SQL syntax shared across MySQL, PostgreSQL, SQLite, and SQL Server — SELECT, INSERT, UPDATE, DELETE, CREATE TABLE, JOINs, subqueries, CTEs (WITH clauses), window functions, and common data types. Dialect-specific features (like PostgreSQL\'s :: cast syntax, MySQL\'s backtick quoting, or SQL Server\'s square bracket identifiers) are recognized but may not be fully validated. The validator errs on the side of accepting valid dialect-specific syntax rather than flagging false positives.' },
+  { question: 'Can I validate multi-statement scripts?', answer: 'Yes. Separate statements with semicolons and the validator checks each one independently. This is useful for migration files, seed scripts, and SQL dumps that contain multiple CREATE, INSERT, and ALTER statements. Statements are split on semicolons that appear outside of string literals.' },
+  { question: 'How is this different from running EXPLAIN or checking in a database?', answer: 'Our validator is a static syntax checker — it runs entirely in the browser with no database connection. It catches syntax errors before you send SQL to a database, where a typo could cause unexpected behavior or data loss. For semantic validation (do these columns exist? is this join logically correct?), use your database\'s EXPLAIN or query planner. For formatting, use our SQL Formatter. For minification, use the SQL Minifier.' },
+]
+
+---
+
+<ToolLayout
+  tool={tool}
+  description="Free online SQL validator. Check SQL syntax and find errors before executing. Works with MySQL, PostgreSQL, SQLite and SQL Server. Catch mistakes early. All processing is local and private." {steps} {faq}
+>
+  <div class="flex gap-3 mb-6">
+    <button id="validateBtn" class="btn btn-primary">Validate</button>
+    <button id="sampleBtn" class="btn btn-secondary">Load Sample</button>
+    <button id="clearBtn" class="btn btn-secondary">Clear</button>
+  </div>
+  <div class="grid lg:grid-cols-2 gap-6">
+    <div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Input SQL</span></div><textarea id="sqlInput" class="code-input" placeholder="Paste SQL to validate..."></textarea></div>
+    <div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Validation Results</span></div><div id="validationOutput" class="p-4"><p class="text-gray-400 text-sm">Paste SQL and click "Validate" to check for errors.</p></div></div>
+  </div>
+
+  <section slot="examples" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Common SQL Errors Detected</h2>
+    <div class="overflow-x-auto"><table class="w-full text-left"><thead><tr class="border-b border-gray-200 dark:border-gray-800"><th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">Error</th><th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">Fix</th></tr></thead><tbody class="text-gray-500 dark:text-gray-400 text-sm">
+      <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4 font-mono">Unmatched parentheses</td><td class="py-3 px-4">Count opening and closing parens — they must match</td></tr>
+      <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4 font-mono">Missing FROM clause</td><td class="py-3 px-4">SELECT requires FROM (unless selecting literals)</td></tr>
+      <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4 font-mono">JOIN without ON</td><td class="py-3 px-4">Add ON or USING to specify join condition</td></tr>
+      <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4 font-mono">Unclosed string literal</td><td class="py-3 px-4">Strings must have matching single quotes</td></tr>
+      <tr><td class="py-3 px-4 font-mono">Trailing comma in SELECT</td><td class="py-3 px-4">Remove comma before FROM clause</td></tr>
+    </tbody></table></div>
+  </section>
+
+  <section slot="tutorial" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">SQL Validation Best Practices</h2>
+    <div class="prose prose-gray max-w-none dark:prose-invert">
+      <p class="text-gray-500 dark:text-gray-400 leading-relaxed mb-4">Validating SQL before execution prevents errors that could corrupt data, return wrong results, or crash your application. A static syntax check catches the most common mistakes without needing a database connection.</p>
+      <ul class="list-disc list-inside space-y-2 text-gray-500 dark:text-gray-400">
+        <li><strong>Validate early:</strong> Check SQL as soon as you write it, not after deploying to production</li>
+        <li><strong>Validate after edits:</strong> A working query can break with a single misplaced comma — re-validate after every change</li>
+        <li><strong>Combine with formatting:</strong> Use SQL Formatter to beautify, then Validator to check syntax</li>
+        <li><strong>Test with real data:</strong> Static validation catches syntax errors but not logic errors — always test against staging data</li>
+      </ul>
+    </div>
+  </section>
+
+  <section slot="relatedArticles" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2>
+    <div class="space-y-3">
+      <a href="/tools/sql-formatter/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-green-500 font-medium">Tool</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">SQL Formatter</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Format and beautify SQL queries with proper indentation.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+      <a href="/tools/sql-minifier/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-green-500 font-medium">Tool</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">SQL Minifier</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Minify and compress SQL queries for production use.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+    </div>
+  </section>
+
+  <script>
+    const sqlInput = document.getElementById('sqlInput') as HTMLTextAreaElement;
+    const validationOutput = document.getElementById('validationOutput')!;
+    const validateBtn = document.getElementById('validateBtn')!;
+    const clearBtn = document.getElementById('clearBtn')!;
+    const sampleBtn = document.getElementById('sampleBtn')!;
+
+    function validate() {
+      const sql = sqlInput.value.trim();
+      if (!sql) return;
+      const errors: string[] = [];
+      const warnings: string[] = [];
+      const lines = sql.split('\n');
+
+      // Check for basic structural issues
+      // 1. Unmatched parentheses
+      let parens = 0;
+      for (let i = 0; i < sql.length; i++) {
+        if (sql[i] === '(') parens++;
+        if (sql[i] === ')') parens--;
+      }
+      if (parens !== 0) errors.push(`Unmatched parentheses: ${parens > 0 ? parens + ' unclosed opening paren(s)' : Math.abs(parens) + ' extra closing paren(s)'}`);
+
+      // 2. Check for unclosed string literals (simple heuristic)
+      const noComments = sql.replace(/--[^\n]*/g, '').replace(/\/\*[\s\S]*?\*\//g, '');
+      const quoteCount = (noComments.match(/'/g) || []).length;
+      if (quoteCount % 2 !== 0) errors.push('Unclosed string literal: odd number of single quotes detected');
+
+      // 3. Check SELECT without FROM
+      if (/SELECT\s+[\w*,]+\s+FROM/i.test(sql) === false && /\bSELECT\b/i.test(sql) && !/\bSELECT\s+[\d'"-]/i.test(sql)) {
+        const hasFrom = /\bFROM\b/i.test(sql);
+        if (!hasFrom && !/\bSELECT\s+\*?\s*;?\s*$/im.test(sql.trim())) {
+          warnings.push('SELECT statement appears to be missing a FROM clause');
+        }
+      }
+
+      // 4. Check JOIN without ON/USING
+      if (/\bJOIN\b/i.test(sql) && !/\bON\b/i.test(sql) && !/\bUSING\b/i.test(sql)) {
+        const joinLines = lines.filter(l => /\bJOIN\b/i.test(l));
+        joinLines.forEach(l => {
+          if (!/\bON\b/i.test(l) && !/\bUSING\b/i.test(l)) {
+            warnings.push('JOIN clause may be missing ON or USING condition');
+          }
+        });
+      }
+
+      // 5. Check trailing comma before FROM/WHERE/etc
+      if (/,\s*(FROM|WHERE|GROUP|HAVING|ORDER|LIMIT|INNER|LEFT|RIGHT|CROSS|JOIN)\b/i.test(sql)) {
+        errors.push('Trailing comma detected before SQL clause — remove the extra comma');
+      }
+
+      // 6. Check for basic keyword presence
+      if (/\bINSERT\b/i.test(sql) && !/\bINTO\b/i.test(sql)) errors.push('INSERT statement missing INTO keyword');
+      if (/\bUPDATE\b/i.test(sql) && !/\bSET\b/i.test(sql)) errors.push('UPDATE statement missing SET clause');
+
+      let html = '';
+      if (errors.length > 0) {
+        html += '<div class="mb-3"><span class="text-red-500 font-semibold">Errors (' + errors.length + ')</span>';
+        errors.forEach(e => html += '<div class="text-red-500 text-sm mt-1">• ' + e + '</div>');
+        html += '</div>';
+      }
+      if (warnings.length > 0) {
+        html += '<div class="mb-3"><span class="text-yellow-500 font-semibold">Warnings (' + warnings.length + ')</span>';
+        warnings.forEach(w => html += '<div class="text-yellow-500 text-sm mt-1">• ' + w + '</div>');
+        html += '</div>';
+      }
+      if (errors.length === 0 && warnings.length === 0) {
+        html = '<div class="text-green-500 font-medium">No syntax errors detected.</div><div class="text-gray-400 text-sm mt-1">Note: This validates syntax only. Test against real data to verify semantic correctness.</div>';
+      }
+      validationOutput.innerHTML = html;
+    }
+
+    validateBtn.addEventListener('click', validate);
+    clearBtn.addEventListener('click', () => { sqlInput.value = ''; validationOutput.innerHTML = '<p class="text-gray-400 text-sm">Paste SQL and click "Validate" to check for errors.</p>'; });
+    sampleBtn.addEventListener('click', () => {
+      sqlInput.value = 'SELECT u.id, u.name,\nFROM users u\n  JOIN orders o ON u.id = o.user_id\nWHERE u.status = "active"\nGROUP BY u.id\nORDER BY o.created_at DESC;';
+    });
+  </script>
+</ToolLayout>

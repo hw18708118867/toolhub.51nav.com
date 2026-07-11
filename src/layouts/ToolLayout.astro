@@ -156,31 +156,10 @@ const faqLd = faq.length > 0 ? {
       <!-- ==================== TUTORIAL CONTENT ==================== -->
       <slot name="tutorial" />
 
-      <!-- ==================== RELATED TOOLS ==================== -->
-      {relatedTools.length > 0 && (
-        <section class="mb-10">
-          <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">
-            Related Tools
-          </h2>
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {relatedTools.map(rt => (
-              <a href={`/tools/${rt.id}/`} class="group">
-                <div class="bg-white border border-gray-200 rounded-xl p-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 hover:-translate-y-0.5 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600">
-                  <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600 flex-shrink-0 group-hover:bg-blue-600 group-hover:text-white transition-all duration-200 overflow-visible dark:bg-blue-600/20 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white">
-                      <AnimatedIcon type={rt.icon} />
-                    </div>
-                    <div class="min-w-0">
-                      <h4 class="text-sm font-semibold text-gray-900 truncate dark:text-white">{rt.name}</h4>
-                      <p class="text-xs text-gray-400 truncate dark:text-gray-500">{rt.description}</p>
-                    </div>
-                  </div>
-                </div>
-              </a>
-            ))}
-          </div>
-        </section>
-      )}
+      <!-- RELATED TOOLS: now handled by the manually curated relatedArticles slot above -->
+      <!-- The auto-generated same-category section is removed because it often showed
+           unrelated tools (e.g., JWT tools next to Regex Tester in the 'dev' category).
+           Each tool page's relatedArticles now includes both relevant guides AND tools. -->
 
       <!-- ==================== RELATED ARTICLES ==================== -->
       <slot name="relatedArticles" />

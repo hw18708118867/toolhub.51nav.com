@@ -37,6 +37,8 @@ export const tools: Tool[] = [
   { id: 'grid-generator', name: 'CSS Grid Generator', description: 'Visual CSS grid layout generator', icon: 'layout', category: 'color' },
   { id: 'box-shadow-generator', name: 'Box Shadow Generator', description: 'Generate CSS box-shadow styles visually', icon: 'shadow', category: 'color' },
   { id: 'border-radius-generator', name: 'Border Radius Generator', description: 'Generate CSS border-radius styles visually', icon: 'color', category: 'color' },
+  { id: 'color-converter', name: 'Color Converter', description: 'Convert colors between HEX, RGB, HSL and CMYK', icon: 'color', category: 'color' },
+  { id: 'tailwind-color-generator', name: 'Tailwind Color Generator', description: 'Generate Tailwind CSS color palette configs', icon: 'color', category: 'color' },
 
   // ===== DATA =====
   { id: 'json-formatter', name: 'JSON Formatter', description: 'Format, validate, minify JSON', icon: 'json', category: 'data' },
@@ -63,6 +65,8 @@ export const tools: Tool[] = [
   { id: 'regex-tester', name: 'Regex Tester', description: 'Test regular expressions', icon: 'regex', category: 'dev' },
   { id: 'diff-checker', name: 'Diff Checker', description: 'Compare text differences', icon: 'diff', category: 'dev' },
   { id: 'sql-formatter', name: 'SQL Formatter', description: 'Format SQL queries', icon: 'sql', category: 'dev' },
+  { id: 'sql-minifier', name: 'SQL Minifier', description: 'Minify and compress SQL queries', icon: 'sql', category: 'formatters' },
+  { id: 'sql-validator', name: 'SQL Validator', description: 'Validate SQL syntax and find errors', icon: 'sql', category: 'dev' },
   { id: 'url-parser', name: 'URL Parser', description: 'Parse URL components', icon: 'url', category: 'dev' },
   { id: 'http-status', name: 'HTTP Status Codes', description: 'HTTP status code reference', icon: 'diff', category: 'dev' },
   { id: 'cron-parser', name: 'Cron Expression Parser', description: 'Parse cron schedule expressions', icon: 'time', category: 'dev' },
@@ -101,6 +105,12 @@ export const tools: Tool[] = [
   { id: 'svg-viewer', name: 'SVG Viewer', description: 'View and preview SVG code in real-time', icon: 'base64', category: 'image' },
   { id: 'svg-optimizer', name: 'SVG Optimizer', description: 'Optimize and clean up SVG markup', icon: 'base64', category: 'image' },
   { id: 'svg-minifier', name: 'SVG Minifier', description: 'Minify and compress SVG code', icon: 'base64', category: 'image' },
+  { id: 'image-compressor', name: 'Image Compressor', description: 'Compress JPEG, PNG and WebP images', icon: 'base64', category: 'image' },
+  { id: 'image-crop', name: 'Image Crop', description: 'Crop and trim images in the browser', icon: 'base64', category: 'image' },
+  { id: 'image-resize', name: 'Image Resize', description: 'Resize images to exact dimensions', icon: 'base64', category: 'image' },
+  { id: 'favicon-generator', name: 'Favicon Generator', description: 'Generate favicon.ico from any image', icon: 'base64', category: 'image' },
+  { id: 'image-format-converter', name: 'Image Format Converter', description: 'Convert images between PNG, JPEG, WebP, SVG', icon: 'base64', category: 'image' },
+  { id: 'exif-viewer', name: 'EXIF Viewer', description: 'View EXIF metadata from JPEG photos', icon: 'base64', category: 'image' },
 
   // ===== SECURITY =====
   { id: 'ssl-checker', name: 'SSL Certificate Checker', description: 'Check SSL certificate details', icon: 'jwt', category: 'security' },

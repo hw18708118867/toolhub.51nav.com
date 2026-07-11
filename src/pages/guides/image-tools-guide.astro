@@ -1,0 +1,44 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+const content = `
+<div class="prose prose-gray max-w-none dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-strong:text-gray-900 dark:prose-strong:text-white prose-code:text-blue-600 dark:prose-code:text-blue-400 prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-pre:bg-gray-50 dark:prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-gray-800">
+
+<h2>Images Are Half the Web's Bandwidth</h2>
+<p>The HTTP Archive's 2025 Web Almanac reports that images account for roughly 45% of the average web page's total weight. A page loading 3MB of content is probably loading 1.3MB of images. Optimizing those images — compressing them, serving them at the right size, and using the right format — is the single highest-impact performance optimization most sites can make. A <a href="/tools/image-compressor/">compressor</a> reduces file size with minimal visual loss. A <a href="/tools/image-resize/">resizer</a> delivers images at actual display dimensions instead of full camera resolution. A <a href="/tools/image-format-converter/">format converter</a> switches to modern formats like WebP that encode the same visual quality in 25-35% fewer bytes. Together, these three tools can cut image bandwidth by 50-70% without visible quality loss.</p>
+
+<h2>Image Compression: Quality vs. File Size</h2>
+<p>JPEG compression uses a mathematical technique called discrete cosine transform (DCT) to discard high-frequency detail that human eyes barely notice. At 100% quality, a JPEG is nearly indistinguishable from the original. At 70%, most people can't tell the difference in a blind comparison — but the file is 40-60% smaller. WebP improves on this further: a WebP at 80% quality is typically smaller than a JPEG at 70% quality with equivalent visual result. Our <a href="/tools/image-compressor/">Image Compressor</a> lets you preview the compressed output in real-time as you adjust the quality slider, so you can find the lowest acceptable quality for your use case.</p>
+<p>PNG compression is different. PNG uses lossless DEFLATE compression — it shrinks the file without discarding any data. But PNG files from design tools are often not fully compressed. Running them through a re-encoder (which our tool does via Canvas toBlob) can reduce PNG size by 10-40% by applying optimal compression settings that the original export missed. For photographs, always use JPEG or WebP — PNG is for images with text, sharp lines, or transparency.</p>
+
+<h2>Image Resizing: Serve What You Display</h2>
+<p>The most common image performance mistake: uploading a 4000×3000 pixel photo from a smartphone and displaying it at 400×300 pixels in a card component. The browser downloads 100× more pixels than it can display, wasting bandwidth and slowing page load. The fix: <a href="/tools/image-resize/">resize images</a> to match their display dimensions before uploading. For responsive designs that serve different sizes at different breakpoints, generate multiple versions: 400px for mobile cards, 800px for tablet, 1200px for desktop hero images. Use srcset in your img tags to let the browser pick the right size.</p>
+<p>When resizing, always maintain the aspect ratio unless you intentionally want to stretch or squish the image. Lock the aspect ratio, change the width, and let the height calculate automatically. Downscaling (making smaller) preserves quality. Upscaling (making larger) creates blur because the browser invents pixels that don't exist — always downscale from the largest original.</p>
+
+<h2>Image Format Conversion: Pick the Right Format</h2>
+<p>JPEG, PNG, WebP, SVG — each format has a specific use case. JPEG for photos. PNG for transparency and sharp graphics. WebP as the modern universal replacement. SVG for vector graphics. Choosing the wrong format wastes bandwidth or produces artifacts. Our <a href="/tools/image-format-converter/">Image Format Converter</a> handles JPEG → PNG (adds transparency but larger file), PNG → JPEG (removes transparency, smaller file, adds artifacts), and anything → WebP (best compression).</p>
+<p>WebP deserves special attention. It supports both lossy (like JPEG) and lossless (like PNG) compression, plus transparency (like PNG) and animation (like GIF). Every modern browser supports WebP. Serving WebP instead of JPEG+PNG reduces image bandwidth by 25-35% on average, which directly translates to faster page loads and better Core Web Vitals scores. Use the format converter to switch to WebP, then run images through the compressor for final optimization.</p>
+
+<h2>Favicons and EXIF: Specialized Image Tools</h2>
+<p><strong>Favicons:</strong> The small icon in browser tabs. The <a href="/tools/favicon-generator/">Favicon Generator</a> converts any image into multi-resolution favicon files. Generate 16×16, 32×32, and 48×48 sizes from one upload. Favicons are small but important — they're your brand's presence in the browser chrome, bookmarks, and history. A missing or default favicon looks unprofessional. A properly generated favicon with multiple sizes looks crisp at every resolution.</p>
+<p><strong>EXIF Data:</strong> Photos from digital cameras and smartphones contain embedded metadata — camera model, lens, exposure settings, date/time, and GPS coordinates. The <a href="/tools/exif-viewer/">EXIF Viewer</a> extracts and displays this data. For privacy: be aware that sharing original photos online may reveal your location (if GPS was enabled) and the time the photo was taken. Use the Image Compressor to strip EXIF data before uploading photos to public sites — the Canvas-based re-encoding removes all metadata. For professionals: EXIF data is a valuable record of shooting conditions and can be used to analyze and improve photography technique.</p>
+
+<h2>Building an Image Optimization Pipeline</h2>
+<p>A complete image workflow: shoot/export at maximum quality and resolution → resize to display dimensions → crop to composition → convert to optimal format (WebP for web, JPEG as fallback) → compress to balance quality and size → serve with proper caching headers. Each step uses a different tool on this site. For automated pipelines, tools like sharp (Node.js), ImageMagick, or Cloudinary can handle resize, format conversion, and compression in one step. Use our browser-based tools for one-off images, quick previews, and situations where installing a command-line tool is impractical.</p>
+</div>
+`
+---
+<GuideLayout
+  title="Image Tools: Compress, Resize, Convert & Optimize | DevTools Hub"
+  description="Complete guide to image optimization — compress JPEG/PNG/WebP, resize to display dimensions, convert between formats, generate favicons, and view EXIF metadata."
+  breadcrumb="Image Tools Guide"
+  relatedTools={[
+    {href:'/tools/image-compressor/',title:'Image Compressor',desc:'Compress JPEG, PNG and WebP images',type:'tool'},
+    {href:'/tools/image-resize/',title:'Image Resize',desc:'Resize images to exact pixel dimensions',type:'tool'},
+    {href:'/tools/image-format-converter/',title:'Image Format Converter',desc:'Convert between PNG, JPEG, WebP and SVG',type:'tool'},
+    {href:'/tools/favicon-generator/',title:'Favicon Generator',desc:'Generate multi-size favicon.ico files',type:'tool'}
+  ]}
+>
+  <Fragment slot="title">Image Tools Guide:<br class="hidden sm:block" />Compress, Resize & Convert</Fragment>
+  <Fragment slot="intro">Images are 45% of the average web page weight. Learn to compress, resize, convert formats, generate favicons, and view EXIF data — all in the browser with no uploads.</Fragment>
+  <Fragment set:html={content} />
+</GuideLayout>

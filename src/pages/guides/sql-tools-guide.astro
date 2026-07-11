@@ -1,0 +1,37 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+const content = `
+<div class="prose prose-gray max-w-none dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-strong:text-gray-900 dark:prose-strong:text-white prose-code:text-blue-600 dark:prose-code:text-blue-400 prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-pre:bg-gray-50 dark:prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-gray-800">
+
+<h2>The SQL Toolchain: Format, Validate, Minify</h2>
+<p>SQL is the language that powers virtually every data-driven application. But unlike general-purpose programming languages, SQL rarely benefits from the same IDE support, linters, and formatters that JavaScript or Python developers take for granted. A missing comma in a 200-line migration script, an unclosed parenthesis in a reporting query, or inconsistently formatted joins in a code review — these are the daily friction points of working with SQL. A dedicated set of SQL tools solves each problem: formatting for readability, validation for correctness, and minification for production deployment. Together they form a pipeline that catches errors before they reach your database.</p>
+<p>Our site provides three SQL tools: the <a href="/tools/sql-formatter/">SQL Formatter</a> beautifies queries with consistent indentation and keyword casing, the <a href="/tools/sql-validator/">SQL Validator</a> checks syntax for common errors without needing a database connection, and the <a href="/tools/sql-minifier/">SQL Minifier</a> compresses queries for embedding in application code or sending over APIs.</p>
+
+<h2>SQL Formatting: Why Consistent Style Matters</h2>
+<p>SQL doesn't enforce formatting. The database engine parses <code>SELECT * FROM users WHERE active=1 ORDER BY name</code> exactly the same as a beautifully formatted multi-line query. But humans don't. Poorly formatted SQL hides bugs. A missing JOIN condition is invisible in a dense single-line query but obvious when each clause starts on its own line. A misplaced comma in a SELECT list is impossible to spot in compact form but jumps out with proper alignment.</p>
+<p>Consistent SQL formatting conventions: uppercase keywords (SELECT, FROM, WHERE, JOIN), each major clause on a new line, commas at the start of lines (or end — pick one and stick with it), consistent indentation for subqueries and JOINs, and meaningful table aliases. These are not arbitrary preferences — they directly affect code review speed and bug detection. A team that agrees on formatting conventions spends less time arguing in PR reviews and more time catching actual logic errors. Our <a href="/tools/sql-formatter/">SQL Formatter</a> applies these conventions automatically.</p>
+
+<h2>SQL Validation: Catching Errors Before the Database Does</h2>
+<p>Static SQL validation — checking syntax without executing the query — catches the most common and costly SQL mistakes before they reach your database. A <a href="/tools/sql-validator/">SQL validator</a> checks for: balanced parentheses and quotes (the number one syntax error in SQL), missing required keywords (FROM after SELECT, INTO after INSERT, SET after UPDATE), dangling commas in column lists, and basic structural issues. It does NOT validate semantic correctness — whether the tables and columns you reference actually exist in your database, whether the type of a comparison is valid, or whether a JOIN is logically correct. For that, you need a database connection.</p>
+<p>The validation workflow: write your query, validate syntax statically, fix any errors, then test against a staging database with real (or realistic) data. Static validation eliminates the "typo" category of errors instantly. Database testing catches the logic errors. Together they prevent the experience of running a migration at 2 AM and watching it fail on line 237 with a syntax error. Our <a href="/tools/sql-validator/">SQL Validator</a> handles the static check without requiring a database connection.</p>
+
+<h2>SQL Minification: Compact Queries for Production</h2>
+<p>During development, SQL should be formatted and readable. In production, SQL often needs to be compact: embedded in application code where long multi-line strings are awkward, sent over API requests where every byte matters, or logged at high volume where storage costs accumulate. SQL minification strips comments, collapses whitespace, and produces a single-line query that executes identically to the formatted version. Use the <a href="/tools/sql-minifier/">SQL Minifier</a> to compress queries for production use.</p>
+<p>The minification process removes: single-line comments (<code>-- like this</code>), multi-line comments (<code>/* like this */</code>), unnecessary whitespace (tabs, spaces, and line breaks between tokens), and empty lines. It preserves: all SQL keywords, identifiers, string literals (text inside single quotes), numeric values, optimizer hints (<code>/*+ INDEX(...) */</code>), and the logical structure of the query. The output is functionally identical to the input — only formatting changes.</p>
+
+<h2>Building a SQL Quality Pipeline</h2>
+<p>Integrate SQL tools into your development workflow at specific points. During development: format SQL for readability, validate syntax after writing or editing. In code review: check that SQL is consistently formatted (avoids formatting arguments in review), validate that changed queries have no syntax errors. Before deployment: validate all migration scripts and new queries, minify embedded SQL for application code. In CI/CD: add a SQL validation step that checks all .sql files in the repository for syntax errors. This catches mistakes that slip through manual review — a developer changes a query, forgets to re-validate, and the error deploys to production. Automated validation prevents this entire class of incidents.</p>
+<p>For teams using multiple SQL dialects (MySQL for the main app, PostgreSQL for analytics, SQLite for mobile), the formatting conventions can be standardized while the validation steps are dialect-aware. Our <a href="/tools/sql-formatter/">SQL formatter</a>, <a href="/tools/sql-validator/">validator</a>, and <a href="/tools/sql-minifier/">minifier</a> work with common SQL syntax shared across major dialects.</p>
+</div>
+`
+---
+<GuideLayout
+  title="SQL Tools: Format, Validate & Minify Queries | DevTools Hub"
+  description="Complete guide to SQL formatting, validation and minification. Learn consistent style conventions, catch syntax errors before execution, and compress queries for production."
+  breadcrumb="SQL Tools Guide"
+  relatedTools={[{href:'/tools/sql-formatter/',title:'SQL Formatter',desc:'Format and beautify SQL queries',type:'tool'},{href:'/tools/sql-validator/',title:'SQL Validator',desc:'Validate SQL syntax and find errors',type:'tool'},{href:'/tools/sql-minifier/',title:'SQL Minifier',desc:'Minify and compress SQL queries',type:'tool'}]}
+>
+  <Fragment slot="title">SQL Tools Guide:<br class="hidden sm:block" />Format, Validate & Minify</Fragment>
+  <Fragment slot="intro">SQL deserves the same tooling as any programming language. Learn to format queries for readability, validate syntax to catch errors early, and minify for production deployment.</Fragment>
+  <Fragment set:html={content} />
+</GuideLayout>
