@@ -17,6 +17,7 @@ export const tools: Tool[] = [
   { id: 'ascii-converter', name: 'ASCII Converter', description: 'Convert text to/from ASCII codes', icon: 'number', category: 'encoding' },
   { id: 'utf8-converter', name: 'UTF-8 Converter', description: 'Encode/decode UTF-8 byte sequences', icon: 'escape', category: 'encoding' },
   { id: 'rot13', name: 'ROT13 Cipher', description: 'Encode/decode with ROT13 cipher', icon: 'case', category: 'encoding' },
+  { id: 'shell-escape', name: 'Shell Escape', description: 'Escape strings for bash, shell and command line', icon: 'escape', category: 'encoding' },
   { id: 'morse-code', name: 'Morse Code', description: 'Convert text to/from Morse code', icon: 'escape', category: 'encoding' },
 
   // ===== GENERATORS =====
@@ -43,7 +44,7 @@ export const tools: Tool[] = [
   // ===== DATA =====
   { id: 'json-formatter', name: 'JSON Formatter', description: 'Format, validate, minify JSON', icon: 'json', category: 'data' },
   { id: 'timestamp', name: 'Timestamp Converter', description: 'Unix timestamp converter', icon: 'time', category: 'data' },
-  { id: 'hash-generator', name: 'Hash Generator', description: 'MD5, SHA-1, SHA-256', icon: 'hash', category: 'data' },
+  { id: 'hash-generator', name: 'Hash Generator', description: 'MD5, SHA-1, SHA-256, SHA-512', icon: 'hash', category: 'data' },
   { id: 'number-base', name: 'Number Base', description: 'Dec/Hex/Bin/Oct converter', icon: 'number', category: 'data' },
   { id: 'timezone-converter', name: 'Timezone Converter', description: 'Convert time between different timezones', icon: 'time', category: 'data' },
   { id: 'json-yaml', name: 'JSON ↔ YAML', description: 'Convert JSON/YAML', icon: 'yaml', category: 'data' },
@@ -59,6 +60,7 @@ export const tools: Tool[] = [
 
   // ===== DEV =====
   { id: 'html-preview', name: 'HTML Preview', description: 'Preview HTML code in real-time', icon: 'html', category: 'dev' },
+  { id: 'chmod-calculator', name: 'chmod Calculator', description: 'Calculate Unix file permissions and chmod values', icon: 'number', category: 'dev' },
   { id: 'jwt-decoder', name: 'JWT Decoder', description: 'Decode JSON Web Tokens', icon: 'jwt', category: 'dev' },
   { id: 'jwt-encoder', name: 'JWT Encoder', description: 'Create and sign JSON Web Tokens', icon: 'jwt', category: 'dev' },
   { id: 'jwt-inspector', name: 'JWT Inspector', description: 'Inspect JWT claims, expiry, and structure', icon: 'jwt', category: 'dev' },
@@ -115,6 +117,11 @@ export const tools: Tool[] = [
   // ===== SECURITY =====
   { id: 'ssl-checker', name: 'SSL Certificate Checker', description: 'Check SSL certificate details', icon: 'jwt', category: 'security' },
   { id: 'password-strength', name: 'Password Strength Meter', description: 'Evaluate password strength', icon: 'password', category: 'security' },
+  { id: 'crc32-hash', name: 'CRC32 Hash', description: 'Generate CRC32 checksum from text', icon: 'hash', category: 'security' },
+  { id: 'bcrypt-hash', name: 'Bcrypt Hash Generator', description: 'Hash passwords with bcrypt algorithm', icon: 'hash', category: 'security' },
+  { id: 'aes-encrypt', name: 'AES Encrypt/Decrypt', description: 'Encrypt and decrypt text with AES', icon: 'hash', category: 'security' },
+  { id: 'rsa-key-generator', name: 'RSA Key Generator', description: 'Generate RSA public/private key pairs', icon: 'hash', category: 'security' },
+  { id: 'hmac-generator', name: 'HMAC Generator', description: 'Generate HMAC with SHA-256 and SHA-512', icon: 'hash', category: 'security' },
 
   // ===== FORMATTERS =====
   { id: 'css-formatter', name: 'CSS Formatter', description: 'Format & beautify CSS', icon: 'gradient', category: 'formatters' },

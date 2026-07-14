@@ -1,0 +1,44 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+const content = `
+<div class="prose prose-gray max-w-none dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-strong:text-gray-900 dark:prose-strong:text-white prose-code:text-blue-600 dark:prose-code:text-blue-400 prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-pre:bg-gray-50 dark:prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-gray-800">
+
+<h2>Shell Tools: Permissions, Escaping, and Safe Commands</h2>
+<p>Working in the terminal means dealing with two things that trip up even experienced developers: file permissions and string escaping. A misplaced <code>chmod</code> value can lock you out of your own files or open them to the world. An unescaped space in a filename breaks a script in production. These are the kinds of problems that cost hours of debugging because the error messages are cryptic and the fixes are one character long. Having a <a href="/tools/chmod-calculator/">chmod calculator</a> to verify permission values and a <a href="/tools/shell-escape/">shell escape tool</a> to handle special characters eliminates entire categories of shell-related bugs.</p>
+
+<h2>Unix File Permissions: The chmod System</h2>
+<p>Every file and directory on a Unix system has three permission sets: Owner (the user who created the file), Group (users in the file's group), and Others (everyone else). Each set has three flags: Read (r, value 4), Write (w, value 2), and Execute (x, value 1). A permission like <code>rwxr-xr-x</code> means: Owner has full access (7), Group can read and execute (5), Others can read and execute (5). The numeric representation is 755.</p>
+<p>The <a href="/tools/chmod-calculator/">chmod calculator</a> makes this visual. Toggle the checkboxes for each permission and watch the numeric and symbolic values update. For directories, execute permission means "can enter the directory" — without it, you can't <code>cd</code> into the directory even if you can read it. For scripts, execute permission means "can run this as a program" — without it, <code>./script.sh</code> fails with "permission denied." These distinctions are the source of countless "it works on my machine" problems.</p>
+
+<h2>Common chmod Values and When to Use Them</h2>
+<p><strong>755 (rwxr-xr-x):</strong> The standard for directories and executable scripts. Owner has full control. Everyone else can read and execute but not modify. This is the safe default for web server document roots, shared scripts, and system binaries.</p>
+<p><strong>644 (rw-r--r--):</strong> The standard for regular files. Owner can read and write. Everyone else can only read. Use for configuration files that shouldn't be executed, documentation, and data files.</p>
+<p><strong>600 (rw-------):</strong> Private files. Only the owner can read or write. Use for SSH private keys (~/.ssh/id_rsa), database credential files, and any file containing secrets. SSH will refuse to use a private key with permissions more permissive than 600.</p>
+<p><strong>700 (rwx------):</strong> Private scripts and directories. Only the owner can access. Use for personal scripts, backup directories, and anything that shouldn't be world-readable.</p>
+<p><strong>777 (rwxrwxrwx):</strong> Everyone can do everything. This is almost always a mistake — it's the nuclear option when permissions aren't working and you need something to just run. Never use 777 on production servers. If a file or directory needs world-writable access, there's probably a better solution (proper user/group ownership, ACLs, or a dedicated shared directory).</p>
+
+<h2>Shell Escaping: Why Your Filename Breaks the Script</h2>
+<p>The shell interprets characters before passing them to commands. Spaces become argument separators. Dollar signs start variable expansion. Backticks execute commands and substitute their output. Asterisks expand to matching filenames. If you have a file named <code>my document.txt</code> and you run <code>rm my document.txt</code>, the shell passes <code>my</code> and <code>document.txt</code> as two separate arguments to <code>rm</code>, deleting the wrong files. The fix is escaping: <code>rm 'my document.txt'</code> or <code>rm my\ document.txt</code>. The <a href="/tools/shell-escape/">shell escape tool</a> handles this for any string — paste the text, get the safely escaped version.</p>
+
+<h2>Three Ways to Escape: Quotes, Double-Quotes, and Backslashes</h2>
+<p><strong>Single quotes ('like this'):</strong> Everything between single quotes is literal. No character inside a single-quoted string has special meaning — not <code>$</code>, not <code>&grave;</code>, not <code>!</code>. The only character you can't include is a single quote itself. The workaround: end the single-quote string with <code>'</code>, add an escaped quote <code>\'</code>, then start a new single-quote string. So <code>it's</code> becomes <code>'it'\''s'</code> — ugly but correct. For most shell escaping, single quotes are the safest choice.</p>
+<p><strong>Double quotes ("like this"):</strong> Most special characters become literal, but <code>$</code>, <code>&grave;</code>, <code>!</code>, and <code>\</code> retain their special meaning. Use double quotes when you want variable expansion inside the string: <code>"hello $USER"</code> becomes "hello john". The backslash can escape these characters inside double quotes: <code>"\$HOME"</code> is the literal string \$HOME.</p>
+<p><strong>Backslash (like\ this):</strong> Escapes the single next character. <code>my\ document.txt</code> escapes the space. <code>\$HOME</code> escapes the dollar sign. Backslash escaping is character-by-character — verbose but precise. Use it when you need to escape individual characters without wrapping the entire string in quotes.</p>
+<p>For more string handling tools, see the <a href="/tools/string-escaper/">String Escaper</a> for JavaScript/JSON escaping, and the <a href="/tools/url-encode/">URL Encode/Decode</a> tool for web-safe encoding. For cron job scheduling, use the <a href="/tools/cron-generator/">Cron Generator</a>.</p>
+</div>
+`
+---
+<GuideLayout
+  title="Shell Tools: chmod Permissions & Command Escaping | DevTools Hub"
+  description="Complete guide to Unix file permissions (chmod) and shell string escaping. Learn numeric/symbolic permission notation and how to safely escape filenames and arguments for bash."
+  breadcrumb="Shell Tools Guide"
+  relatedTools={[
+    {href:'/tools/chmod-calculator/',title:'chmod Calculator',desc:'Calculate Unix file permissions and chmod values',type:'tool'},
+    {href:'/tools/shell-escape/',title:'Shell Escape',desc:'Escape strings for bash and command line',type:'tool'},
+    {href:'/tools/cron-generator/',title:'Cron Expression Generator',desc:'Build cron schedule expressions visually',type:'tool'},
+  ]}
+>
+  <Fragment slot="title">Shell Tools Guide:<br class="hidden sm:block" />Permissions & Escaping</Fragment>
+  <Fragment slot="intro">Unix permissions and shell escaping cause countless hours of debugging. Learn chmod numeric and symbolic notation, and how to safely escape filenames and arguments for bash commands.</Fragment>
+  <Fragment set:html={content} />
+</GuideLayout>

@@ -1,0 +1,42 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import { tools } from '../../../data/tools'
+const tool = tools.find(t => t.id === 'shell-escape')!
+const steps = [
+  { name: 'Enter Your String', text: 'Type or paste the string you want to escape. This could be a filename with spaces, a command argument with special characters, or any text that needs to be shell-safe.' },
+  { name: 'Choose an Escape Mode', text: 'Select the escape style: single quotes (preserves everything literally), double quotes (allows variable expansion and escapes), or backslash (escapes each special character individually).' },
+  { name: 'Copy the Escaped String', text: 'The escaped output is safe to use in shell commands, scripts, and Dockerfiles. Copy it directly into your terminal or shell script.' },
+]
+const faq = [
+  { question: 'Why do I need to escape shell strings?', answer: 'The shell interprets certain characters specially: spaces separate arguments, $ starts variable expansion, backticks run commands, * expands to file names. If your string contains these characters and you don\'t escape it, the shell will interpret them, potentially executing unintended commands. Escaping tells the shell to treat these characters as literal text.' },
+  { question: 'Single quotes vs double quotes vs backslash?', answer: 'Single quotes (\'...\'): everything inside is literal — no character is special. Cannot contain single quotes themselves. Double quotes ("..."): most characters are literal, but $, `, !, and \\ are still interpreted — useful when you need variable expansion. Backslash (\\X): escapes the single following character. Use single quotes for most cases. Use backslash for individual characters.' },
+  { question: "What's the most common escape mistake?", answer: 'Forgetting to escape spaces in filenames. A file named "my document.txt" needs to be passed as "my document.txt" (quoted) or my\\ document.txt (backslash-escaped). Without escaping, the shell sees two separate arguments: "my" and "document.txt". This is the most common source of "file not found" errors in shell scripts.' },
+]
+---
+<ToolLayout tool={tool} description="Free online shell escape tool. Escape strings for bash, shell and command-line use. Single quote, double quote and backslash modes. Prevent command injection. All processing is local and private." {steps} {faq}>
+  <div class="code-panel mb-6"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Input String</span></div><textarea id="input" class="code-input" placeholder="Enter text to escape for shell..."></textarea></div>
+  <div class="flex flex-wrap gap-3 mb-6">
+    <button id="singleBtn" class="btn btn-primary" data-mode="single">Single Quotes</button>
+    <button id="doubleBtn" class="btn btn-secondary" data-mode="double">Double Quotes</button>
+    <button id="backslashBtn" class="btn btn-secondary" data-mode="backslash">Backslash Escape</button>
+    <button id="sampleBtn" class="btn btn-secondary">Load Sample</button>
+  </div>
+  <div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Escaped Output</span><button id="copyBtn" class="btn btn-sm btn-secondary ml-auto">Copy</button></div><pre id="output" class="code-output text-sm font-mono"></pre></div>
+  <section slot="examples" class="mb-10"><h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Escape Examples</h2><div class="overflow-x-auto"><table class="w-full text-left"><thead><tr class="border-b border-gray-200 dark:border-gray-800"><th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">Input</th><th class="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white">Single Quotes</th></tr></thead><tbody class="text-gray-500 dark:text-gray-400 text-sm font-mono"><tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">hello world</td><td class="py-3 px-4">'hello world'</td></tr><tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4">it's working</td><td class="py-3 px-4">'it'\''s working'</td></tr><tr><td class="py-3 px-4">$HOME/path</td><td class="py-3 px-4">'$HOME/path'</td></tr></tbody></table></div></section>
+  <section slot="relatedArticles" class="mb-10"><h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2><div class="space-y-3">
+      <a href="/guides/shell-tools-guide/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">Shell Tools Guide</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Unix permissions, shell escaping for safe commands.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+    <a href="/tools/string-escaper/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-green-500 font-medium">Tool</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 dark:text-white">String Escaper</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Escape and unescape strings.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+  </div></section>
+  <script>
+    const input=document.getElementById('input') as HTMLTextAreaElement,output=document.getElementById('output')!,singleBtn=document.getElementById('singleBtn')!,doubleBtn=document.getElementById('doubleBtn')!,backslashBtn=document.getElementById('backslashBtn')!,sampleBtn=document.getElementById('sampleBtn')!,copyBtn=document.getElementById('copyBtn')!;
+    let mode='single';
+    function escape(str:string,m:string):string{switch(m){case'single':return"'"+str.replace(/'/g,"'\\''")+"'";case'double':return'"'+str.replace(/[\\"$`!]/g,'\\$&')+'"';case'backslash':return str.replace(/[ \t'"\\$`!*?()[\]{}|&;<>~#]/g,'\\$&');default:return str}}
+    function update(){output.textContent=input.value?escape(input.value,mode):''}
+    input.addEventListener('input',update);
+    singleBtn.addEventListener('click',()=>{mode='single';singleBtn.className='btn btn-primary';doubleBtn.className='btn btn-secondary';backslashBtn.className='btn btn-secondary';update()})
+    doubleBtn.addEventListener('click',()=>{mode='double';singleBtn.className='btn btn-secondary';doubleBtn.className='btn btn-primary';backslashBtn.className='btn btn-secondary';update()})
+    backslashBtn.addEventListener('click',()=>{mode='backslash';singleBtn.className='btn btn-secondary';doubleBtn.className='btn btn-secondary';backslashBtn.className='btn btn-primary';update()})
+    sampleBtn.addEventListener('click',()=>{input.value="hello world $HOME it's *.txt";update()})
+    copyBtn.addEventListener('click',()=>navigator.clipboard.writeText(output.textContent||''))
+  </script>
+</ToolLayout>

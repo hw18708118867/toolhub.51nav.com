@@ -1,0 +1,46 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+const content = `
+<div class="prose prose-gray max-w-none dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-strong:text-gray-900 dark:prose-strong:text-white prose-code:text-blue-600 dark:prose-code:text-blue-400 prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-pre:bg-gray-50 dark:prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-gray-800">
+
+<h2>Cryptographic Tools: When and Why to Use Them</h2>
+<p>Cryptography isn't just for security researchers. Every developer who handles user passwords, signs API requests, verifies file integrity, or encrypts sensitive data uses cryptographic primitives daily. The difference between doing it correctly and incorrectly is the difference between protecting user data and creating a vulnerability. This guide covers the cryptographic tools available on this site — what each one does, when to use it, and when to reach for something else.</p>
+<p>Our crypto toolset: the <a href="/tools/hash-generator/">Hash Generator</a> for one-way hashing (MD5, SHA-1, SHA-256, SHA-512), the <a href="/tools/crc32-hash/">CRC32 Hash</a> for fast checksums, the <a href="/tools/bcrypt-hash/">Bcrypt Hash Generator</a> for password storage, the <a href="/tools/hmac-generator/">HMAC Generator</a> for message authentication, the <a href="/tools/aes-encrypt/">AES Encrypt/Decrypt</a> tool for symmetric encryption, and the <a href="/tools/rsa-key-generator/">RSA Key Generator</a> for asymmetric key pairs. Each solves a different cryptographic problem. Using the wrong one is as dangerous as using none at all.</p>
+
+<h2>Hashing: One-Way Functions</h2>
+<p>A hash function takes any input and produces a fixed-size output (the hash or digest). The same input always produces the same hash. Changing even one bit of the input completely changes the output (the avalanche effect). Critically, hashing is one-way — you cannot recover the original input from the hash. This property makes hashes useful for: verifying data integrity (compare hashes before and after transfer), password storage (store the hash, not the password), deduplication (same content = same hash), and digital signatures (sign the hash, not the entire document).</p>
+<p><strong>MD5 (128-bit):</strong> Fast but cryptographically broken. Do not use for security. Still useful for non-security checksums and deduplication where speed matters. <strong>SHA-1 (160-bit):</strong> Also broken for security use. Deprecated by NIST in 2011. Do not use for new systems. <strong>SHA-256 (256-bit):</strong> The current standard. Used in TLS, Bitcoin, Git, and virtually all modern cryptographic systems. Fast enough for most uses, secure against all known attacks. <strong>SHA-512 (512-bit):</strong> Longer hash, higher security margin. Use when regulatory requirements demand it or for very long-term data integrity. Our <a href="/tools/hash-generator/">Hash Generator</a> supports all four algorithms.</p>
+<p><strong>CRC32:</strong> Not a cryptographic hash at all — it's an error-detecting code. CRC32 detects accidental changes (corrupted files, transmission errors) but provides zero protection against intentional tampering. It's extremely fast and compact (32 bits). Use for file integrity checks, not security. The <a href="/tools/crc32-hash/">CRC32 Hash tool</a> provides hex and decimal output.</p>
+
+<h2>Password Hashing: Bcrypt and Why Speed Kills</h2>
+<p>Password hashing is fundamentally different from general-purpose hashing. A password hash must be SLOW — deliberately computationally expensive — to resist brute-force attacks. If an attacker steals your password database and each hash takes 1 microsecond to compute (SHA-256 speed), they can try 1 million passwords per second. If each hash takes 100 milliseconds (bcrypt cost 10), they can try 10 passwords per second. The difference is the difference between cracking passwords in hours versus centuries.</p>
+<p>Bcrypt was designed specifically for passwords. It includes a built-in salt (prevents rainbow table attacks), a configurable cost factor (controls how slow it is), and an output format that embeds both the salt and cost alongside the hash. The <a href="/tools/bcrypt-hash/">Bcrypt Hash Generator</a> produces hashes in the standard <code>$2a$10$salt+hash</code> format used by every major framework's password storage. Never store passwords with SHA-256 or MD5 — use bcrypt (or argon2 for new systems).</p>
+
+<h2>Message Authentication: HMAC</h2>
+<p>HMAC answers the question: "Did this message come from someone who knows the secret key, and has it been modified?" A plain hash tells you if data changed. An HMAC tells you if data changed AND if the sender knows the shared secret. This is the foundation of API authentication. When Stripe sends a webhook to your server, they include a signature header computed as HMAC-SHA256 of the payload with your shared signing secret. Your server recomputes the HMAC and compares. If they match, the webhook is authentic and untampered. If they don't, someone is trying to forge requests.</p>
+<p>The <a href="/tools/hmac-generator/">HMAC Generator</a> produces HMAC-SHA256 and HMAC-SHA512 codes. Choose SHA-256 for general use. Choose SHA-512 when compliance or policy requires the longer hash. The secret key must be random, kept private, and at least 32 bytes. Generate HMAC keys with the <a href="/tools/password-generator/">Password Generator</a> — never use human-memorable passwords as HMAC keys.</p>
+
+<h2>Encryption: AES and RSA</h2>
+<p><strong>Symmetric encryption (AES):</strong> One key for both encryption and decryption. Fast, suitable for encrypting large amounts of data. The <a href="/tools/aes-encrypt/">AES Encrypt/Decrypt</a> tool uses AES-256-GCM — the gold standard for symmetric encryption. GCM mode provides both confidentiality (no one can read the data) and authentication (no one can tamper with it). The output includes a random IV (initialization vector) that ensures encrypting the same plaintext twice produces different ciphertext.</p>
+<p><strong>Asymmetric encryption (RSA):</strong> Two mathematically related keys — a public key for encryption, a private key for decryption. Slow, suitable for encrypting small amounts of data (like symmetric keys). The <a href="/tools/rsa-key-generator/">RSA Key Generator</a> produces 2048, 3072, or 4096-bit key pairs in standard PEM format. Use RSA to securely exchange AES keys, to sign digital documents, or to establish TLS connections. The public key can be shared freely. The private key must be protected — anyone with your private key can decrypt everything encrypted with your public key.</p>
+
+<h2>Putting It Together: A Crypto Workflow</h2>
+<p>A complete secure system uses multiple primitives together. Example: password authentication. User registers: generate a random salt, hash the password with bcrypt, store the bcrypt hash. User logs in: retrieve the stored bcrypt hash, verify the candidate password against it. Session management: generate a random session token (use the <a href="/tools/random-string/">Random String Generator</a>), sign it with HMAC, set it as an HttpOnly cookie. API requests: compute HMAC of the request body with the shared secret, include in the Authorization header. Sensitive data storage: encrypt with AES-256-GCM using a key derived from a master password via PBKDF2. Each tool on this site handles one primitive in the chain. Understanding how they fit together is what separates secure systems from vulnerable ones.</p>
+</div>
+`
+---
+<GuideLayout
+  title="Crypto Tools: Hashing, HMAC, Encryption & Password Security | DevTools Hub"
+  description="Complete guide to cryptographic tools — MD5/SHA hashing, bcrypt password storage, HMAC authentication, AES encryption and RSA key generation. When to use each primitive."
+  breadcrumb="Crypto Tools Guide"
+  relatedTools={[
+    {href:'/tools/hash-generator/',title:'Hash Generator',desc:'MD5, SHA-1, SHA-256, SHA-512 hashing',type:'tool'},
+    {href:'/tools/bcrypt-hash/',title:'Bcrypt Hash Generator',desc:'Hash passwords with bcrypt algorithm',type:'tool'},
+    {href:'/tools/hmac-generator/',title:'HMAC Generator',desc:'Generate HMAC-SHA256 and SHA-512 codes',type:'tool'},
+    {href:'/tools/aes-encrypt/',title:'AES Encrypt/Decrypt',desc:'Encrypt and decrypt with AES-256-GCM',type:'tool'},
+  ]}
+>
+  <Fragment slot="title">Crypto Tools Guide:<br class="hidden sm:block" />Hashing, HMAC & Encryption</Fragment>
+  <Fragment slot="intro">Cryptography powers password storage, API authentication, and data encryption. Learn when to hash, when to HMAC, when to encrypt — and which algorithm to use for each scenario.</Fragment>
+  <Fragment set:html={content} />
+</GuideLayout>

@@ -52,6 +52,8 @@ const guideSlugs = [
   'user-agent-guide',
   'web-encoding-guide',
   'whois-lookup-guide',
+  'shell-tools-guide',
+  'crypto-tools-guide',
   'color-tools-guide',
   'image-tools-guide',
   'html-minification-guide',
