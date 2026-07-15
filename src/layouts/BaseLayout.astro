@@ -1,12 +1,17 @@
 ---
 import '../styles/globals.css'
+import { tools } from '../data/tools'
 
 interface Props {
   title?: string
   description?: string
 }
 
-const { title = 'DevTools Hub - 40+ Free Developer Tools', description = 'Free online developer tools. JSON formatter, Base64 converter, UUID generator, and 40+ more. All processing happens locally in your browser.' } = Astro.props
+const toolCount = tools.length
+const defaultTitle = `DevTools Hub — ${toolCount}+ Free Online Developer Tools`
+const defaultDesc = `Free online developer tools. JSON formatter, Base64 converter, UUID generator, and ${toolCount}+ more. All processing happens locally in your browser — no data collection.`
+
+const { title = defaultTitle, description = defaultDesc } = Astro.props
 
 // Read from environment variables (GitHub Actions secrets / .env file)
 // Set PUBLIC_GA4_ID and PUBLIC_GSC_CODE in your repository's CI variables
