@@ -1,0 +1,45 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+const content = `
+<div class="prose prose-gray max-w-none dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-strong:text-gray-900 dark:prose-strong:text-white prose-code:text-blue-600 dark:prose-code:text-blue-400 prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-pre:bg-gray-50 dark:prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-gray-800">
+
+<h2>Modern Dev Tools: JSON, LLMs, and Mock Data</h2>
+<p>The tools developers reach for have shifted dramatically in the past three years. API type generation from JSON responses. Token counting for LLM cost estimation. Structured prompt formatting. Mock data generation for testing. These aren't niche tools — they're part of the daily workflow for developers building with APIs, working with AI models, and testing against realistic data. This guide covers the newest toolset on this site: JSON utilities for schema generation and type conversion, LLM tools for token counting and prompt formatting, and a mock data generator for testing and prototyping.</p>
+
+<h2>JSON Schema: From Example Data to Validation Rules</h2>
+<p>You have a JSON response from an API. You need to validate incoming requests against the same structure. Writing a JSON Schema by hand is tedious — tracking every field, nesting level, and type constraint across hundreds of lines. The <a href="/tools/json-schema-generator/">JSON Schema Generator</a> reverses the process: paste example JSON, and it outputs a complete JSON Schema that describes the structure. The schema includes type definitions, required field lists, and nested object schemas.</p>
+<p>JSON Schema is the foundation of API validation. OpenAPI uses it for request/response definitions. Postman uses it for test assertions. Most backend frameworks (FastAPI, Express with ajv, Spring Boot) support JSON Schema validation directly. Starting from generated schema is faster than writing from scratch. The generator handles structural inference — you add semantic details like format constraints (email, uri, date-time), enum values, and field descriptions. For converting the same JSON into typed code, use the <a href="/tools/json-to-code/">JSON to Code</a> tool.</p>
+
+<h2>JSON to Code: Type-Safe API Responses</h2>
+<p>Calling an API that returns JSON is easy. Using that JSON safely in a typed language requires type definitions. The <a href="/tools/json-to-code/">JSON to Code</a> converter generates TypeScript interfaces, Go structs, Rust structs, Kotlin data classes, or Dart classes from a JSON response. Paste the JSON, pick your language, and get typed code that matches the API's actual response shape — not the documented shape (which is often outdated), but what the API actually returns.</p>
+<p>This is the fastest way to create typed API clients. Run the API endpoint, copy the response, paste it into the converter, and get type-safe code. For TypeScript, the generated interfaces work directly with fetch/axios responses. For Go, the struct tags include json field mappings. For Rust, the output includes serde derive macros. For Kotlin and Dart, the generated data classes work with standard JSON serialization. The tool infers types from values: strings become String, numbers become Int or Float (auto-detected), booleans become Bool, and arrays use the correct generic syntax for each language.</p>
+
+<h2>LLM Token Counting: Budgeting API Costs</h2>
+<p>Every LLM API charges by the token. A 10,000-token prompt to GPT-4o costs $0.025. The same prompt to Claude Sonnet 4 costs $0.03. A 100,000-token document summarization task costs 10x that. Token counting isn't just about cost — it's about whether your prompt fits in the model's context window at all. GPT-4o supports 128K tokens. Claude supports 200K. Gemini Flash supports 1M. A document that fits in Gemini might not fit in GPT-4o.</p>
+<p>The <a href="/tools/llm-token-counter/">LLM Token Counter</a> estimates token counts for major models. Paste your text, see the estimated tokens, characters, and approximate cost. The estimation uses character-based heuristics (~4 chars/token for OpenAI, ~3.5 for Anthropic, ~4 for Google) which are accurate within 10-15% for English. For precise counts, use the official tokenizer libraries (tiktoken for Python, Anthropic's tokenizer for Node). For structuring your prompts before counting tokens, use the <a href="/tools/prompt-tools/">Prompt Tools</a>.</p>
+
+<h2>Prompt Formatting: Structure Produces Better Results</h2>
+<p>LLMs respond to structure. A prompt that says "write a function to sort an array" produces generic output. A prompt with sections for Role, Task, Context, and Output Format produces output tailored to your specific needs. The <a href="/tools/prompt-tools/">Prompt Tools</a> formatter adds these structural elements automatically. It doesn't change your prompt's content — it organizes it into a format that LLMs process more effectively.</p>
+<p>The format action wraps your prompt in a template with sections for Role, Task, Context, Output Format, and Constraints. The clean action removes extra whitespace and normalizes formatting. The template action creates a reusable prompt template with placeholder sections. These are simple text transformations, not AI-powered optimization — they improve prompt structure, not prompt content. For semantic improvements, ask the LLM itself with a meta-prompt.</p>
+
+<h2>Mock Data: Testing Without Production Data</h2>
+<p>Testing with real user data is a privacy risk. Testing with an empty database catches no bugs. Mock data fills the gap. The <a href="/tools/mock-data-generator/">Mock Data Generator</a> creates realistic fake datasets with configurable fields and types: names, emails, UUIDs, dates, numbers, booleans. Define your schema, set the record count, and get a JSON array ready for API mocking, database seeding, or test fixtures.</p>
+<p>Combine the mock generator with the <a href="/tools/json-formatter/">JSON Formatter</a> to validate the output, the <a href="/tools/json-schema-generator/">JSON Schema Generator</a> to create validation rules, and the <a href="/tools/json-to-code/">JSON to Code</a> converter to generate typed interfaces for your mock data. The tools chain together: generate data → validate structure → create types → build your API client. For more generic string generation, use the <a href="/tools/random-string/">Random String Generator</a>. For password and token generation, use the <a href="/tools/password-generator/">Password Generator</a>.</p>
+</div>
+`
+---
+<GuideLayout
+  title="Dev Tools: JSON Schema, Token Counting & Mock Data | DevTools Hub"
+  description="Modern development tools — generate JSON Schema from data, convert JSON to typed code, count LLM tokens, format prompts, and create mock data for testing."
+  breadcrumb="Dev Tools Guide"
+  relatedTools={[
+    {href:'/tools/json-schema-generator/',title:'JSON Schema Generator',desc:'Generate JSON Schema from JSON data',type:'tool'},
+    {href:'/tools/json-to-code/',title:'JSON to Code',desc:'Convert JSON to TypeScript, Go, Rust types',type:'tool'},
+    {href:'/tools/llm-token-counter/',title:'LLM Token Counter',desc:'Count tokens for OpenAI, Claude and Gemini',type:'tool'},
+    {href:'/tools/mock-data-generator/',title:'Mock Data Generator',desc:'Generate fake JSON data for testing',type:'tool'},
+  ]}
+>
+  <Fragment slot="title">Dev Tools Guide:<br class="hidden sm:block" />JSON Schema, LLMs & Mock Data</Fragment>
+  <Fragment slot="intro">JSON Schema generation, typed code from JSON, LLM token counting, prompt formatting, and mock data — the tools that power modern API and AI development workflows.</Fragment>
+  <Fragment set:html={content} />
+</GuideLayout>

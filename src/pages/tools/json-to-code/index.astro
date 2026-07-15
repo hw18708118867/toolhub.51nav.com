@@ -1,0 +1,55 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro'
+import { tools } from '../../../data/tools'
+const tool = tools.find(t => t.id === 'json-to-code')!
+const steps = [
+  { name: 'Paste JSON Data', text: 'Paste any JSON object. The tool analyzes the structure and generates typed code in your selected language — TypeScript interfaces, Go structs, Rust structs, Kotlin data classes, or Dart classes.' },
+  { name: 'Choose the Language', text: 'Select the target language from the dropdown. Each language has its own type conventions — optional fields, nullable types, and naming conventions are handled appropriately.' },
+  { name: 'Copy the Code', text: 'The generated code is ready to paste into your project. Types are properly named, nested objects become nested types, and arrays use the correct generic syntax for each language.' },
+]
+const faq = [
+  { question: 'How does JSON to type conversion work?', answer: 'The tool infers types from your JSON values: strings become String, numbers become Int/Float (auto-detected), booleans become Bool, arrays become List/Array generics, and nested objects become nested types. If a value is null, the field is marked as optional. The root object determines the top-level type name.' },
+  { question: 'Can I customize the generated type names?', answer: 'The root type defaults to "Root". For nested objects, type names are derived from their parent keys. For production use, rename the generated types to match your domain. The tool generates structural types, not semantic ones — you know what "UserProfile" means, the tool only knows it\'s an object with string and number fields.' },
+]
+---
+<ToolLayout tool={tool} description="Free online JSON to code converter. Generate TypeScript, Go, Rust, Kotlin and Dart types from JSON. Type-safe code from your API responses instantly." {steps} {faq}>
+  <div class="flex gap-3 mb-6"><select id="lang" class="form-select bg-white border border-gray-200 rounded-lg px-3 py-2 dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100"><option value="ts">TypeScript</option><option value="go">Go</option><option value="rust">Rust</option><option value="kotlin">Kotlin</option><option value="dart">Dart</option></select><button id="convertBtn" class="btn btn-primary">Convert</button><button id="sampleBtn" class="btn btn-secondary">Load Sample</button></div>
+  <div class="grid lg:grid-cols-2 gap-6"><div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Input JSON</span></div><textarea id="jsonInput" class="code-input" placeholder="Paste JSON..."></textarea></div><div class="code-panel"><div class="code-panel-header"><span class="text-sm font-medium text-gray-500 dark:text-gray-400">Generated Code</span><button id="copyBtn" class="btn btn-sm btn-secondary ml-auto">Copy</button></div><pre id="output" class="code-output text-sm"></pre></div></div>
+  <section slot="relatedArticles" class="mb-10"><h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Related Articles</h2><div class="space-y-3">
+      <a href="/guides/dev-tools-guide/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-blue-500 font-medium">Guide</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">Dev Tools Guide</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">JSON Schema, LLM tokens, prompts and mock data.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+    <a href="/tools/json-formatter/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-green-500 font-medium">Tool</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 dark:text-white">JSON Formatter</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Format, validate and minify JSON.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+    <a href="/tools/json-schema-generator/" class="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600"><div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg></div><div class="flex-1 min-w-0"><span class="text-xs text-green-500 font-medium">Tool</span><h4 class="text-sm font-semibold text-gray-900 mt-0.5 dark:text-white">JSON Schema Generator</h4><p class="text-xs text-gray-500 mt-0.5 dark:text-gray-400 truncate">Generate JSON Schema from JSON data.</p></div><svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors dark:text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+  </div></section>
+  <script>
+    const jsonInput=document.getElementById('jsonInput') as HTMLTextAreaElement,lang=document.getElementById('lang') as HTMLSelectElement,output=document.getElementById('output')!,convertBtn=document.getElementById('convertBtn')!,sampleBtn=document.getElementById('sampleBtn')!,copyBtn=document.getElementById('copyBtn')!;
+    function convert(data:any,name='Root',lang:string):string{
+      if(data===null)return 'any';
+      if(Array.isArray(data)){const item=data.length>0?convert(data[0],name,lang):'any';return lang==='go'?`[]${item}`:lang==='rust'?`Vec<${item}>`:lang==='kotlin'?`List<${item}>`:lang==='dart'?`List<${item}>`:`${item}[]`}
+      if(typeof data==='object'){
+        const fields=Object.entries(data).map(([k,v])=>{
+          const tn=convert(v,k.charAt(0).toUpperCase()+k.slice(1),lang);
+          const opt=v===null||Array.isArray(v)&&v.length===0;
+          if(lang==='ts')return`  ${k}${opt?'?':''}: ${tn};`;
+          if(lang==='go')return`  ${k.charAt(0).toUpperCase()+k.slice(1)} ${tn} \`json:"${k}"\``;
+          if(lang==='rust')return`  pub ${k}: ${opt?`Option<${tn}>`:tn},`;
+          if(lang==='kotlin')return`  val ${k}: ${opt?`${tn}?`:tn},`;
+          if(lang==='dart')return`  ${tn}${opt?'?':''} ${k};`;
+          return `  ${k}: ${tn};`;
+        });
+        if(lang==='ts')return`interface ${name} {\n${fields.join('\n')}\n}`;
+        if(lang==='go')return`type ${name} struct {\n${fields.join('\n')}\n}`;
+        if(lang==='rust')return`#[derive(Debug, Serialize, Deserialize)]\npub struct ${name} {\n${fields.join('\n')}\n}`;
+        if(lang==='kotlin')return`data class ${name}(\n${fields.join('\n')}\n)`;
+        if(lang==='dart')return`class ${name} {\n${fields.join('\n')}\n}`;
+      }
+      if(typeof data==='string')return'string';
+      if(typeof data==='number')return Number.isInteger(data)?'number':'number';
+      if(typeof data==='boolean')return'boolean';
+      return'string';
+    }
+    function doConvert(){try{const d=JSON.parse(jsonInput.value);output.textContent=convert(d,'Root',lang.value)}catch(e){output.textContent='Invalid JSON'}}
+    convertBtn.addEventListener('click',doConvert);lang.addEventListener('change',doConvert);
+    copyBtn.addEventListener('click',()=>navigator.clipboard.writeText(output.textContent||''));
+    sampleBtn.addEventListener('click',()=>{jsonInput.value='{"name":"Alice","age":30,"email":"alice@example.com","tags":["dev","design"],"address":{"city":"Tokyo","zip":"100-0001"}}';doConvert()})
+  </script>
+</ToolLayout>

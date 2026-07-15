@@ -43,6 +43,9 @@ export const tools: Tool[] = [
 
   // ===== DATA =====
   { id: 'json-formatter', name: 'JSON Formatter', description: 'Format, validate, minify JSON', icon: 'json', category: 'data' },
+  { id: 'json-schema-generator', name: 'JSON Schema Generator', description: 'Generate JSON Schema from JSON data', icon: 'json', category: 'data' },
+  { id: 'json-to-code', name: 'JSON to Code', description: 'Convert JSON to TypeScript, Go, Rust, Kotlin, Dart', icon: 'json', category: 'data' },
+  { id: 'mock-data-generator', name: 'Mock Data Generator', description: 'Generate fake JSON data, mocks and fixtures', icon: 'lorem', category: 'data' },
   { id: 'timestamp', name: 'Timestamp Converter', description: 'Unix timestamp converter', icon: 'time', category: 'data' },
   { id: 'hash-generator', name: 'Hash Generator', description: 'MD5, SHA-1, SHA-256, SHA-512', icon: 'hash', category: 'data' },
   { id: 'number-base', name: 'Number Base', description: 'Dec/Hex/Bin/Oct converter', icon: 'number', category: 'data' },
@@ -61,6 +64,8 @@ export const tools: Tool[] = [
   // ===== DEV =====
   { id: 'html-preview', name: 'HTML Preview', description: 'Preview HTML code in real-time', icon: 'html', category: 'dev' },
   { id: 'chmod-calculator', name: 'chmod Calculator', description: 'Calculate Unix file permissions and chmod values', icon: 'number', category: 'dev' },
+  { id: 'llm-token-counter', name: 'LLM Token Counter', description: 'Count tokens for OpenAI, Claude and Gemini models', icon: 'hash', category: 'dev' },
+  { id: 'prompt-tools', name: 'Prompt Tools', description: 'Format and optimize LLM prompts for better results', icon: 'regex', category: 'dev' },
   { id: 'jwt-decoder', name: 'JWT Decoder', description: 'Decode JSON Web Tokens', icon: 'jwt', category: 'dev' },
   { id: 'jwt-encoder', name: 'JWT Encoder', description: 'Create and sign JSON Web Tokens', icon: 'jwt', category: 'dev' },
   { id: 'jwt-inspector', name: 'JWT Inspector', description: 'Inspect JWT claims, expiry, and structure', icon: 'jwt', category: 'dev' },
