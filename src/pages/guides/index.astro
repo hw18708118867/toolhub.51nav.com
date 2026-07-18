@@ -5,6 +5,21 @@ import Footer from '../../components/Footer.astro'
 
 const sections = [
   {
+    name: 'Step-by-Step Tutorials',
+    guides: [
+      { href: '/guides/how-to-generate-uuid/', title: 'How to Generate a UUID', desc: 'Generate UUID v4 online, via CLI, or in code — in under a minute.' },
+      { href: '/guides/how-to-format-json/', title: 'How to Format & Validate JSON', desc: 'Format messy JSON in three steps and decode any parse error.' },
+      { href: '/guides/how-to-decode-base64/', title: 'How to Encode & Decode Base64', desc: 'Decode Base64 strings, handle the URL-safe variant, fix errors.' },
+      { href: '/guides/how-to-test-regex/', title: 'How to Test a Regular Expression', desc: 'Test patterns against real text and catch false positives early.' },
+      { href: '/guides/how-to-generate-secure-password/', title: 'How to Generate a Strong Password', desc: 'Length beats complexity — generate 80+ bits of entropy in four steps.' },
+      { href: '/guides/how-to-convert-unix-timestamp/', title: 'How to Convert a Unix Timestamp', desc: 'Epoch to date and back — seconds vs milliseconds, UTC vs local.' },
+      { href: '/guides/how-to-decode-jwt/', title: 'How to Decode a JWT Token', desc: 'Inspect header, payload, and expiry to debug 401 errors fast.' },
+      { href: '/guides/how-to-generate-sha256-hash/', title: 'How to Generate MD5 & SHA-256 Hashes', desc: 'Hash text, verify file checksums, pick the right algorithm.' },
+      { href: '/guides/how-to-pick-css-colors/', title: 'How to Pick & Convert CSS Colors', desc: 'HEX, RGB, HSL conversion, hover shades, and WCAG contrast checks.' },
+      { href: '/guides/how-to-preview-markdown/', title: 'How to Preview Markdown Online', desc: 'Render Markdown live and catch silent formatting failures.' },
+    ]
+  },
+  {
     name: 'Data & APIs',
     guides: [
       { href: '/guides/json-debugging-guide/', title: 'JSON Data Debugging Guide', desc: 'Find, fix, and prevent common JSON errors in API development.' },

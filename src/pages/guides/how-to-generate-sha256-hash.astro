@@ -1,0 +1,106 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+const content = `
+<div class="prose prose-gray max-w-none dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-strong:text-gray-900 dark:prose-strong:text-white prose-code:text-blue-600 dark:prose-code:text-blue-400 prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-pre:bg-gray-50 dark:prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-gray-800">
+
+<p>This tutorial shows you how to generate an MD5 or SHA-256 hash from any text, verify a downloaded file against a published checksum, and pick the right algorithm for the job. Hashing a string takes ten seconds; knowing which algorithm to trust is the part worth reading.</p>
+
+<h2>Step 1: Hash a String</h2>
+<p>Open the <a href="/tools/hash-generator/">Hash Generator</a>, paste or type your text, and read off the hashes. Everything is computed locally in your browser. For the input <code>hello</code>:</p>
+<pre><code>MD5:     5d41402abc4b2a76b9719d911017c592
+SHA-1:   aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d
+SHA-256: 2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824</code></pre>
+<p>Three properties to notice. The output length is fixed regardless of input size — SHA-256 always produces 64 hex characters (256 bits), whether you hash one word or a 4 GB file. The same input always yields the same hash. And the function is one-way: there is no "decode" operation.</p>
+
+<h2>Step 2: See the Avalanche Effect</h2>
+<p>Change one character — hash <code>Hello</code> instead of <code>hello</code>:</p>
+<pre><code>SHA-256 of "hello":
+2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824
+
+SHA-256 of "Hello":
+185f8db32271fe25f561a6fc938b2e264306ec304eda518007d1764826381969</code></pre>
+<p>The two outputs share nothing. This is the avalanche effect, and it's why a hash detects even a single flipped bit in a large file — and also why "the hashes look similar" is never a thing: hashes either match exactly or mean nothing.</p>
+
+<h2>Step 3: Pick the Right Algorithm</h2>
+<table>
+  <thead><tr><th>Algorithm</th><th>Output</th><th>Status</th><th>Use for</th></tr></thead>
+  <tbody>
+    <tr><td><strong>MD5</strong></td><td>128-bit / 32 hex</td><td>Broken for security</td><td>Non-security checksums, cache keys, deduplication</td></tr>
+    <tr><td><strong>SHA-1</strong></td><td>160-bit / 40 hex</td><td>Broken (collisions demonstrated 2017)</td><td>Legacy compatibility only (e.g. Git's internal IDs)</td></tr>
+    <tr><td><strong>SHA-256</strong></td><td>256-bit / 64 hex</td><td>Secure</td><td>File integrity, signatures, general security</td></tr>
+    <tr><td><strong>SHA-512</strong></td><td>512-bit / 128 hex</td><td>Secure</td><td>Same as SHA-256; faster on 64-bit CPUs</td></tr>
+  </tbody>
+</table>
+<p>The practical rule: <strong>SHA-256 by default</strong>. MD5 remains acceptable where an attacker gains nothing from forging a collision — detecting accidental corruption, generating cache keys — but never where someone might deliberately craft a matching input. And none of these, including SHA-256, is appropriate for storing passwords; that's a different job covered below.</p>
+
+<h2>Worked Example: Verifying a Downloaded File</h2>
+<p>You download an installer, and the project page publishes:</p>
+<pre><code>SHA-256: 8f43…a1b2  ubuntu-24.04-desktop-amd64.iso</code></pre>
+<p>Verify before running it:</p>
+<ol>
+  <li>Compute the file's hash locally (commands in the next section — for large files, use the terminal rather than a browser tool).</li>
+  <li>Compare with the published value. Don't eyeball all 64 characters — paste both into the <a href="/tools/diff-checker/">Diff Checker</a>, or compare the first and last 8 characters, which is sufficient against accidental corruption.</li>
+  <li>Match → the file is bit-for-bit what the publisher hashed. Mismatch → the download is corrupted or tampered with; delete and re-download from the official source.</li>
+</ol>
+<p>One caveat: a checksum published on the same page as the download only proves integrity, not authenticity — an attacker who replaced the file could replace the checksum too. Projects that take this seriously also publish PGP signatures.</p>
+
+<h2>Hashing Without the Tool</h2>
+<pre><code># macOS
+shasum -a 256 file.iso
+md5 file.iso
+
+# Linux
+sha256sum file.iso
+md5sum file.iso
+
+# Windows PowerShell
+Get-FileHash file.iso -Algorithm SHA256
+
+# Hash a string (mind the -n: echo's newline changes the hash!)
+echo -n "hello" | shasum -a 256
+
+# Node.js
+node -e "console.log(require('crypto').createHash('sha256').update('hello').digest('hex'))"
+
+# Python
+python3 -c "import hashlib; print(hashlib.sha256(b'hello').hexdigest())"</code></pre>
+<p>The <code>-n</code> flag deserves emphasis: <code>echo "hello"</code> pipes six bytes (<code>hello\\n</code>), not five, and produces a completely different hash. If your shell-computed hash never matches the tool's, this is why.</p>
+
+<h2>Common Problems and Fixes</h2>
+<h3>Same text, different hash in two tools</h3>
+<p>The bytes differ even though the visible text matches: a trailing newline or space, Windows <code>\\r\\n</code> vs Unix <code>\\n</code> line endings, or different Unicode encodings (UTF-8 vs UTF-16 — PowerShell pipes default to UTF-16). Hash functions hash bytes, not characters. Normalize line endings and strip whitespace, then retry.</p>
+<h3>Trying to "decrypt" a hash back to the original</h3>
+<p>Not possible — hashing discards information irreversibly. What attackers actually do is guess-and-check: hash billions of candidate inputs and compare (rainbow tables, brute force). Short or common inputs fall quickly this way, which is why unsalted fast hashes are unsafe for passwords.</p>
+<h3>Using SHA-256 for password storage</h3>
+<p>A GPU computes billions of SHA-256 hashes per second — great for checksums, catastrophic for passwords, because it makes guessing cheap. Password storage needs a deliberately slow, salted algorithm: bcrypt, scrypt, or Argon2. Try the <a href="/tools/bcrypt-hash/">Bcrypt Hash tool</a> to see the difference; the <a href="/guides/password-hash-guide/">password and hash guide</a> explains the economics.</p>
+<h3>Need a hash that proves who created it</h3>
+<p>A plain hash proves integrity, not origin — anyone can hash anything. To bind a hash to a secret key (webhook signatures, API request signing), use HMAC: the <a href="/tools/hmac-generator/">HMAC Generator</a> computes <code>HMAC-SHA256(key, message)</code>, verifiable only by holders of the key.</p>
+
+<h2>FAQ</h2>
+<h3>Can two different inputs produce the same hash?</h3>
+<p>In theory yes (infinitely many inputs map to finitely many outputs), but for SHA-256 no collision has ever been found — with 2<sup>256</sup> possible outputs, random collision probability is negligible beyond imagination. MD5 and SHA-1 are different stories: collisions can be manufactured on demand, which is precisely why they're retired from security use.</p>
+<h3>Is MD5 ever OK to use?</h3>
+<p>Yes — where no adversary is involved. Detecting accidental file corruption, building cache keys, bucketing data for deduplication: MD5 is fine and fast. The rule of thumb: if a malicious actor forging a collision would matter, MD5 is disqualified.</p>
+<h3>What's the difference between hashing and encryption?</h3>
+<p>Direction. Encryption is reversible with the key — encrypt, send, decrypt. Hashing is one-way by design — there is nothing to reverse and no key. Use encryption (like the <a href="/tools/aes-encrypt/">AES tool</a>) to protect data you need back; use hashing to fingerprint data you only need to compare.</p>
+<h3>Why does Git still use SHA-1?</h3>
+<p>Git uses SHA-1 as a content address, not a security boundary, and has collision-detection mitigations built in since 2017. The project has been migrating toward SHA-256 object formats, but compatibility keeps SHA-1 the default. It's a good example of context deciding whether a "broken" hash is actually a problem.</p>
+</div>
+`
+---
+<GuideLayout
+  title="How to Generate MD5 & SHA-256 Hashes: Tutorial | DevTools Hub"
+  description="Generate MD5, SHA-1, and SHA-256 hashes from text, verify file checksums, and pick the right algorithm. Includes CLI commands and common hash mismatch fixes."
+  breadcrumb="Hash Tutorial"
+  relatedTools={[
+    { href: '/tools/hash-generator/', title: 'Hash Generator', desc: 'MD5, SHA-1, SHA-256 hashes', type: 'tool' },
+    { href: '/tools/hmac-generator/', title: 'HMAC Generator', desc: 'Keyed hashes for signing', type: 'tool' },
+    { href: '/tools/bcrypt-hash/', title: 'Bcrypt Hash', desc: 'Slow hashes for passwords', type: 'tool' },
+    { href: '/tools/diff-checker/', title: 'Diff Checker', desc: 'Compare checksums exactly', type: 'tool' },
+    { href: '/guides/crypto-tools-guide/', title: 'Crypto Tools Guide', desc: 'Every primitive compared', type: 'guide' },
+  ]}
+>
+  <Fragment slot="title">How to Generate MD5 and SHA-256 Hashes:<br class="hidden sm:block" />Step-by-Step Tutorial</Fragment>
+  <Fragment slot="intro">Hash any text in seconds, verify file downloads against published checksums, and learn which algorithm to use — SHA-256 by default, MD5 only when no attacker matters.</Fragment>
+  <Fragment set:html={content} />
+</GuideLayout>

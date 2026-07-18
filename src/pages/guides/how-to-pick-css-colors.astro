@@ -1,0 +1,105 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+const content = `
+<div class="prose prose-gray max-w-none dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-strong:text-gray-900 dark:prose-strong:text-white prose-code:text-blue-600 dark:prose-code:text-blue-400 prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-pre:bg-gray-50 dark:prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-gray-800">
+
+<p>This tutorial shows you how to pick a color, get it in the exact format your stylesheet needs (HEX, RGB, or HSL), build a matching shade, and check it against accessibility contrast requirements before you ship. Ten minutes covers the whole workflow.</p>
+
+<h2>Step 1: Pick or Capture the Color</h2>
+<p>Open the <a href="/tools/color-picker/">Color Picker</a>. You have two starting points:</p>
+<ul>
+  <li><strong>Picking fresh</strong>: drag in the saturation/lightness square, then set the hue on the vertical slider. The values update live in every format.</li>
+  <li><strong>Matching an existing color</strong>: paste any value you have — <code>#3b82f6</code>, <code>rgb(59, 130, 246)</code>, or <code>hsl(217, 91%, 60%)</code> — and the picker jumps to it.</li>
+</ul>
+<p>To capture a color from anywhere on your screen (a competitor's site, a logo in a PDF), use the browser's built-in eyedropper first: in Chrome or Edge DevTools, click any color swatch in the Styles panel and the eyedropper activates. Copy the HEX it reports, paste it into the picker.</p>
+
+<h2>Step 2: Read the Same Color in Three Formats</h2>
+<p>The picker shows one color in parallel notations:</p>
+<pre><code>HEX:  #3b82f6
+RGB:  rgb(59, 130, 246)
+HSL:  hsl(217, 91%, 60%)</code></pre>
+<p>All three are interchangeable — pick by what you're editing:</p>
+<ul>
+  <li><strong>HEX</strong> — the compact default for design handoffs, config files, and most codebases.</li>
+  <li><strong>RGB</strong> — needed when adding transparency in older syntax: <code>rgba(59, 130, 246, 0.5)</code> for a 50%-opacity overlay.</li>
+  <li><strong>HSL</strong> — the format for <em>reasoning</em> about color. Hue 217 = blue; 91% saturation = vivid; 60% lightness = medium-bright. Want a darker variant of the same blue? Drop lightness to 40% and keep the rest: <code>hsl(217, 91%, 40%)</code>. That single trick — vary L, hold H and S — produces coherent hover states and shade scales without guesswork.</li>
+</ul>
+<p>For batch conversion between formats (including CMYK), the <a href="/tools/color-converter/">Color Converter</a> handles it; the underlying math is covered in the <a href="/guides/color-tools-guide/">color tools guide</a>.</p>
+
+<h2>Step 3: Build the Variants You'll Actually Need</h2>
+<p>A UI color rarely ships alone — you need at least a hover shade and a subtle background tint. Using HSL arithmetic on our example:</p>
+<pre><code>:root {
+  --brand:        hsl(217, 91%, 60%);  /* base    #3b82f6 */
+  --brand-hover:  hsl(217, 91%, 50%);  /* darker  */
+  --brand-tint:   hsl(217, 91%, 95%);  /* pale bg */
+}</code></pre>
+<p>For a full palette (complementary and analogous hues, 10-step shade scales), generate one from the base color with the <a href="/tools/color-palette/">Color Palette generator</a>, or get Tailwind-style 50–950 scales from the <a href="/tools/tailwind-color-generator/">Tailwind Color Generator</a>.</p>
+
+<h2>Step 4: Check Contrast Before You Commit</h2>
+<p>The step that separates usable color choices from support tickets. Paste your text color and background color into the <a href="/tools/color-contrast/">Color Contrast checker</a> and read the WCAG ratio:</p>
+<ul>
+  <li><strong>4.5:1</strong> — minimum for normal body text (WCAG AA)</li>
+  <li><strong>3:1</strong> — minimum for large text (18pt+/24px+) and UI components</li>
+  <li><strong>7:1</strong> — the stricter AAA level for body text</li>
+</ul>
+<p>Concrete example: white text on our <code>#3b82f6</code> blue scores about <strong>3.68:1</strong> — passes for large headlines and buttons, <em>fails</em> for body text. Fix by darkening the background (<code>hsl(217, 91%, 45%)</code> pushes the ratio past 4.5:1) or using the blue only for non-text elements. Checking now costs 30 seconds; retrofitting contrast across a shipped UI costs days.</p>
+
+<h2>Worked Example: Matching a Brand Color From a Logo</h2>
+<ol>
+  <li>Open the logo image in the browser, activate the DevTools eyedropper, click the dominant color. It reports <code>#e11d48</code>.</li>
+  <li>Paste <code>#e11d48</code> into the picker. HSL reads <code>hsl(347, 77%, 50%)</code> — a saturated rose red.</li>
+  <li>Create the hover state: lightness 50% → 40% = <code>hsl(347, 77%, 40%)</code> → <code>#b91238</code> (approximately).</li>
+  <li>Contrast-check white text on the base color: ~4.6:1 — passes AA for body text. Ship it.</li>
+</ol>
+
+<h2>Working With Colors Without the Tool</h2>
+<pre><code>/* Modern CSS can derive variants natively */
+.button:hover {
+  /* darken by dropping lightness via color-mix */
+  background: color-mix(in srgb, var(--brand) 85%, black);
+}
+
+/* relative color syntax (Chrome 119+, Safari 16.4+) */
+.tint {
+  background: hsl(from var(--brand) h s 95%);
+}</code></pre>
+<p>In DevTools, every color swatch in the Styles panel opens an inline picker with a built-in contrast-ratio readout against the element's background — the fastest check for a color already on the page. Sass users have had <code>darken()</code>/<code>lighten()</code> for years; the native <code>color-mix()</code> now does the same without a build step.</p>
+
+<h2>Common Problems and Fixes</h2>
+<h3>The color looks different on the actual page</h3>
+<p>Usual suspects: an opacity or overlay layer between the element and viewer, a parent's <code>filter</code>, dark-mode media queries swapping variables, or wide-gamut displays rendering <code>display-p3</code> colors differently than sRGB. Inspect the exact element in DevTools and read the computed color rather than trusting the stylesheet value.</p>
+<h3>3-digit vs 6-digit vs 8-digit HEX confusion</h3>
+<p><code>#fff</code> expands to <code>#ffffff</code> (each digit doubles). An 8-digit value like <code>#3b82f680</code> carries alpha in the last two digits — <code>80</code> hex = 128/255 ≈ 50% opacity. If a designer hands you 8 digits and your target doesn't support HEX-alpha, convert to <code>rgba()</code>.</p>
+<h3>My HSL-derived shades look muddy</h3>
+<p>Pure lightness shifts can drift perceptually — very light tints lose their hue character, and mid-tone shifts change apparent saturation. For a polished scale, nudge saturation up slightly as lightness increases toward the extremes, or use a generated scale from the <a href="/tools/tailwind-color-generator/">Tailwind Color Generator</a>, which applies these corrections.</p>
+<h3>Gradient between two colors goes through gray</h3>
+<p>Interpolating between complementary-ish colors in RGB space passes through desaturated middle values. Build gradients with an intermediate hue stop, or use the <a href="/tools/css-gradient/">CSS Gradient generator</a> to preview before committing.</p>
+
+<h2>FAQ</h2>
+<h3>Which color format should I standardize on in CSS?</h3>
+<p>HEX for static values, HSL (or the newer OKLCH) for anything you'll derive variants from. Consistency matters more than the choice — mixed formats across a codebase make color audits painful.</p>
+<h3>What's the difference between HSL and HSB/HSV?</h3>
+<p>Different lightness models. In HSL, 100% lightness is always white; in HSB (used by Photoshop and many design tools), 100% brightness at full saturation is the pure vivid hue. A designer's HSB values will not match CSS HSL — convert via HEX to avoid the mismatch.</p>
+<h3>Do I need to worry about color blindness?</h3>
+<p>About 8% of men and 0.5% of women have some form of color vision deficiency, most commonly red-green. Two rules cover most of it: never encode meaning in color alone (add icons or labels), and keep sufficient lightness contrast — which the WCAG ratio check from Step 4 already enforces.</p>
+<h3>How do I pick colors that go together?</h3>
+<p>Start from one anchor color and derive the rest by rule rather than eye: same hue at different lightness (monochrome), hues 30° apart (analogous), or 180° apart (complementary, use sparingly for accents). The <a href="/tools/color-palette/">Color Palette generator</a> automates these harmonies from any base color.</p>
+</div>
+`
+---
+<GuideLayout
+  title="How to Pick & Convert CSS Colors: Tutorial | DevTools Hub"
+  description="Pick a color, convert between HEX, RGB and HSL, derive hover shades with HSL arithmetic, and pass WCAG contrast checks — a complete four-step workflow."
+  breadcrumb="CSS Colors Tutorial"
+  relatedTools={[
+    { href: '/tools/color-picker/', title: 'Color Picker', desc: 'Pick colors in HEX, RGB, HSL', type: 'tool' },
+    { href: '/tools/color-contrast/', title: 'Color Contrast', desc: 'WCAG contrast checker', type: 'tool' },
+    { href: '/tools/color-palette/', title: 'Color Palette', desc: 'Generate color harmonies', type: 'tool' },
+    { href: '/tools/color-converter/', title: 'Color Converter', desc: 'HEX, RGB, HSL, CMYK', type: 'tool' },
+    { href: '/guides/css-color-gradient-guide/', title: 'CSS Colors & Gradients', desc: 'Color theory in depth', type: 'guide' },
+  ]}
+>
+  <Fragment slot="title">How to Pick and Convert CSS Colors:<br class="hidden sm:block" />Step-by-Step Tutorial</Fragment>
+  <Fragment slot="intro">Pick a color, read it in HEX, RGB, and HSL, derive hover states with lightness arithmetic, and verify WCAG contrast — the full workflow in four steps.</Fragment>
+  <Fragment set:html={content} />
+</GuideLayout>

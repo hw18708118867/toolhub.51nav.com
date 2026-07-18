@@ -1,0 +1,104 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+const content = `
+<div class="prose prose-gray max-w-none dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-strong:text-gray-900 dark:prose-strong:text-white prose-code:text-blue-600 dark:prose-code:text-blue-400 prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-pre:bg-gray-50 dark:prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-gray-800">
+
+<p>This tutorial shows you how to decode a JSON Web Token to see its header, payload, and expiry — the first move when debugging any authentication problem. Decoding takes seconds; the skill is in reading what comes out. One rule up front: <strong>decoding is not verifying</strong>. Anyone can read a JWT; only the signature check proves it's genuine.</p>
+
+<h2>Step 1: Get the Token</h2>
+<p>JWTs travel in the <code>Authorization</code> header, cookies, or local storage. Grab one from wherever your app keeps it:</p>
+<ul>
+  <li><strong>Browser DevTools → Network tab</strong>: click a request, find <code>Authorization: Bearer eyJ…</code> in the request headers, copy everything after <code>Bearer </code>.</li>
+  <li><strong>DevTools → Application tab</strong>: check Local Storage and Cookies for values starting with <code>eyJ</code>.</li>
+  <li><strong>From a curl session</strong>: it's the <code>access_token</code> field in the login response.</li>
+</ul>
+<p>A JWT is three Base64url sections joined by dots — <code>header.payload.signature</code>:</p>
+<pre><code>eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c</code></pre>
+<p>If your string doesn't have exactly two dots, it's not a JWT (or it's truncated — a very common copy/paste failure).</p>
+
+<h2>Step 2: Decode It</h2>
+<p>Paste the token into the <a href="/tools/jwt-decoder/">JWT Decoder</a>. Decoding happens entirely in your browser — the token is never uploaded, which matters because a live token is a credential. You'll see two JSON blocks:</p>
+<p><strong>Header</strong> — how the token is signed:</p>
+<pre><code>{
+  "alg": "HS256",
+  "typ": "JWT"
+}</code></pre>
+<p><strong>Payload</strong> — the claims:</p>
+<pre><code>{
+  "sub": "1234567890",
+  "name": "John Doe",
+  "iat": 1516239022
+}</code></pre>
+<p>The third section, the signature, can't be "decoded" — it's raw cryptographic bytes, meaningful only for verification.</p>
+
+<h2>Step 3: Read the Claims That Matter</h2>
+<p>Debugging auth issues almost always comes down to five registered claims:</p>
+<ul>
+  <li><code>exp</code> — expiry, as a Unix timestamp. The #1 cause of sudden 401s. Convert it with the <a href="/tools/timestamp/">Timestamp Converter</a>; if it's in the past, the token is dead and the client should refresh it.</li>
+  <li><code>iat</code> — issued-at. Compare with <code>exp</code> to learn the token lifetime (e.g. <code>exp − iat = 3600</code> means 1-hour tokens).</li>
+  <li><code>nbf</code> — not-before. A token used before this time is rejected; if it's in the future, check for clock skew between servers.</li>
+  <li><code>sub</code> — subject, usually the user ID. Confirms which user the token actually represents.</li>
+  <li><code>iss</code> / <code>aud</code> — issuer and audience. A 401 despite a fresh token often means the API expects a different <code>aud</code> value than your auth server sets (common with misconfigured OAuth clients).</li>
+</ul>
+
+<h2>Worked Example: Debugging a 401 After Login</h2>
+<p>A user logs in successfully but every API call returns <code>401 Unauthorized</code>. The five-minute diagnosis:</p>
+<ol>
+  <li>Copy the token from the failing request's <code>Authorization</code> header.</li>
+  <li>Decode it. Check <code>exp</code>: <code>1784540042</code> → converts to 20 minutes from now. Not expired.</li>
+  <li>Check <code>aud</code>: <code>"api.staging.example.com"</code>. But the failing request goes to <code>api.example.com</code> — the frontend is pointed at production while logging in against staging. That's the bug.</li>
+  <li>No decoding tool would have found this faster: the server's only public statement was "401", and the token's payload contained the actual explanation.</li>
+</ol>
+<p>If everything in the payload had looked correct, the next suspect would be the signature — wrong signing key on one side — which you can test in the <a href="/tools/jwt-inspector/">JWT Inspector</a> by pasting the shared secret (only ever do this with development secrets).</p>
+
+<h2>Decoding JWTs Without the Tool</h2>
+<p>The payload is just Base64url, so you can decode it anywhere:</p>
+<pre><code># Command line — decode the payload (second section)
+echo "eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ" | base64 -d
+# If you get an "invalid input" error, add padding: append == and retry
+
+# Node.js
+node -e "console.log(JSON.parse(Buffer.from(process.argv[1].split('.')[1], 'base64url')))" "eyJ...full.token"
+
+# Python 3
+python3 -c "import base64, json, sys; p=sys.argv[1].split('.')[1]; print(json.loads(base64.urlsafe_b64decode(p + '=' * (-len(p) % 4))))" "eyJ...full.token"</code></pre>
+<p>The padding dance (<code>=</code> characters) is needed because JWTs strip Base64 padding; the browser tool handles it silently. These one-liners are handy inside servers and CI where you can't open a browser.</p>
+
+<h2>Common Problems and Fixes</h2>
+<h3>"Invalid token" on paste</h3>
+<p>Check for whitespace or line breaks introduced by copying from a terminal, a leading <code>Bearer </code> prefix that came along, or a truncated final section. The token must be one unbroken string with two dots.</p>
+<h3>Payload decodes but shows unreadable binary</h3>
+<p>Some systems issue JWE (encrypted JWTs, five sections instead of three) rather than JWS. Encrypted payloads can't be read without the decryption key — count the dots: 2 dots = decodable JWS, 4 dots = encrypted JWE.</p>
+<h3>Token looks perfect but the server still rejects it</h3>
+<p>The signature doesn't validate server-side: wrong secret/key, or an <code>alg</code> mismatch (server expects <code>RS256</code>, token says <code>HS256</code>). This is invisible to decoding — compare the <code>alg</code> header with the server's configuration, and verify the signature with the correct key in the <a href="/tools/jwt-inspector/">JWT Inspector</a>.</p>
+<h3>exp is valid but users get logged out anyway</h3>
+<p>Server clock skew, or a server-side revocation list. If <code>exp</code> minus current time is under ~60 seconds, some libraries reject preemptively. Check whether the backend applies a leeway setting.</p>
+
+<h2>FAQ</h2>
+<h3>Is it safe to paste a JWT into an online decoder?</h3>
+<p>Into a client-side decoder like this one, yes — nothing leaves your browser. Still, treat live production tokens as credentials: prefer expired tokens or staging tokens when sharing screenshots or bug reports, because anyone holding a valid token can use it.</p>
+<h3>Why can I read the token without any key?</h3>
+<p>By design. A JWS token is signed, not encrypted — the signature makes tampering detectable but does nothing for confidentiality. Consequence: <strong>never put secrets in JWT payloads</strong> (passwords, API keys, personal data beyond what's needed). Anyone who sees the token reads them. For details on structure and signing algorithms, see the <a href="/guides/jwt-deep-dive-guide/">JWT deep dive</a>.</p>
+<h3>Can I change the payload and re-use the token?</h3>
+<p>You can edit the payload, but the signature then no longer matches, and any correctly implemented server rejects it. That's the entire security model. (Historic implementations that accepted <code>"alg": "none"</code> were a famous vulnerability — modern libraries disable it.)</p>
+<h3>How do I create a JWT for testing?</h3>
+<p>Use the <a href="/tools/jwt-encoder/">JWT Encoder</a>: set the claims, pick <code>HS256</code>, sign with a throwaway development secret. Useful for seeding integration tests and trying out claim combinations without standing up an auth server.</p>
+</div>
+`
+---
+<GuideLayout
+  title="How to Decode a JWT Token: Debug Tutorial | DevTools Hub"
+  description="Decode a JWT in seconds to inspect header, payload, and expiry. Read exp, aud, iss claims to debug 401 errors, plus CLI one-liners and common fixes."
+  breadcrumb="Decode JWT Tutorial"
+  relatedTools={[
+    { href: '/tools/jwt-decoder/', title: 'JWT Decoder', desc: 'Decode JWT tokens instantly', type: 'tool' },
+    { href: '/tools/jwt-encoder/', title: 'JWT Encoder', desc: 'Create signed test tokens', type: 'tool' },
+    { href: '/tools/jwt-inspector/', title: 'JWT Inspector', desc: 'Verify signatures and claims', type: 'tool' },
+    { href: '/tools/timestamp/', title: 'Timestamp Converter', desc: 'Convert exp/iat claims', type: 'tool' },
+    { href: '/guides/jwt-deep-dive-guide/', title: 'JWT Deep Dive', desc: 'Structure and signing in depth', type: 'guide' },
+  ]}
+>
+  <Fragment slot="title">How to Decode a JWT Token:<br class="hidden sm:block" />Step-by-Step Tutorial</Fragment>
+  <Fragment slot="intro">Decode any JWT to inspect its header, payload, and expiry — then read the five claims that explain nearly every 401 error. Decoding is not verifying; learn both.</Fragment>
+  <Fragment set:html={content} />
+</GuideLayout>

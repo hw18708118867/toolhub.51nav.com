@@ -22,6 +22,10 @@ const guideSlugs = [
   'image-tools-guide', 'html-minification-guide', 'css-minification-guide',
   'flexbox-guide', 'css-grid-guide', 'box-shadow-guide',
   'border-radius-guide', 'svg-workflow-guide', 'word-count-seo-guide',
+  'how-to-generate-uuid', 'how-to-format-json', 'how-to-decode-base64',
+  'how-to-test-regex', 'how-to-generate-secure-password', 'how-to-convert-unix-timestamp',
+  'how-to-decode-jwt', 'how-to-generate-sha256-hash', 'how-to-pick-css-colors',
+  'how-to-preview-markdown',
 ]
 
 const siteUrl = 'https://toolhub.51nav.com'

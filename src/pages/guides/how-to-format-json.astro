@@ -1,0 +1,100 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+const content = `
+<div class="prose prose-gray max-w-none dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-strong:text-gray-900 dark:prose-strong:text-white prose-code:text-blue-600 dark:prose-code:text-blue-400 prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-pre:bg-gray-50 dark:prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-gray-800">
+
+<p>This tutorial walks you through formatting a messy JSON blob into readable, indented output — and validating it at the same time. You'll paste raw JSON, format it, read the error message if it's broken, and fix the three mistakes that cause 90% of JSON parse failures. Total time: two to three minutes.</p>
+
+<h2>Step 1: Paste Your JSON</h2>
+<p>Open the <a href="/tools/json-formatter/">JSON Formatter</a> and paste your JSON into the input panel. It doesn't matter how mangled it looks — single line from an API response, log excerpt with escaped quotes, or output copied from a terminal. Everything runs locally in your browser, so pasting API responses that contain internal data is safe: nothing is uploaded.</p>
+<p>A typical starting point looks like this — one line, impossible to scan:</p>
+<pre><code>{"user":{"id":42,"name":"Ada","roles":["admin","dev"],"active":true},"meta":{"page":1,"total":137}}</code></pre>
+
+<h2>Step 2: Format It</h2>
+<p>Click <strong>Format</strong>. If the JSON is valid, you get indented output:</p>
+<pre><code>{
+  "user": {
+    "id": 42,
+    "name": "Ada",
+    "roles": ["admin", "dev"],
+    "active": true
+  },
+  "meta": {
+    "page": 1,
+    "total": 137
+  }
+}</code></pre>
+<p>Formatting is also validation. The formatter parses your input with a real JSON parser first — if parsing succeeds, the JSON is valid by definition. There is no such thing as JSON that formats correctly but is invalid.</p>
+<p>Most formatters let you pick the indent width. Two spaces is the JavaScript ecosystem default (what <code>JSON.stringify(obj, null, 2)</code> produces); four spaces is common in Python projects. Pick whichever matches the codebase you're pasting into.</p>
+
+<h2>Step 3: Read the Error If It Fails</h2>
+<p>If the input is invalid, you get a parse error with a position, something like <code>Unexpected token ' in JSON at position 12</code>. The position is a character offset from the start of the input. Count to that offset (or paste into an editor that shows column numbers) and look at what's immediately before it — the actual mistake is usually the character right before the reported position.</p>
+<p>Three mistakes cause the vast majority of failures:</p>
+<ul>
+  <li><strong>Single quotes.</strong> <code>{'name': 'Ada'}</code> is valid JavaScript but invalid JSON. JSON requires double quotes on both keys and string values.</li>
+  <li><strong>Trailing commas.</strong> <code>{"a": 1, "b": 2,}</code> fails. The comma after the last item is legal in modern JavaScript and in JSON5, but not in JSON itself.</li>
+  <li><strong>Unquoted keys.</strong> <code>{name: "Ada"}</code> fails. Every key must be a double-quoted string.</li>
+</ul>
+<p>Two more that show up in real-world debugging: <code>NaN</code>, <code>Infinity</code>, and <code>undefined</code> are not valid JSON values (a Python or JS serializer misconfiguration produces these), and comments (<code>//</code> or <code>/* */</code>) are not allowed — if your "JSON" file has comments, it's actually JSONC, which VS Code config files use but <code>JSON.parse</code> rejects.</p>
+
+<h2>Worked Example: Debugging an API Response</h2>
+<p>You call an API with <code>curl</code> and get back a wall of text. Here's the workflow:</p>
+<pre><code>curl -s https://api.example.com/v1/orders/9001</code></pre>
+<ol>
+  <li>Copy the response body and paste it into the formatter.</li>
+  <li>Click Format. Suppose you get: <code>Unexpected token &lt; in JSON at position 0</code>.</li>
+  <li>Position 0 and a <code>&lt;</code> means the response starts with an HTML tag — the server returned an HTML error page (usually a 404 or a proxy error) instead of JSON. The bug isn't your JSON handling; check the URL and the response status code with the <a href="/tools/http-status/">HTTP Status reference</a>.</li>
+  <li>Fix the URL, re-run curl, paste again. This time it formats cleanly, and the indented structure shows you that <code>order.items</code> is an empty array — which is the actual bug you were hunting.</li>
+</ol>
+<p>This "format first, read second" habit is the fastest way to debug any JSON-producing system: the formatter tells you immediately whether the problem is malformed syntax or unexpected-but-valid data.</p>
+
+<h2>Formatting JSON Without the Tool</h2>
+<p>When you're in a terminal, pipe through one of these:</p>
+<pre><code># Python — preinstalled on macOS and most Linux
+curl -s https://api.example.com/data | python3 -m json.tool
+
+# jq — the standard JSON CLI (brew install jq)
+curl -s https://api.example.com/data | jq .
+
+# Node.js one-liner
+cat data.json | node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync(0)), null, 2))"</code></pre>
+<p><code>jq</code> is worth installing if you handle JSON daily: <code>jq .</code> formats, <code>jq '.user.roles'</code> extracts a field, and <code>jq 'keys'</code> lists object keys. The browser tool wins when you want to visually explore nested structure, need to share formatted output with someone, or don't have terminal access to where the JSON lives.</p>
+
+<h2>Common Problems and Fixes</h2>
+<h3>The JSON is valid but has escaped quotes everywhere</h3>
+<p>Output like <code>"{\\"name\\": \\"Ada\\"}"</code> means you have a JSON string containing JSON — double-encoded. This happens when code calls a serializer on an already-serialized string. Unescape it once with the <a href="/tools/json-escape/">JSON Escape tool</a>, then format the result. If your logs show this, the fix in code is to remove the extra serialize call.</p>
+<h3>Formatting works but numbers changed</h3>
+<p>If <code>"id": 9007199254740993</code> comes out as <code>9007199254740992</code>, you've hit JavaScript's number precision limit (2<sup>53</sup>). Any browser-based formatter parses numbers as 64-bit floats, so integers above 9,007,199,254,740,991 lose precision. The upstream fix is to send large IDs as strings.</p>
+<h3>File is too big and the browser stalls</h3>
+<p>Browser formatters handle a few megabytes fine but struggle past 10–50 MB. For big files, use <code>jq . big.json > formatted.json</code> in a terminal instead — it streams and won't freeze.</p>
+<h3>I need to compare two JSON payloads, not just format one</h3>
+<p>Format both first so the diff isn't drowned in whitespace changes, then use the <a href="/tools/json-compare/">JSON Compare tool</a>, which diffs by structure rather than by line.</p>
+
+<h2>FAQ</h2>
+<h3>Does formatting change my data?</h3>
+<p>No. Formatting only changes whitespace between tokens. Key order, values, and nesting are untouched. One caveat: as noted above, numbers beyond 2<sup>53</sup> lose precision in any JavaScript-based tool — that's a parsing effect, not a formatting one.</p>
+<h3>What's the difference between formatting and minifying?</h3>
+<p>Opposites. Formatting adds whitespace for humans; minifying strips every optional space and newline for machines, shrinking payload size typically 20–40%. The same parser sits under both operations.</p>
+<h3>Why does my JSON work in JavaScript but fail validation?</h3>
+<p>Because JavaScript object literal syntax is a superset of JSON. Single quotes, unquoted keys, trailing commas, and comments all work in JS source code but violate the JSON spec (RFC 8259). If you need those conveniences in config files, look at JSON5 or YAML — and see the <a href="/guides/json-structure-guide/">JSON structure guide</a> for the full syntax rules.</p>
+<h3>Is it safe to paste production API responses into an online formatter?</h3>
+<p>Into this one, yes: it parses and formats entirely client-side with no network calls. As a general habit, check any online tool's privacy claims before pasting data containing tokens or personal information — or use the terminal commands above, which never leave your machine.</p>
+</div>
+`
+---
+<GuideLayout
+  title="How to Format & Validate JSON: 3-Step Tutorial | DevTools Hub"
+  description="Format messy JSON into readable output in three steps, decode parse errors like 'Unexpected token', and fix the mistakes behind 90% of JSON failures."
+  breadcrumb="Format JSON Tutorial"
+  relatedTools={[
+    { href: '/tools/json-formatter/', title: 'JSON Formatter', desc: 'Format and validate JSON', type: 'tool' },
+    { href: '/tools/json-compare/', title: 'JSON Compare', desc: 'Diff two JSON documents', type: 'tool' },
+    { href: '/tools/json-escape/', title: 'JSON Escape', desc: 'Escape and unescape JSON strings', type: 'tool' },
+    { href: '/guides/json-structure-guide/', title: 'JSON Structure Guide', desc: 'JSON syntax rules in depth', type: 'guide' },
+    { href: '/guides/json-debugging-guide/', title: 'JSON Debugging Guide', desc: 'Find and fix JSON errors', type: 'guide' },
+  ]}
+>
+  <Fragment slot="title">How to Format and Validate JSON:<br class="hidden sm:block" />Quick Tutorial</Fragment>
+  <Fragment slot="intro">Turn a one-line JSON blob into readable, indented output in three steps — and learn to read parse errors so broken JSON takes seconds to fix, not minutes.</Fragment>
+  <Fragment set:html={content} />
+</GuideLayout>

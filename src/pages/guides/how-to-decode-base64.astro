@@ -1,0 +1,100 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+const content = `
+<div class="prose prose-gray max-w-none dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-strong:text-gray-900 dark:prose-strong:text-white prose-code:text-blue-600 dark:prose-code:text-blue-400 prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-pre:bg-gray-50 dark:prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-gray-800">
+
+<p>This tutorial shows you how to decode a Base64 string back to readable text, and how to encode text into Base64 — both in under a minute in the browser. It also covers the command-line equivalents, the URL-safe variant that trips people up, and how to recognize when a string is actually Base64 in the first place.</p>
+
+<h2>Step 1: Recognize Base64 When You See It</h2>
+<p>Before decoding, confirm what you have. Base64 strings use exactly 64 characters — <code>A–Z</code>, <code>a–z</code>, <code>0–9</code>, <code>+</code>, and <code>/</code> — plus <code>=</code> for padding at the end. Length is always a multiple of 4. Typical examples:</p>
+<pre><code>SGVsbG8sIFdvcmxkIQ==
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
+dXNlcm5hbWU6cGFzc3dvcmQ=</code></pre>
+<p>Two tells: one or two <code>=</code> signs at the end, and the prefix <code>eyJ</code> — that's <code>{"</code> encoded, which means the payload is JSON (JWTs start this way). If the string contains <code>-</code> or <code>_</code> instead of <code>+</code> and <code>/</code>, it's the URL-safe variant; more on that in the troubleshooting section.</p>
+
+<h2>Step 2: Decode It</h2>
+<p>Open the <a href="/tools/base64-converter/">Base64 Converter</a>, paste the string into the input, and switch to <strong>Decode</strong> mode. The conversion happens in your browser — nothing is sent to a server, so decoding strings that contain credentials or tokens is safe.</p>
+<p>Input:</p>
+<pre><code>dXNlcm5hbWU6cGFzc3dvcmQ=</code></pre>
+<p>Output:</p>
+<pre><code>username:password</code></pre>
+<p>That particular example is the format of an HTTP Basic Authentication header — which demonstrates the single most important fact about Base64: <strong>it is encoding, not encryption</strong>. Anyone can reverse it. Never treat Base64 as a way to hide data.</p>
+
+<h2>Step 3: Encode Text to Base64</h2>
+<p>Switch to <strong>Encode</strong> mode and type or paste your text. Common reasons to encode:</p>
+<ul>
+  <li>Building a Basic Auth header by hand: encode <code>user:pass</code>, then send <code>Authorization: Basic dXNlcjpwYXNz</code>.</li>
+  <li>Embedding binary-ish content in JSON or XML, which can only carry text.</li>
+  <li>Creating test fixtures for code that decodes Base64.</li>
+</ul>
+<p>Note that Base64 makes data bigger, not smaller: every 3 bytes of input become 4 characters of output, a fixed 33% size increase. That's the price of representing arbitrary bytes using only safe printable characters.</p>
+
+<h2>Worked Example: Reading a Kubernetes Secret</h2>
+<p>Kubernetes stores secrets Base64-encoded. Running <code>kubectl get secret db-creds -o yaml</code> gives you:</p>
+<pre><code>data:
+  username: YWRtaW4=
+  password: czNjcjN0LXB3</code></pre>
+<p>Paste <code>YWRtaW4=</code> into the converter in decode mode → <code>admin</code>. This is the fastest way to inspect a secret when you don't remember the <code>kubectl</code> flags — and it makes the security point concrete: anyone who can read the YAML can read the secret. Base64 in Kubernetes exists to safely carry binary values in YAML, not to protect them.</p>
+
+<h2>Encoding and Decoding Without the Tool</h2>
+<h3>Command line</h3>
+<pre><code># Encode (macOS and Linux)
+echo -n "Hello, World!" | base64
+# → SGVsbG8sIFdvcmxkIQ==
+
+# Decode — note the flag differs by OS
+echo "SGVsbG8sIFdvcmxkIQ==" | base64 -d      # Linux
+echo "SGVsbG8sIFdvcmxkIQ==" | base64 -D      # macOS (capital D)</code></pre>
+<p>The <code>-n</code> on <code>echo</code> matters: without it, echo appends a newline and that newline gets encoded too, producing a different string (<code>SGVsbG8sIFdvcmxkIQo=</code> — note the different ending). This is the #1 cause of "my Base64 doesn't match" bugs in shell scripts.</p>
+<h3>In code</h3>
+<pre><code>// JavaScript (browser)
+btoa("Hello")        // encode → "SGVsbG8="
+atob("SGVsbG8=")     // decode → "Hello"
+
+// Node.js
+Buffer.from("Hello").toString("base64")
+Buffer.from("SGVsbG8=", "base64").toString()
+
+# Python
+import base64
+base64.b64encode(b"Hello")      # b'SGVsbG8='
+base64.b64decode("SGVsbG8=")    # b'Hello'</code></pre>
+
+<h2>Common Problems and Fixes</h2>
+<h3>Decode produces garbage characters</h3>
+<p>Either the input isn't Base64 (it might be hex, or a hash — hashes like SHA-256 aren't reversible at all; see the <a href="/tools/hash-generator/">Hash Generator</a>), or the decoded bytes aren't text. A Base64 string can encode an image, a ZIP, or any binary — decoding those to "text" yields mojibake. If you suspect an image, try the <a href="/tools/base64-image-viewer/">Base64 Image Viewer</a> instead.</p>
+<h3>"Invalid character" error on a string with dashes or underscores</h3>
+<p>That's Base64url, the URL-safe variant used in JWTs and web APIs: <code>+</code> becomes <code>-</code> and <code>/</code> becomes <code>_</code>, and padding is often dropped. Replace <code>-</code> with <code>+</code> and <code>_</code> with <code>/</code>, add <code>=</code> until the length is a multiple of 4, then decode. For JWTs specifically, the <a href="/tools/jwt-decoder/">JWT Decoder</a> handles all of this automatically.</p>
+<h3>btoa() throws "characters outside of the Latin1 range"</h3>
+<p>JavaScript's <code>btoa()</code> only handles single-byte characters, so any emoji or non-Latin text breaks it. Encode the UTF-8 bytes first: <code>btoa(String.fromCharCode(...new TextEncoder().encode(str)))</code>, or use <code>Buffer</code> in Node. The online converter handles UTF-8 correctly out of the box.</p>
+<h3>Decoded JSON is still unreadable</h3>
+<p>Base64-decoded JSON usually comes out as one long line. Paste it into the <a href="/tools/json-formatter/">JSON Formatter</a> to indent it.</p>
+
+<h2>FAQ</h2>
+<h3>Is Base64 encryption?</h3>
+<p>No. It's a reversible text representation of bytes with zero secrecy. Anyone with the string can decode it instantly. If you need actual secrecy, use real encryption like AES — see the <a href="/tools/aes-encrypt/">AES Encrypt tool</a>.</p>
+<h3>Why does Base64 end with = signs?</h3>
+<p>Padding. Base64 processes input in 3-byte groups producing 4 characters each. When the input length isn't divisible by 3, the last group is padded: 1 leftover byte → <code>==</code>, 2 leftover bytes → <code>=</code>. Some systems (JWTs, some APIs) omit padding entirely, which most decoders tolerate.</p>
+<h3>Why do JWTs and data URIs use Base64?</h3>
+<p>Because both need to carry arbitrary bytes through channels that only accept text — URLs and HTTP headers for JWTs, HTML/CSS attributes for data URIs. JWTs use the URL-safe variant; data URIs (like <code>data:image/png;base64,iVBOR…</code>) use standard Base64. The <a href="/guides/web-encoding-guide/">web encoding guide</a> compares Base64 against URL encoding and HTML entities in depth.</p>
+<h3>Does Base64 work for images and files?</h3>
+<p>Yes — that's one of its main jobs. Encode an image with the <a href="/tools/image-to-base64/">Image to Base64 tool</a> to embed it directly in CSS or HTML. Keep it small: because of the 33% size overhead, inlining anything beyond a few KB usually hurts page performance more than an extra HTTP request would.</p>
+</div>
+`
+---
+<GuideLayout
+  title="How to Decode & Encode Base64 Online: Tutorial | DevTools Hub"
+  description="Decode Base64 strings to readable text in three steps, encode text back, handle the URL-safe variant, and fix invalid character errors. Includes CLI commands."
+  breadcrumb="Base64 Tutorial"
+  relatedTools={[
+    { href: '/tools/base64-converter/', title: 'Base64 Converter', desc: 'Encode and decode Base64', type: 'tool' },
+    { href: '/tools/base64-image-viewer/', title: 'Base64 Image Viewer', desc: 'Preview Base64-encoded images', type: 'tool' },
+    { href: '/tools/jwt-decoder/', title: 'JWT Decoder', desc: 'Decode JWT tokens', type: 'tool' },
+    { href: '/tools/image-to-base64/', title: 'Image to Base64', desc: 'Convert images to Base64', type: 'tool' },
+    { href: '/guides/web-encoding-guide/', title: 'Web Encoding Guide', desc: 'Base64, URL & HTML entities', type: 'guide' },
+  ]}
+>
+  <Fragment slot="title">How to Encode and Decode Base64:<br class="hidden sm:block" />Quick Tutorial</Fragment>
+  <Fragment slot="intro">Decode any Base64 string back to readable text — or encode your own — in under a minute. Covers the URL-safe variant, CLI commands, and the errors that trip everyone up.</Fragment>
+  <Fragment set:html={content} />
+</GuideLayout>

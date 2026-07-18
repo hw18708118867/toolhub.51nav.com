@@ -1,0 +1,97 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+const content = `
+<div class="prose prose-gray max-w-none dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-strong:text-gray-900 dark:prose-strong:text-white prose-code:text-blue-600 dark:prose-code:text-blue-400 prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-pre:bg-gray-50 dark:prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-gray-800">
+
+<p>This tutorial shows you how to convert a Unix timestamp like <code>1784536442</code> into a human-readable date, and how to go the other way. It takes under a minute, including the one check that prevents the most common mistake: confusing seconds with milliseconds.</p>
+
+<h2>Step 1: Check Whether It's Seconds or Milliseconds</h2>
+<p>Before converting, count the digits. This single check prevents dates that are off by decades:</p>
+<ul>
+  <li><strong>10 digits</strong> (e.g. <code>1784536442</code>) — seconds. The Unix standard, used by most APIs, databases, and Python's <code>time.time()</code>.</li>
+  <li><strong>13 digits</strong> (e.g. <code>1784536442000</code>) — milliseconds. JavaScript's native unit (<code>Date.now()</code>), also Java's.</li>
+  <li><strong>16 digits</strong> — microseconds (some databases and logging systems).</li>
+  <li><strong>19 digits</strong> — nanoseconds (Go's <code>UnixNano()</code>, some metrics systems).</li>
+</ul>
+<p>If you feed a milliseconds value into a seconds-based converter, you'll get a date around the year 58,000. If you feed seconds into a milliseconds-based one, you'll get January 1970. Both mean unit mismatch, not data corruption.</p>
+
+<h2>Step 2: Convert Timestamp to Date</h2>
+<p>Open the <a href="/tools/timestamp/">Timestamp Converter</a> and paste the value. The tool detects seconds vs milliseconds automatically and shows the result in both UTC and your local timezone:</p>
+<pre><code>Input:  1784536442
+UTC:    2026-07-20 06:34:02 UTC
+Local:  2026-07-20 14:34:02 GMT+8</code></pre>
+<p>Read the UTC line when comparing against server logs (servers should log in UTC), and the local line when relating the event to your own clock. The difference between the two lines is exactly your timezone offset — if that offset looks wrong, your OS timezone setting is the problem, not the timestamp.</p>
+
+<h2>Step 3: Convert a Date to a Timestamp</h2>
+<p>Going the other way — you have "July 20, 2026 at 14:34" and need the epoch value — enter the date and time in the tool's date-to-timestamp section. One critical detail: <strong>specify which timezone the date is in</strong>. "2026-07-20 14:34" is ambiguous; it maps to a different timestamp for every timezone. The timestamp itself has no timezone (it's always seconds since 1970-01-01 00:00:00 UTC), but the wall-clock date you start from does.</p>
+<p>Typical uses: setting a token expiry in a config file, writing a test fixture that needs a fixed date, or crafting a database query range by hand.</p>
+
+<h2>Worked Example: Investigating a Log Entry</h2>
+<p>A monitoring alert says an error spike started at <code>1784530000</code>. The workflow:</p>
+<ol>
+  <li>10 digits → seconds. Paste into the converter: <code>2026-07-20 04:46:40 UTC</code>.</li>
+  <li>Your deploy log (in local time, GMT+8) shows a release at <code>12:40</code>. Convert: 12:40 GMT+8 = 04:40 UTC.</li>
+  <li>The error spike began 6 minutes and 40 seconds after the deploy. Now you have a correlation worth investigating — and both times are on the same axis, which is the entire point of converting everything to UTC before comparing.</li>
+</ol>
+<p>When you need to compare times across several timezones at once (a deploy in Berlin, logs in UTC, users complaining from California), the <a href="/tools/timezone-converter/">Timezone Converter</a> handles the multi-zone view.</p>
+
+<h2>Converting Timestamps Without the Tool</h2>
+<pre><code># Linux (GNU date)
+date -d @1784536442
+# → Mon Jul 20 06:34:02 UTC 2026
+
+# macOS (BSD date)
+date -r 1784536442
+
+# Current timestamp, any Unix system
+date +%s
+
+# JavaScript — note the ×1000 for seconds input
+new Date(1784536442 * 1000).toISOString()
+// → "2026-07-20T06:34:02.000Z"
+Math.floor(Date.now() / 1000)   // current time in seconds
+
+# Python
+python3 -c "from datetime import datetime, timezone; print(datetime.fromtimestamp(1784536442, tz=timezone.utc))"</code></pre>
+<p>The macOS/Linux flag difference (<code>-r</code> vs <code>-d @</code>) is a perennial gotcha in shell scripts meant to run on both. In JavaScript, forgetting the <code>* 1000</code> is the classic bug — <code>new Date(1784536442)</code> silently interprets the value as milliseconds and gives you January 21, 1970.</p>
+
+<h2>Common Problems and Fixes</h2>
+<h3>The converted date is January 1970</h3>
+<p>Your value was interpreted as milliseconds but is actually seconds (or the value is tiny/zero). Multiply by 1000 in JavaScript contexts, or check whether the source field was null — many systems serialize missing dates as <code>0</code>, which is exactly 1970-01-01T00:00:00Z.</p>
+<h3>The date is off by exactly a few hours</h3>
+<p>Timezone display issue, not a wrong timestamp. The timestamp is timezone-less; only the rendering differs. Confirm by converting to UTC in both systems and comparing — if the UTC values match, both systems agree and one of them is just displaying in a different zone.</p>
+<h3>The date is off by one hour, but only for some dates</h3>
+<p>Daylight saving time. A timezone's UTC offset changes during the year (e.g. New York is UTC-5 in January, UTC-4 in July). If your code applies a fixed offset instead of a named timezone like <code>America/New_York</code>, dates in the "other half" of the year come out an hour off. The <a href="/guides/timezone-converter-guide/">timezone guide</a> covers DST handling in detail.</p>
+<h3>Negative timestamp</h3>
+<p>Valid — it's a date before 1970. <code>-86400</code> is December 31, 1969. Some tools and languages handle negatives poorly, so if you work with historical dates, test that path explicitly.</p>
+<h3>Timestamps stop working in 2038?</h3>
+<p>Only on systems storing them as signed 32-bit integers, which overflow on January 19, 2038 at 03:14:07 UTC. Modern 64-bit systems and languages are unaffected. If you maintain embedded systems or legacy databases with 32-bit time fields, that migration is real; otherwise it's trivia.</p>
+
+<h2>FAQ</h2>
+<h3>What exactly is a Unix timestamp?</h3>
+<p>The number of seconds elapsed since 1970-01-01 00:00:00 UTC (the "epoch"), ignoring leap seconds. It's the lingua franca of machine time: a single integer, no timezone ambiguity, trivially sortable and subtractable. The <a href="/guides/unix-timestamps-guide/">Unix timestamps guide</a> covers the history and design in depth.</p>
+<h3>Why do APIs use timestamps instead of readable dates?</h3>
+<p>Comparing and sorting integers is fast and unambiguous. "03/04/2026" is March 4 in the US and April 3 in most of Europe; <code>1772668800</code> is the same moment everywhere. Store and transmit timestamps (or ISO 8601 UTC strings); format to local time only at the display layer.</p>
+<h3>Should I store timestamps or datetime strings in my database?</h3>
+<p>Either works if you're disciplined about UTC. Native timestamp/datetime columns (stored internally as UTC) give you date arithmetic and indexing; integer epoch columns are portable and unambiguous. The one wrong answer is storing local wall-clock strings without timezone info — those become unrecoverable once DST or a server move enters the picture.</p>
+<h3>How precise are Unix timestamps?</h3>
+<p>The classic form is whole seconds. Milliseconds (13 digits) are standard in JavaScript and Java; micro- and nanoseconds appear in databases and tracing systems. Precision beyond milliseconds rarely survives network transport — NTP-synced clocks on different machines typically agree only to within a few milliseconds anyway.</p>
+</div>
+`
+---
+<GuideLayout
+  title="How to Convert Unix Timestamp to Date: Tutorial | DevTools Hub"
+  description="Convert Unix timestamps to readable dates in three steps: detect seconds vs milliseconds, read UTC vs local output, and fix 1970 and off-by-hours errors."
+  breadcrumb="Timestamp Tutorial"
+  relatedTools={[
+    { href: '/tools/timestamp/', title: 'Timestamp Converter', desc: 'Convert epoch to date and back', type: 'tool' },
+    { href: '/tools/timezone-converter/', title: 'Timezone Converter', desc: 'Compare times across zones', type: 'tool' },
+    { href: '/tools/cron-generator/', title: 'Cron Generator', desc: 'Build cron schedules', type: 'tool' },
+    { href: '/guides/unix-timestamps-guide/', title: 'Unix Timestamps Guide', desc: 'Epoch time in depth', type: 'guide' },
+    { href: '/guides/timezone-converter-guide/', title: 'Timezone Guide', desc: 'UTC, DST & best practices', type: 'guide' },
+  ]}
+>
+  <Fragment slot="title">How to Convert a Unix Timestamp:<br class="hidden sm:block" />Step-by-Step Tutorial</Fragment>
+  <Fragment slot="intro">Turn 1784536442 into a readable date — and a date back into an epoch value — in under a minute. Covers seconds vs milliseconds, UTC vs local, and the 1970 bug.</Fragment>
+  <Fragment set:html={content} />
+</GuideLayout>

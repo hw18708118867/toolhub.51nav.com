@@ -1,0 +1,95 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+const content = `
+<div class="prose prose-gray max-w-none dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-strong:text-gray-900 dark:prose-strong:text-white prose-code:text-blue-600 dark:prose-code:text-blue-400 prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-pre:bg-gray-50 dark:prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-gray-800">
+
+<p>This tutorial walks you through testing a regular expression against real sample text before it goes anywhere near production code. You'll write a pattern, pick flags, check the matches and capture groups, and — the step most people skip — feed it input that <em>shouldn't</em> match. Five minutes, no setup.</p>
+
+<h2>Step 1: Paste Sample Text First, Pattern Second</h2>
+<p>Open the <a href="/tools/regex-tester/">Regex Tester</a>. Before writing any pattern, paste a realistic chunk of the text you'll actually be matching against — a log excerpt, a few form inputs, a block of HTML. Testing against real data instead of an idealized example is what catches the edge cases.</p>
+<p>Say you're extracting dates from server logs. Paste something like:</p>
+<pre><code>2026-07-18 09:14:02 INFO  request started
+2026-7-3 11:02:55 WARN  malformed entry
+deploy finished on 2026-07-18, restarting</code></pre>
+<p>Note the deliberately messy second line — real logs have those.</p>
+
+<h2>Step 2: Write the Pattern and Watch Matches Highlight</h2>
+<p>Type your pattern into the regex field. The tester highlights every match in the sample text as you type, so you get instant feedback on each keystroke. Start with a first attempt:</p>
+<pre><code>\\d{4}-\\d{2}-\\d{2}</code></pre>
+<p>Two matches light up — but the malformed <code>2026-7-3</code> doesn't. If you want to catch single-digit months too, loosen the quantifiers:</p>
+<pre><code>\\d{4}-\\d{1,2}-\\d{1,2}</code></pre>
+<p>Now all three date-like strings match. This tighten-loosen cycle, with matches updating live, is the entire workflow: you converge on the right pattern by watching what each edit gains and loses.</p>
+
+<h2>Step 3: Set the Right Flags</h2>
+<p>Flags change matching behavior and are the most common reason a pattern "works in the tester but not in my code" (or vice versa):</p>
+<ul>
+  <li><strong>g (global)</strong> — find all matches instead of stopping at the first. You almost always want this in a tester.</li>
+  <li><strong>i (ignore case)</strong> — <code>error</code> also matches <code>ERROR</code> and <code>Error</code>.</li>
+  <li><strong>m (multiline)</strong> — makes <code>^</code> and <code>$</code> match at each line boundary instead of only the start and end of the whole string. Essential for line-oriented data like logs.</li>
+  <li><strong>s (dotall)</strong> — makes <code>.</code> match newlines too. Needed when a match spans lines.</li>
+</ul>
+<p>If your pattern uses <code>^</code> or <code>$</code> and behaves strangely on multi-line input, the <code>m</code> flag is almost always the missing piece.</p>
+
+<h2>Step 4: Check the Capture Groups</h2>
+<p>Wrap the parts you want to extract in parentheses:</p>
+<pre><code>(\\d{4})-(\\d{1,2})-(\\d{1,2})</code></pre>
+<p>The tester shows each match's groups separately: group 1 = <code>2026</code>, group 2 = <code>07</code>, group 3 = <code>18</code>. Verify the groups contain what you expect — a very common bug is an extra set of parentheses shifting all the group numbers by one. Named groups avoid that entirely: <code>(?&lt;year&gt;\\d{4})-(?&lt;month&gt;\\d{1,2})-(?&lt;day&gt;\\d{1,2})</code> lets code refer to <code>groups.year</code> instead of <code>match[1]</code>.</p>
+
+<h2>Step 5: Test What Should NOT Match</h2>
+<p>This is the step that separates a tested regex from a deployed bug. Add negative samples to your test text:</p>
+<pre><code>9999-99-99
+12345-67-89
+phone: 555-01-23</code></pre>
+<p>Our loosened pattern matches <code>9999-99-99</code> (fine — it's date-shaped, validation is a separate concern) but also matches inside <code>12345-67-89</code>, grabbing <code>2345-67-89</code>. That's a real bug. Fix it with word boundaries:</p>
+<pre><code>\\b(\\d{4})-(\\d{1,2})-(\\d{1,2})\\b</code></pre>
+<p>Re-check: the phone-number-like strings no longer produce false positives, and the legitimate dates still match. A regex is only done when both the positive and negative samples behave correctly.</p>
+
+<h2>Testing Regex Without the Tool</h2>
+<pre><code># grep with extended regex (-E), on any Unix system
+echo "2026-07-18 deploy" | grep -E '\\b[0-9]{4}-[0-9]{1,2}-[0-9]{1,2}\\b'
+
+# Node.js one-liner
+node -e "console.log('2026-07-18'.match(/\\b(\\d{4})-(\\d{1,2})-(\\d{1,2})\\b/))"
+
+# Python
+python3 -c "import re; print(re.findall(r'\\b(\\d{4})-(\\d{1,2})-(\\d{1,2})\\b', '2026-07-18'))"</code></pre>
+<p>One caution: regex dialects differ. <code>\\d</code> and <code>\\b</code> work in JavaScript, Python, and PCRE, but plain <code>grep</code> (without <code>-E</code> or <code>-P</code>) uses Basic Regular Expressions where <code>+</code> and <code>{n,m}</code> need backslashes. Lookbehind <code>(?&lt;=…)</code> works in modern JavaScript and PCRE but not in Go's RE2 or in <code>grep -E</code>. Test in the dialect you'll deploy in — a browser-based tester matches JavaScript semantics.</p>
+
+<h2>Common Problems and Fixes</h2>
+<h3>The match grabs way more than intended</h3>
+<p>Greedy quantifiers. <code>&lt;.*&gt;</code> against <code>&lt;b&gt;bold&lt;/b&gt;</code> matches the entire string, not just <code>&lt;b&gt;</code>, because <code>*</code> takes as much as possible. Add <code>?</code> to make it lazy: <code>&lt;.*?&gt;</code> matches each tag separately. Even better, use a negated class: <code>&lt;[^&gt;]*&gt;</code> — it can't overrun and is faster.</p>
+<h3>Pattern works in the tester, fails in code</h3>
+<p>Usually a string-escaping problem. In a language string literal, every backslash must be doubled: the pattern <code>\\d+</code> becomes <code>"\\\\d+"</code> in Java or Python (or use Python's raw strings: <code>r"\\d+"</code>). JavaScript regex literals (<code>/\\d+/</code>) avoid this entirely. The <a href="/tools/string-escaper/">String Escaper</a> helps when converting between forms.</p>
+<h3>Special characters match everything</h3>
+<p>Dots, plus signs, and parentheses are regex metacharacters. To match a literal IP like <code>10.0.0.1</code>, escape the dots: <code>10\\.0\\.0\\.1</code>. An unescaped <code>.</code> matches any character, so <code>10.0.0.1</code> would also match <code>10x0y0z1</code>.</p>
+<h3>The regex hangs on long input</h3>
+<p>Catastrophic backtracking — nested quantifiers like <code>(a+)+$</code> can take exponential time on non-matching input. If the tester freezes on a pattern, restructure it to remove nested quantifiers or use atomic groups where supported. This matters in production: a hanging regex on user input is a denial-of-service vector (ReDoS).</p>
+
+<h2>FAQ</h2>
+<h3>Do I need to test a regex I copied from Stack Overflow?</h3>
+<p>Yes — more than one you wrote yourself. Copied patterns were written for someone else's data, dialect, and edge cases. Paste it into the tester with your real samples and your negative cases before trusting it. For pre-verified building blocks (email, URL, IP patterns), the <a href="/tools/regex-generator/">Regex Generator</a> provides tested starting points.</p>
+<h3>What's the fastest way to learn what a symbol means?</h3>
+<p>Keep the <a href="/tools/regex-cheat-sheet/">Regex Cheat Sheet</a> open next to the tester. For deeper explanations of character classes, quantifiers, and lookarounds, the <a href="/guides/regex-reference-guide/">regex reference guide</a> covers every construct with examples.</p>
+<h3>Should I validate emails with regex?</h3>
+<p>Only loosely. A pragmatic pattern like <code>^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$</code> rejects obvious typos; a fully RFC-5322-compliant email regex is thousands of characters and still can't tell you whether the mailbox exists. Validate format with a simple regex, then confirm with a verification email.</p>
+<h3>Is my data safe in an online regex tester?</h3>
+<p>In this one, yes — pattern matching runs entirely in your browser via JavaScript's <code>RegExp</code>, with no network requests. Still, prefer sanitized samples when your test text contains secrets, simply as good hygiene.</p>
+</div>
+`
+---
+<GuideLayout
+  title="How to Test a Regular Expression: Tutorial | DevTools Hub"
+  description="Test a regex step by step: paste real sample text, refine the pattern live, verify capture groups and flags, and catch false positives before they ship."
+  breadcrumb="Test Regex Tutorial"
+  relatedTools={[
+    { href: '/tools/regex-tester/', title: 'Regex Tester', desc: 'Test patterns with live highlighting', type: 'tool' },
+    { href: '/tools/regex-cheat-sheet/', title: 'Regex Cheat Sheet', desc: 'Syntax quick reference', type: 'tool' },
+    { href: '/tools/regex-generator/', title: 'Regex Generator', desc: 'Pre-built validation patterns', type: 'tool' },
+    { href: '/guides/regex-reference-guide/', title: 'Regex Reference Guide', desc: 'Every construct explained', type: 'guide' },
+    { href: '/guides/regex-generator-guide/', title: 'Regex Generator Guide', desc: 'Ready-made patterns', type: 'guide' },
+  ]}
+>
+  <Fragment slot="title">How to Test a Regular Expression:<br class="hidden sm:block" />Step-by-Step Tutorial</Fragment>
+  <Fragment slot="intro">Test any regex against real sample text in five steps — live match highlighting, capture group checks, and the negative tests that catch false positives before production.</Fragment>
+  <Fragment set:html={content} />
+</GuideLayout>

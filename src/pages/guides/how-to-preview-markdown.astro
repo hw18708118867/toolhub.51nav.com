@@ -1,0 +1,107 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+const content = `
+<div class="prose prose-gray max-w-none dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-strong:text-gray-900 dark:prose-strong:text-white prose-code:text-blue-600 dark:prose-code:text-blue-400 prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-pre:bg-gray-50 dark:prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-gray-800">
+
+<p>This tutorial shows you how to preview Markdown as rendered HTML while you write it — for a README, a blog post, or documentation — and how to catch the formatting mistakes that only show up on render. You'll be previewing within thirty seconds; the rest is knowing what to look for.</p>
+
+<h2>Step 1: Paste or Write Your Markdown</h2>
+<p>Open the <a href="/tools/markdown-preview/">Markdown Preview</a> and put your Markdown in the input panel. Start from an existing file (paste your README.md) or draft from scratch. A representative snippet:</p>
+<pre><code># Project Name
+
+A one-line description of what this does.
+
+## Install
+
+\`\`\`bash
+npm install project-name
+\`\`\`
+
+## Usage
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| \`--verbose\` | false | Print debug output |
+
+- Supports **Node 18+**
+- MIT [license](LICENSE)</code></pre>
+<p>Everything renders locally in your browser — drafts never leave your machine, so previewing internal docs is safe.</p>
+
+<h2>Step 2: Read the Rendered Output Side by Side</h2>
+<p>The preview pane updates as you type. This live loop is the entire value of the tool: Markdown's failure mode is <em>silent</em> — broken syntax doesn't error, it just renders as literal text. Things to verify visually:</p>
+<ul>
+  <li>Headings actually render as headings (a missing space after <code>#</code> is the classic silent failure — <code>#Title</code> renders as plain text, <code># Title</code> renders as an h1).</li>
+  <li>The code block is fenced correctly and shows its language highlighting.</li>
+  <li>The table has rendered as a table, not as a row of pipe characters.</li>
+  <li>Links resolve to the text you intended, with no stray brackets left visible.</li>
+</ul>
+
+<h2>Step 3: Fix What Rendered Wrong</h2>
+<p>The most common silent failures, and their one-character fixes:</p>
+<table>
+  <thead><tr><th>You typed</th><th>What renders</th><th>Fix</th></tr></thead>
+  <tbody>
+    <tr><td><code>#Heading</code></td><td>Literal "#Heading" text</td><td>Space after #: <code># Heading</code></td></tr>
+    <tr><td><code>*item</code> (no space)</td><td>Literal asterisk</td><td><code>* item</code> or <code>- item</code></td></tr>
+    <tr><td>List right after a paragraph</td><td>Runs into the paragraph</td><td>Blank line before the list</td></tr>
+    <tr><td><code>[text] (url)</code></td><td>Brackets shown literally</td><td>No space: <code>[text](url)</code></td></tr>
+    <tr><td>Table without <code>---</code> row</td><td>Pipes as plain text</td><td>Add separator: <code>|---|---|</code></td></tr>
+    <tr><td>4-space indented code</td><td>Unexpected code block</td><td>Un-indent, or use fenced \`\`\` blocks</td></tr>
+  </tbody>
+</table>
+<p>The blank-line rule causes the most confusion: Markdown treats a list, blockquote, or heading that directly follows a text line as part of the same paragraph. When something "refuses" to render, add a blank line above it first — that fixes it more often than anything else.</p>
+
+<h2>Worked Example: Cleaning Up a README Before Pushing</h2>
+<ol>
+  <li>Paste your draft README into the preview. Immediately visible: the Install section's code block swallowed the Usage heading — the closing fence line was <code>\`\`</code> (two backticks, a typo) so the block never ended.</li>
+  <li>Fix the fence to three backticks. Now the table renders as pipes and dashes — the separator row is missing a column: 3 columns declared in the header, 2 in the separator.</li>
+  <li>Add the third <code>---</code> cell. Table renders. Last check: the license link <code>[license](LICENSE)</code> will only work on GitHub if the LICENSE file exists at repo root — the preview can't verify the target, so check that manually.</li>
+  <li>Copy the corrected Markdown back to your editor and commit. Total time: two minutes, zero broken-formatting commits pushed.</li>
+</ol>
+
+<h2>Previewing Markdown Without the Tool</h2>
+<ul>
+  <li><strong>VS Code</strong>: <code>Cmd/Ctrl+Shift+V</code> opens a preview tab; <code>Cmd/Ctrl+K V</code> opens it side by side. Uses the same CommonMark core as most renderers.</li>
+  <li><strong>GitHub</strong>: editing any <code>.md</code> file in the web UI gives you a Preview tab — the definitive check for GitHub-flavored specifics.</li>
+  <li><strong>Command line</strong>: <code>pandoc README.md -o preview.html && open preview.html</code>, or <code>grip README.md</code> (a Python tool that renders through GitHub's own API, catching GFM edge cases exactly).</li>
+</ul>
+<p>The browser tool wins when you're not at your own machine, when the Markdown lives in a CMS or chat message rather than a file, or when you want a scratchpad that doesn't touch the repo.</p>
+
+<h2>Common Problems and Fixes</h2>
+<h3>It renders here but looks different on GitHub</h3>
+<p>Markdown has dialects. Core CommonMark is universal, but tables, task lists (<code>- [x]</code>), strikethrough (<code>~~text~~</code>), and auto-linked URLs are GitHub Flavored Markdown (GFM) extensions — support varies across renderers (GitLab, npm, static site generators, chat apps). If a feature matters, test in the destination renderer; treat this preview as the CommonMark+GFM baseline.</p>
+<h3>HTML tags in my Markdown disappear</h3>
+<p>Markdown permits inline HTML, but most platforms sanitize it — GitHub strips <code>&lt;script&gt;</code>, <code>&lt;style&gt;</code>, and most attributes. If your layout depends on raw HTML, expect it to survive only on renderers you control. For a pure-HTML scratchpad, use the <a href="/tools/html-preview/">HTML Preview</a> instead.</p>
+<h3>Line breaks don't appear where I typed them</h3>
+<p>A single newline inside a paragraph is <em>joined</em>, not broken — that's per spec. Force a break with two trailing spaces at the end of the line, a backslash at the end, or a full blank line for a new paragraph. (Some renderers, like GitHub comments, break on single newlines anyway — another dialect difference.)</p>
+<h3>Special characters trigger formatting I didn't want</h3>
+<p>Asterisks in "2 * 3 * 4" can italicize unexpectedly; underscores in <code>snake_case_names</code> likewise. Escape with a backslash (<code>\\*</code>, <code>\\_</code>) or wrap the term in backticks — inline code disables all formatting inside it.</p>
+
+<h2>FAQ</h2>
+<h3>What's the difference between Markdown and HTML?</h3>
+<p>Markdown is a shorthand that compiles to HTML — <code>**bold**</code> becomes <code>&lt;strong&gt;bold&lt;/strong&gt;</code>. It covers the common 90% of document structure with far less typing; for the remaining 10% (custom classes, embeds, precise layout) you drop into inline HTML, subject to the sanitization limits above.</p>
+<h3>Which Markdown flavor should I write in?</h3>
+<p>CommonMark + GFM tables and task lists is the pragmatic default — it renders correctly on GitHub, GitLab, VS Code, and most documentation systems. Avoid renderer-specific extensions (footnotes, definition lists, admonitions) unless you know every destination supports them.</p>
+<h3>Can I convert Markdown to HTML for my website?</h3>
+<p>Yes — every static site generator (Astro, Hugo, Jekyll, Eleventy) does it at build time, and libraries like <code>marked</code> or <code>markdown-it</code> do it at runtime. For a one-off conversion, <code>pandoc file.md -o file.html</code> handles it, including full standalone documents with <code>--standalone</code>.</p>
+<h3>Why do my README badges/images not show in the preview?</h3>
+<p>Relative image paths (<code>![logo](./docs/logo.png)</code>) resolve against the repo on GitHub but point nowhere from a browser tool. Absolute URLs render fine. This is expected — verify relative-path images in the GitHub preview instead.</p>
+</div>
+`
+---
+<GuideLayout
+  title="How to Preview Markdown Online: Tutorial | DevTools Hub"
+  description="Preview Markdown as rendered HTML while you write, catch silent formatting failures in READMEs, and fix tables, fences, and line breaks before you commit."
+  breadcrumb="Markdown Tutorial"
+  relatedTools={[
+    { href: '/tools/markdown-preview/', title: 'Markdown Preview', desc: 'Live Markdown rendering', type: 'tool' },
+    { href: '/tools/html-preview/', title: 'HTML Preview', desc: 'Render raw HTML safely', type: 'tool' },
+    { href: '/tools/word-counter/', title: 'Word Counter', desc: 'Count words in your draft', type: 'tool' },
+    { href: '/tools/diff-checker/', title: 'Diff Checker', desc: 'Compare document versions', type: 'tool' },
+    { href: '/guides/word-count-seo-guide/', title: 'Word Counts & SEO', desc: 'Content length benchmarks', type: 'guide' },
+  ]}
+>
+  <Fragment slot="title">How to Preview Markdown Online:<br class="hidden sm:block" />Step-by-Step Tutorial</Fragment>
+  <Fragment slot="intro">Render Markdown live while you write and catch the silent failures — broken tables, swallowed headings, runaway code fences — before they reach your repo.</Fragment>
+  <Fragment set:html={content} />
+</GuideLayout>

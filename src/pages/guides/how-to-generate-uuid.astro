@@ -1,0 +1,99 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+const content = `
+<div class="prose prose-gray max-w-none dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-strong:text-gray-900 dark:prose-strong:text-white prose-code:text-blue-600 dark:prose-code:text-blue-400 prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-pre:bg-gray-50 dark:prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-gray-800">
+
+<p>This tutorial shows you how to generate one UUID or a batch of up to 100, in your browser, with no signup and no install. It takes about a minute. It also covers how to do the same thing from the command line and in code, and how to fix the most common problems people hit with UUIDs.</p>
+
+<h2>Step 1: Open the UUID Generator</h2>
+<p>Go to the <a href="/tools/uuid-generator/">UUID Generator</a>. The tool runs entirely in your browser — nothing you generate is sent to a server. It produces UUID v4 identifiers, the random-number-based version that covers almost every practical use: database keys, request IDs, file names, correlation IDs in logs.</p>
+<p>A UUID v4 looks like this:</p>
+<pre><code>550e8400-e29b-41d4-a716-446655440000</code></pre>
+<p>That's 36 characters: 32 hexadecimal digits plus 4 hyphens, arranged in a fixed 8-4-4-4-12 pattern. The first character of the third group is always <code>4</code> (the version number), and the first character of the fourth group is always <code>8</code>, <code>9</code>, <code>a</code>, or <code>b</code> (the variant). Everything else is random.</p>
+
+<h2>Step 2: Choose How Many UUIDs You Need</h2>
+<p>Use the <strong>Number of UUIDs</strong> dropdown to pick a count: 1, 5, 10, 20, 50, or 100. One is enough if you just need a key for a config file or a test record. Pick 50 or 100 when you're seeding a database or writing fixtures — generating them in one batch beats clicking the button fifty times.</p>
+<p>There's also an <strong>Uppercase</strong> checkbox. UUIDs are case-insensitive by definition (RFC 4122 says to generate lowercase but accept both), so this is purely a formatting choice. Two common reasons to check it: your database stores UUIDs uppercase and you want visual consistency when comparing, or a legacy system (Windows registry GUIDs, some .NET code) expects uppercase.</p>
+
+<h2>Step 3: Generate and Copy</h2>
+<p>Click <strong>Generate</strong>. The output panel fills with your UUIDs, one per line:</p>
+<pre><code>3f2c8a1e-9b4d-4c7a-8e2f-1d5b6a9c0e3f
+7a1b3c5d-2e4f-4a6b-9c8d-0e1f2a3b4c5d
+b9e8d7c6-5a4b-4c3d-a2e1-f0a9b8c7d6e5</code></pre>
+<p>Then either:</p>
+<ul>
+  <li><strong>Copy All</strong> — puts every generated UUID on your clipboard, ready to paste into code or a spreadsheet.</li>
+  <li><strong>Download</strong> — saves them as a <code>uuids.txt</code> file. Useful for batches you want to keep, like pre-allocated IDs for a data import.</li>
+</ul>
+<p>Each click of Generate produces a fresh set. There is no way to "re-generate" the same UUID — that's the point of them. If you need to keep one, copy it before generating again.</p>
+
+<h2>Worked Example: Seeding a Test Database</h2>
+<p>Say you're writing a SQL seed script and need 3 stable user IDs. Generate 3 UUIDs, copy them, and paste into your script:</p>
+<pre><code>INSERT INTO users (id, name) VALUES
+  ('3f2c8a1e-9b4d-4c7a-8e2f-1d5b6a9c0e3f', 'Test User A'),
+  ('7a1b3c5d-2e4f-4a6b-9c8d-0e1f2a3b4c5d', 'Test User B'),
+  ('b9e8d7c6-5a4b-4c3d-a2e1-f0a9b8c7d6e5', 'Test User C');</code></pre>
+<p>Because the IDs are hardcoded in the seed file, your integration tests can reference <code>'3f2c8a1e-…'</code> directly instead of querying for "the first user". This makes tests deterministic while the IDs themselves remain valid, well-formed UUIDs that pass any format validation in your code.</p>
+
+<h2>Generating UUIDs Without the Tool</h2>
+<p>When you're already in a terminal or writing code, generate UUIDs directly:</p>
+<h3>Command line</h3>
+<pre><code># macOS and most Linux distros
+uuidgen
+# → 6B29FC40-CA47-1067-B31D-00DD010662DA (macOS outputs uppercase)
+
+# Linux, lowercase, always available if util-linux is installed
+cat /proc/sys/kernel/random/uuid
+
+# PowerShell (Windows)
+[guid]::NewGuid()</code></pre>
+<h3>In code</h3>
+<pre><code>// JavaScript (Node 19+, all modern browsers)
+crypto.randomUUID()
+
+# Python 3
+import uuid
+str(uuid.uuid4())
+
+-- PostgreSQL 13+
+SELECT gen_random_uuid();</code></pre>
+<p>All of these produce UUID v4 using a cryptographically secure random source, same as the online tool. Use the tool when you need a quick batch without opening a terminal; use code when UUIDs are generated at runtime as part of your application logic.</p>
+
+<h2>Common Problems and Fixes</h2>
+<h3>"Invalid UUID" errors when pasting into a database</h3>
+<p>Check for three things: a trailing newline or space picked up during copy, curly braces around the value (<code>{550e8400-…}</code> is the Microsoft GUID string format — strip the braces for PostgreSQL and MySQL), and accidentally truncated characters. A valid UUID is exactly 36 characters with hyphens at positions 9, 14, 19, and 24.</p>
+<h3>UUID rejected by a strict v4 validator</h3>
+<p>Some validators check the version and variant bits, not just the shape. If your regex-generated "fake UUID" fails, it's probably missing the <code>4</code> at position 15 or has an invalid variant character at position 20. UUIDs from this tool always have both set correctly. You can check any UUID's structure with the <a href="/tools/regex-tester/">Regex Tester</a> using the pattern <code>^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$</code>.</p>
+<h3>Worried about duplicates in a batch of 100</h3>
+<p>Don't be. UUID v4 has 122 random bits, which means 2<sup>122</sup> ≈ 5.3 × 10<sup>36</sup> possible values. You would need to generate about 2.7 × 10<sup>18</sup> UUIDs — a billion per second for 85 years — to reach a 50% chance of a single collision. A batch of 100 is nowhere near that.</p>
+<h3>UUIDs slow down my database index</h3>
+<p>This one is real. Random UUIDs as primary keys cause index fragmentation in B-tree indexes because inserts land at random positions. If insert performance matters, look at UUID v7 (time-ordered, standardized in RFC 9562) or use a bigint sequence internally and expose the UUID only in APIs. For public-facing short IDs, a <a href="/tools/nano-id/">Nano ID</a> is 21 characters instead of 36 and fits URLs better.</p>
+
+<h2>FAQ</h2>
+<h3>Is it safe to use an online UUID generator?</h3>
+<p>For this tool, yes — generation happens in your browser with <code>crypto.getRandomValues()</code>, and no UUID leaves your machine. That said, UUIDs are identifiers, not secrets. Never use a UUID as a password, API key, or session token; use the <a href="/tools/password-generator/">Password Generator</a> for secrets.</p>
+<h3>What's the difference between UUID and GUID?</h3>
+<p>Nothing meaningful. GUID (Globally Unique Identifier) is Microsoft's name for the same 128-bit identifier. The only practical difference is formatting convention: Microsoft tooling often wraps GUIDs in braces and uppercases them.</p>
+<h3>Should I use UUID v1 or v4?</h3>
+<p>Use v4 unless you have a specific reason not to. UUID v1 embeds the generator's MAC address and a timestamp, which leaks information about where and when it was created — this is how investigators traced the author of the Melissa virus in 1999. v4 is pure randomness. If you want sortable IDs, use v7 rather than v1.</p>
+<h3>Can I shorten a UUID?</h3>
+<p>Not without losing its guarantees. A UUID re-encoded in base64 drops to 22 characters but is no longer recognizable or parseable as a UUID by standard libraries. If length matters, generate a <a href="/tools/nano-id/">Nano ID</a> or a <a href="/tools/random-string/">random string</a> at the length you need instead.</p>
+</div>
+`
+---
+<GuideLayout
+  title="How to Generate a UUID: Online, CLI & Code | DevTools Hub"
+  description="Step-by-step tutorial: generate UUID v4 identifiers online in three steps, batch up to 100, plus uuidgen, crypto.randomUUID() and Python one-liners."
+  breadcrumb="Generate UUID Tutorial"
+  relatedTools={[
+    { href: '/tools/uuid-generator/', title: 'UUID Generator', desc: 'Generate UUID v4 identifiers', type: 'tool' },
+    { href: '/tools/nano-id/', title: 'Nano ID Generator', desc: 'Generate compact unique IDs', type: 'tool' },
+    { href: '/tools/random-string/', title: 'Random String Generator', desc: 'Generate random strings', type: 'tool' },
+    { href: '/guides/random-string-guide/', title: 'Random String Guide', desc: 'Random strings vs UUID vs Nano ID', type: 'guide' },
+    { href: '/guides/password-hash-guide/', title: 'Password & Hash Guide', desc: 'Secure secrets vs identifiers', type: 'guide' },
+  ]}
+>
+  <Fragment slot="title">How to Generate a UUID:<br class="hidden sm:block" />Step-by-Step Tutorial</Fragment>
+  <Fragment slot="intro">Generate one UUID or a batch of 100 in under a minute — in the browser, from the command line, or in code. Includes fixes for the most common UUID errors.</Fragment>
+  <Fragment set:html={content} />
+</GuideLayout>
