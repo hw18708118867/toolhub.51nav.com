@@ -1,0 +1,251 @@
+---
+/**
+ * Block-by-block animation of the four classic modes of operation.
+ * Blocks 1 and 3 of the demo plaintext are identical on purpose, so the
+ * ECB run exposes the pattern leak.
+ */
+---
+
+<div class="my-10 rounded-2xl border border-gray-200 bg-gray-50/60 p-4 sm:p-5 dark:border-gray-800 dark:bg-gray-900/40">
+  <div class="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2">
+    <div class="flex items-center gap-1.5">
+      <svg class="w-4 h-4 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="4" width="6" height="16" rx="1"/><rect x="15" y="4" width="6" height="16" rx="1"/><path d="M9 12h6"/>
+      </svg>
+      <span class="text-sm font-semibold text-gray-900 dark:text-white">Modes of Operation</span>
+    </div>
+    <div id="mvModes" class="ml-auto flex flex-wrap gap-1"></div>
+  </div>
+
+  <div class="mb-4 flex flex-wrap items-center gap-2">
+    <button id="mvPlay" class="rounded-lg bg-blue-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-blue-700">▶ Play</button>
+    <button id="mvStep" class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">Step ▶</button>
+    <button id="mvReset" class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">↺ Reset</button>
+    <span id="mvStatus" class="ml-auto text-xs text-gray-500 dark:text-gray-400">4 blocks · 16 bytes each</span>
+  </div>
+
+  <div class="mb-4 text-[13px] leading-6 text-gray-600 dark:text-gray-400">
+    Blocks 1 and 3 of the demo plaintext are <strong class="text-gray-900 dark:text-white">identical</strong>.
+    Watch what each mode does with them.
+  </div>
+
+  <!-- Plaintext -->
+  <div class="mb-3">
+    <div class="mb-1.5 text-xs font-medium text-gray-500 dark:text-gray-400">Plaintext</div>
+    <div id="mvPlain" class="grid grid-cols-2 gap-2 sm:grid-cols-4"></div>
+  </div>
+
+  <!-- Operation for the active block -->
+  <div class="mb-3 rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-gray-900">
+    <div id="mvOp" class="text-[13px] leading-6 text-gray-600 dark:text-gray-400"></div>
+  </div>
+
+  <!-- Ciphertext -->
+  <div>
+    <div class="mb-1.5 text-xs font-medium text-gray-500 dark:text-gray-400">Ciphertext</div>
+    <div id="mvCipher" class="grid grid-cols-2 gap-2 sm:grid-cols-4"></div>
+  </div>
+
+  <div id="mvVerdict" class="mt-4"></div>
+</div>
+
+<script>
+  import { keyExpansion, ecbEncrypt, cbcEncrypt, ctrCrypt, bytesToHex } from '../../lib/aes'
+
+  const $ = (id: string) => document.getElementById(id)! as HTMLElement
+
+  const MODES = ['ECB', 'CBC', 'CTR', 'GCM'] as const
+  type Mode = typeof MODES[number]
+
+  const PLAIN_BLOCKS = [
+    'SEND $100 TO BOB',
+    'TOMORROW AT 9AM!',
+    'SEND $100 TO BOB',
+    'FROM ACCT 4471..',
+  ]
+
+  let mode: Mode = 'ECB'
+  let active = -1 // -1 = nothing processed yet
+  let playing = false
+  let timer: number | null = null
+  let cipher: string[] = []
+  let tag = ''
+
+  const enc = new TextEncoder()
+  const hex = (b: number) => b.toString(16).padStart(2, '0')
+
+  function blockCard(label: string, text: string, hexStr: string, tone: string, dim: boolean) {
+    return `<div class="rounded-lg border p-2 transition-all duration-300 ${dim ? 'border-dashed border-gray-300 opacity-40 dark:border-gray-700' : tone} bg-white dark:bg-gray-900">
+      <div class="mb-1 text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">${label}</div>
+      <div class="mb-1 truncate font-mono text-[11px] text-gray-900 dark:text-gray-100" title="${text.replace(/"/g, '&quot;')}">${text.replace(/ /g, '&nbsp;')}</div>
+      <div class="break-all font-mono text-[10px] leading-tight text-gray-400 dark:text-gray-500">${hexStr}</div>
+    </div>`
+  }
+
+  function plaintextBytes(): Uint8Array {
+    const out = new Uint8Array(64)
+    PLAIN_BLOCKS.forEach((b, i) => {
+      const bytes = enc.encode(b)
+      out.set(bytes.subarray(0, 16), i * 16)
+    })
+    return out
+  }
+
+  async function computeCipher(): Promise<void> {
+    const pt = plaintextBytes()
+    const key = new Uint8Array(16).fill(0x2b) // fixed key so results are stable
+
+    if (mode === 'GCM') {
+      const ck = await crypto.subtle.importKey('raw', key, { name: 'AES-GCM' }, false, ['encrypt'])
+      const nonce = new Uint8Array(12).fill(0x01)
+      const buf = await crypto.subtle.encrypt({ name: 'AES-GCM', iv: nonce }, ck, pt)
+      const all = new Uint8Array(buf)
+      cipher = [0, 1, 2, 3].map(i => bytesToHex(all.subarray(i * 16, i * 16 + 16)))
+      tag = bytesToHex(all.subarray(64))
+      return
+    }
+
+    const rk = keyExpansion(key)
+    let out: Uint8Array
+    if (mode === 'ECB') out = ecbEncrypt(pt, rk)
+    else if (mode === 'CBC') out = cbcEncrypt(pt, rk, new Uint8Array(16))
+    else out = ctrCrypt(pt, rk, new Uint8Array(8))
+    cipher = [0, 1, 2, 3].map(i => bytesToHex(out.subarray(i * 16, i * 16 + 16)))
+    tag = ''
+  }
+
+  function renderPlain(highlight: number) {
+    $('mvPlain').innerHTML = PLAIN_BLOCKS.map((b, i) => {
+      const dupe = PLAIN_BLOCKS.indexOf(b) !== i
+      const tone = i === highlight
+        ? 'border-blue-500 ring-2 ring-blue-500/30'
+        : dupe
+          ? 'border-amber-400 dark:border-amber-600'
+          : 'border-gray-300 dark:border-gray-700'
+      return blockCard(
+        `P${i + 1}${dupe ? ' · repeat' : ''}`,
+        b,
+        bytesToHex(enc.encode(b).subarray(0, 16)).slice(0, 32),
+        tone,
+        false
+      )
+    }).join('')
+  }
+
+  function renderCipher(upTo: number) {
+    $('mvCipher').innerHTML = cipher.map((c, i) => {
+      const done = i <= upTo
+      const dupe = cipher.indexOf(c) !== i && done
+      const tone = i === upTo
+        ? 'border-blue-500 ring-2 ring-blue-500/30'
+        : dupe
+          ? 'border-red-400 dark:border-red-600'
+          : 'border-gray-300 dark:border-gray-700'
+      return blockCard(`C${i + 1}${dupe ? ' · identical!' : ''}`, done ? '(ciphertext)' : '—', done ? c : '', tone, !done)
+    }).join('')
+  }
+
+  function renderOp() {
+    const box = $('mvOp')
+    if (active < 0) {
+      box.innerHTML = `<span class="text-gray-400 dark:text-gray-500">Press Play to encrypt block by block.</span>`
+      return
+    }
+    const i = active
+    let html = `<div class="mb-1 text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Block ${i + 1} of 4 · ${mode}</div>`
+
+    if (mode === 'ECB') {
+      html += `<div class="font-mono text-xs">C${i + 1} = AES<sub>k</sub>( P${i + 1} ) &nbsp;<span class="text-gray-400">— no IV, no chaining, each block independent</span></div>`
+      if (i === 2) {
+        html += `<div class="mt-2 rounded-lg bg-red-50 px-3 py-2 text-[12px] text-red-700 dark:bg-red-900/30 dark:text-red-300">P3 equals P1, so C3 equals C1. An attacker now knows those two plaintext blocks are identical — without knowing either of them.</div>`
+      }
+    } else if (mode === 'CBC') {
+      const prev = i === 0 ? 'IV' : `C${i}`
+      html += `<div class="font-mono text-xs">C${i + 1} = AES<sub>k</sub>( P${i + 1} ⊕ <span class="text-blue-600 dark:text-blue-400">${prev}</span> )</div>`
+      html += `<div class="mt-1 text-[12px] text-gray-500 dark:text-gray-400">${i === 0 ? 'The IV is random and unpredictable.' : 'Chained from the previous ciphertext — so encryption cannot run in parallel.'}</div>`
+    } else if (mode === 'CTR') {
+      html += `<div class="font-mono text-xs">KS${i + 1} = AES<sub>k</sub>( nonce ‖ <span class="text-violet-600 dark:text-violet-400">counter ${i}</span> ) &nbsp;→&nbsp; C${i + 1} = P${i + 1} ⊕ KS${i + 1}</div>`
+      html += `<div class="mt-1 text-[12px] text-gray-500 dark:text-gray-400">The keystream does not depend on the data, so all four blocks can be produced at once.</div>`
+    } else {
+      html += `<div class="font-mono text-xs">KS${i + 1} = AES<sub>k</sub>( nonce ‖ counter ${i + 1} ) &nbsp;→&nbsp; C${i + 1} = P${i + 1} ⊕ KS${i + 1}</div>`
+      html += `<div class="mt-1 text-[12px] text-gray-500 dark:text-gray-400">GCM is CTR-mode encryption running underneath.</div>`
+    }
+    box.innerHTML = html
+  }
+
+  function renderVerdict() {
+    const dupes = cipher.length > 0 && cipher[0] === cipher[2]
+    const notes: Record<Mode, string> = {
+      ECB: dupes
+        ? 'C1 and C3 are byte-for-byte identical. Identical plaintext blocks always produce identical ciphertext — ECB leaks every repetition in your data.'
+        : 'Blocks are encrypted independently with no IV and no chaining.',
+      CBC: 'Even though P1 and P3 are identical, C1 and C3 differ — the random IV breaks the pattern. Note that encryption is serial: C2 cannot be computed before C1.',
+      CTR: 'The keystream is generated from a counter, independent of the plaintext, so encryption and decryption both parallelise. But nothing here detects tampering.',
+      GCM: 'Same CTR keystream, plus a GHASH authentication tag computed over the whole message. Flip a single bit and decryption fails loudly instead of returning garbage.',
+    }
+    const good = mode !== 'ECB'
+    const tagRow = mode === 'GCM' && tag
+      ? `<div class="mt-2 font-mono text-[11px] break-all text-violet-600 dark:text-violet-400">GHASH tag (128 bits): ${tag}</div>`
+      : ''
+    $('mvVerdict').innerHTML = `<div class="rounded-lg border-l-4 px-4 py-3 ${good ? 'border-emerald-500 bg-emerald-50/60 dark:bg-emerald-950/30' : 'border-red-500 bg-red-50/60 dark:bg-red-950/30'}">
+      <div class="text-[13px] leading-6 ${good ? 'text-emerald-800 dark:text-emerald-200' : 'text-red-800 dark:text-red-200'}">${notes[mode]}</div>
+      ${tagRow}
+    </div>`
+  }
+
+  function render() {
+    renderPlain(active)
+    renderCipher(active)
+    renderOp()
+    renderVerdict()
+    $('mvStatus').textContent = active < 0 ? '4 blocks · 16 bytes each' : `block ${active + 1} / 4`
+  }
+
+  function pause() {
+    playing = false
+    if (timer !== null) { window.clearTimeout(timer); timer = null }
+    $('mvPlay').textContent = '▶ Play'
+  }
+
+  function tick() {
+    if (!playing) return
+    if (active >= 3) { pause(); return }
+    active++
+    render()
+    timer = window.setTimeout(tick, 1100)
+  }
+
+  async function setMode(m: Mode) {
+    pause()
+    mode = m
+    active = -1
+    await computeCipher()
+    render()
+    // refresh mode buttons
+    ;($('mvModes').children) && Array.from($('mvModes').children).forEach((b, i) => {
+      const el = b as HTMLElement
+      const on = MODES[i] === m
+      el.className = `rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${on ? 'bg-blue-600 text-white' : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700'}`
+    })
+  }
+
+  MODES.forEach(m => {
+    const b = document.createElement('button')
+    b.type = 'button'
+    b.textContent = m
+    b.addEventListener('click', () => setMode(m))
+    $('mvModes').appendChild(b)
+  })
+
+  $('mvPlay').addEventListener('click', () => {
+    if (playing) { pause(); return }
+    if (active >= 3) active = -1
+    playing = true
+    $('mvPlay').textContent = '⏸ Pause'
+    tick()
+  })
+  $('mvStep').addEventListener('click', () => { pause(); if (active < 3) { active++; render() } })
+  $('mvReset').addEventListener('click', () => { pause(); active = -1; render() })
+
+  await setMode('ECB')
+</script>

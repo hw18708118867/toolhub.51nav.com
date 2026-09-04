@@ -1,0 +1,50 @@
+---
+// TEMPLATE — copy to src/pages/guides/<slug>.astro and fill in.
+// Pattern: prose lives in `partN` template literals, rendered with
+// <Fragment set:html={partN} /> interleaved with interactive components.
+//
+// See references/article-structure.md for the GuideLayout contract and the
+// frontmatter conventions.
+
+import GuideLayout from '../../layouts/GuideLayout.astro'
+// import MyDiagram from '../../components/interactive/MyDiagram.astro'  // add as needed
+
+const part1 = `
+  <h2 id="what-is-it">What <TOPIC> Actually Is</h2>
+  <p>Open with the substance. No "when it comes to…" warm-up.</p>
+  <blockquote><p>One memorable rule the reader should never forget.</p></blockquote>
+`
+
+const part2 = `
+  <h2 id="how-it-works">How It Works</h2>
+  <p>Explain the mechanism with a concrete example, not abstraction.</p>
+  <pre><code class="language-js">const demo = 1 &lt; 2  // &lt; must be escaped inside set:html</code></pre>
+  <h3 id="step-by-step">Step by Step</h3>
+  <p>Lead into the playable diagram below.</p>
+`
+
+const relatedTools = [
+  // { href: '/tools/your-tool/', title: 'Your Tool', desc: 'One line.', type: 'tool' },
+  // { href: '/guides/sibling-guide/', title: 'Sibling Guide', desc: 'One line.', type: 'guide' },
+]
+---
+
+<GuideLayout
+  title="<TITLE>"
+  description="<META DESCRIPTION — one sentence, keyword-rich>"
+  breadcrumb="<TOPIC>"
+  relatedTools={relatedTools}
+>
+  <Fragment slot="title"><TITLE></Fragment>
+  <Fragment slot="intro"><ONE-PARAGRAPH HOOK THAT ASSUMES THE READER ALREADY USES THE TOOL.></Fragment>
+
+  <Fragment set:html={part1} />
+  {/* <MyDiagram />  — splice the diagram between prose blocks */}
+  <Fragment set:html={part2} />
+
+  <!-- Recommended / Related block at the end (bidirectional links) -->
+  <h2 id="recommended">Recommended Reading</h2>
+  <ul>
+    <li><a href="/guides/">All guides</a></li>
+  </ul>
+</GuideLayout>

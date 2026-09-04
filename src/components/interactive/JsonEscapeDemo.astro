@@ -1,0 +1,134 @@
+---
+/**
+ * JsonEscapeDemo — playable, character-by-character JSON string escaping.
+ * Real computation: mirrors the JSON string escaping rules (quote, backslash,
+ * control characters, and \uXXXX for the rest). The reader sees the input
+ * character and the exact escaped token it becomes.
+ */
+---
+
+<div class="my-10 rounded-2xl border border-gray-200 bg-gray-50/60 p-4 sm:p-5 dark:border-gray-800 dark:bg-gray-900/40">
+  <div class="mb-1 flex flex-wrap items-center gap-x-3 gap-y-2">
+    <span class="text-sm font-semibold text-gray-900 dark:text-white">How a string gets escaped</span>
+  </div>
+  <p class="mb-4 text-xs text-gray-500 dark:text-gray-400">Each character is shown with the token it becomes inside a JSON string. Step through to see why newlines and quotes need a backslash.</p>
+
+  <div class="mb-4 flex flex-wrap items-center gap-2">
+    <button id="je-reset" class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">⟲ Reset</button>
+    <button id="je-prev" class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">‹ Prev</button>
+    <button id="je-play" class="rounded-lg border border-blue-500 bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700">▶ Play</button>
+    <button id="je-next" class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">Next ›</button>
+    <input id="je-speed" type="range" min="250" max="1500" step="100" value="650" class="ml-1 w-28 accent-blue-600" />
+  </div>
+
+  <div id="je-progress" class="mb-4 h-1.5 w-full rounded-full bg-gray-200 dark:bg-gray-800">
+    <div class="h-full rounded-full bg-blue-600 transition-all" style="width:0%"></div>
+  </div>
+
+  <div class="mb-3">
+    <div class="mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">Input characters</div>
+    <div id="je-input" class="flex flex-wrap gap-1 rounded-lg border border-gray-300 bg-white p-3 text-xs font-mono dark:border-gray-700 dark:bg-gray-950"></div>
+  </div>
+  <div>
+    <div class="mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">Escaped output (inside the quotes)</div>
+    <pre id="je-output" class="overflow-x-auto rounded-lg border border-gray-300 bg-white p-3 text-xs leading-6 font-mono dark:border-gray-700 dark:bg-gray-950"></pre>
+  </div>
+
+  <div id="je-explain" class="mt-4 text-[13px] leading-6 text-gray-600 dark:text-gray-400"></div>
+  <div id="je-timeline" class="mt-4 flex flex-wrap gap-1.5"></div>
+</div>
+
+<script>
+  // Mirror JSON string escaping for a single character.
+  function escapeChar(ch) {
+    switch (ch) {
+      case '"': return { token: '\\"', note: 'A literal quote would end the string, so it gets a backslash.' }
+      case '\\': return { token: '\\\\', note: 'The backslash itself must be escaped.' }
+      case '\b': return { token: '\\b', note: 'Backspace → \\b.' }
+      case '\f': return { token: '\\f', note: 'Form feed → \\f.' }
+      case '\n': return { token: '\\n', note: 'Newline → \\n (one character becomes two).' }
+      case '\r': return { token: '\\r', note: 'Carriage return → \\r.' }
+      case '\t': return { token: '\\t', note: 'Tab → \\t.' }
+      default: {
+        const code = ch.charCodeAt(0)
+        if (code < 0x20) {
+          const hex = code.toString(16).padStart(4, '0')
+          return { token: '\\u' + hex, note: 'Control character U+' + hex.toUpperCase() + ' → \\u' + hex + '.' }
+        }
+        return { token: ch, note: 'Plain character, output unchanged.' }
+      }
+    }
+  }
+
+  const disp = (ch) => {
+    if (ch === '\n') return '⏎'
+    if (ch === '\t') return '⇥'
+    if (ch === '\r') return '⏮'
+    if (ch === '\b') return '⌫'
+    if (ch === '\f') return '⤓'
+    if (ch === ' ') return '␣'
+    return ch
+  }
+
+  const INPUT = 'line1\n"q"\ttab'
+  const steps = []
+  let out = ''
+  for (let k = 0; k < INPUT.length; k++) {
+    const ch = INPUT[k]
+    const { token, note } = escapeChar(ch)
+    out += token
+    steps.push({ ch, token, note, out: out })
+  }
+
+  let idx = 0
+  let timer = null
+  const $ = (id) => document.getElementById(id)
+  const inputEl = $('je-input'), outputEl = $('je-output'), explainEl = $('je-explain')
+  const progressEl = $('je-progress').firstElementChild, timelineEl = $('je-timeline')
+  const playBtn = $('je-play')
+
+  function render() {
+    const s = steps[idx]
+    inputEl.innerHTML = INPUT.split('').map((c, k) => {
+      const cls = k < idx ? 'text-gray-400 dark:text-gray-600'
+        : k === idx ? 'rounded bg-blue-200 px-1 text-black dark:bg-blue-800 dark:text-white'
+        : 'text-gray-800 dark:text-gray-200'
+      return '<span class="' + cls + '">' + disp(c) + '</span>'
+    }).join('')
+    outputEl.textContent = s ? '"' + s.out + (idx < steps.length - 1 ? '|' : '') + '"' : '""'
+    explainEl.textContent = s ? (idx + 1) + '/' + steps.length + ' · ' + disp(s.ch) + ' → ' + s.token + ' — ' + s.note : ''
+    progressEl.style.width = ((idx + 1) / steps.length) * 100 + '%'
+    ;[...timelineEl.children].forEach((el, k) => el.classList.toggle('bg-blue-600', k === idx))
+  }
+
+  function buildTimeline() {
+    timelineEl.innerHTML = steps.map((_, k) =>
+      '<button class="h-2 w-2 rounded-full bg-gray-300 dark:bg-gray-600" data-i="' + k + '"></button>'
+    ).join('')
+    timelineEl.querySelectorAll('button').forEach((b) =>
+      b.addEventListener('click', () => { pause(); idx = +b.dataset.i; render() }))
+  }
+
+  function play() {
+    if (timer) return
+    playBtn.textContent = '⏸ Pause'
+    timer = setInterval(() => {
+      if (idx >= steps.length - 1) { pause(); return }
+      idx++; render()
+    }, +$('je-speed').value)
+  }
+  function pause() { clearInterval(timer); timer = null; playBtn.textContent = '▶ Play' }
+
+  $('je-reset').addEventListener('click', () => { pause(); idx = 0; render() })
+  $('je-prev').addEventListener('click', () => { pause(); idx = Math.max(0, idx - 1); render() })
+  $('je-next').addEventListener('click', () => { pause(); idx = Math.min(steps.length - 1, idx + 1); render() })
+  playBtn.addEventListener('click', () => (timer ? pause() : play()))
+  $('je-speed').addEventListener('input', () => { if (timer) { pause(); play() } })
+
+  new IntersectionObserver((es, ob) => {
+    es.forEach((e) => { if (e.isIntersecting) { render(); ob.disconnect() } })
+  }, { threshold: 0.4 }).observe(inputEl)
+
+  buildTimeline()
+  render()
+</script>

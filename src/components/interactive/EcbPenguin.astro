@@ -1,0 +1,186 @@
+---
+/**
+ * The classic "ECB penguin", computed live in the browser.
+ *
+ * The image really is encrypted with AES — ECB and CBC — using the AES
+ * implementation in src/lib/aes.ts. Nothing here is a mock-up.
+ */
+---
+
+<div class="my-10 rounded-2xl border border-gray-200 bg-gray-50/60 p-4 sm:p-5 dark:border-gray-800 dark:bg-gray-900/40">
+  <div class="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2">
+    <div class="flex items-center gap-1.5">
+      <svg class="w-4 h-4 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/>
+      </svg>
+      <span class="text-sm font-semibold text-gray-900 dark:text-white">ECB Leaks Structure — The Penguin</span>
+    </div>
+    <button id="pgRekey" class="ml-auto rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">↻ New key</button>
+  </div>
+
+  <div class="mb-4 text-[13px] leading-6 text-gray-600 dark:text-gray-400">
+    The same image — encrypted twice with the same AES key. ECB encrypts every 16-byte block
+    independently, so identical plaintext blocks produce identical ciphertext blocks and the picture
+    survives. CBC chains each block into the next, so the output is noise. Both results below are
+    computed with real AES in your browser.
+  </div>
+
+  <div class="grid gap-4 sm:grid-cols-3">
+    <figure class="min-w-0">
+      <figcaption class="mb-1.5 text-xs font-medium text-gray-500 dark:text-gray-400">Plaintext</figcaption>
+      <canvas id="pgPlain" width="128" height="64" class="w-full rounded-lg border border-gray-300 dark:border-gray-700" style="image-rendering:pixelated"></canvas>
+    </figure>
+    <figure class="min-w-0">
+      <figcaption class="mb-1.5 text-xs font-medium text-red-600 dark:text-red-400">AES-ECB — shape still visible</figcaption>
+      <canvas id="pgEcb" width="128" height="64" class="w-full rounded-lg border border-red-300 dark:border-red-800" style="image-rendering:pixelated"></canvas>
+    </figure>
+    <figure class="min-w-0">
+      <figcaption class="mb-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">AES-CBC — indistinguishable from noise</figcaption>
+      <canvas id="pgCbc" width="128" height="64" class="w-full rounded-lg border border-emerald-300 dark:border-emerald-800" style="image-rendering:pixelated"></canvas>
+    </figure>
+  </div>
+
+  <div id="pgStats" class="mt-4 grid gap-2 sm:grid-cols-3"></div>
+
+  <div class="mt-3 text-[11px] leading-relaxed text-gray-400 dark:text-gray-500">
+    Image is 128×64 greyscale = 8,192 bytes = 512 AES blocks of 16 bytes. Each horizontal run of 16
+    pixels is one block, which is why ECB output shows horizontal banding: flat regions of the
+    original stay flat because every block in them encrypts to the same value.
+  </div>
+</div>
+
+<script>
+  import { keyExpansion, ecbEncrypt, cbcEncrypt, bytesToHex } from '../../lib/aes'
+
+  const W = 128
+  const H = 64
+
+  /** Draw a flat-colour penguin, then quantise so regions are perfectly uniform. */
+  function sourceBytes(): Uint8Array {
+    const c = document.createElement('canvas')
+    c.width = W
+    c.height = H
+    const ctx = c.getContext('2d')!
+
+    ctx.fillStyle = '#e9e9e9'
+    ctx.fillRect(0, 0, W, H)
+
+    // body
+    ctx.fillStyle = '#181818'
+    ctx.beginPath()
+    ctx.ellipse(W / 2, H * 0.58, W * 0.20, H * 0.38, 0, 0, Math.PI * 2)
+    ctx.fill()
+    // head
+    ctx.beginPath()
+    ctx.arc(W / 2, H * 0.27, W * 0.145, 0, Math.PI * 2)
+    ctx.fill()
+    // wings
+    ctx.beginPath()
+    ctx.ellipse(W * 0.28, H * 0.56, W * 0.055, H * 0.24, 0.25, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.beginPath()
+    ctx.ellipse(W * 0.72, H * 0.56, W * 0.055, H * 0.24, -0.25, 0, Math.PI * 2)
+    ctx.fill()
+    // belly
+    ctx.fillStyle = '#f6f6f6'
+    ctx.beginPath()
+    ctx.ellipse(W / 2, H * 0.64, W * 0.115, H * 0.29, 0, 0, Math.PI * 2)
+    ctx.fill()
+    // eyes
+    ctx.fillStyle = '#ffffff'
+    ctx.beginPath(); ctx.arc(W / 2 - 8, H * 0.25, 4.2, 0, Math.PI * 2); ctx.fill()
+    ctx.beginPath(); ctx.arc(W / 2 + 8, H * 0.25, 4.2, 0, Math.PI * 2); ctx.fill()
+    ctx.fillStyle = '#000000'
+    ctx.beginPath(); ctx.arc(W / 2 - 7.4, H * 0.255, 2.1, 0, Math.PI * 2); ctx.fill()
+    ctx.beginPath(); ctx.arc(W / 2 + 8.6, H * 0.255, 2.1, 0, Math.PI * 2); ctx.fill()
+    // beak
+    ctx.fillStyle = '#e08a1e'
+    ctx.beginPath()
+    ctx.moveTo(W / 2, H * 0.31)
+    ctx.lineTo(W / 2 - 6.5, H * 0.38)
+    ctx.lineTo(W / 2 + 6.5, H * 0.38)
+    ctx.closePath()
+    ctx.fill()
+    // feet
+    ctx.fillStyle = '#e08a1e'
+    ctx.beginPath(); ctx.ellipse(W / 2 - 9, H * 0.955, 7, 3.2, 0, 0, Math.PI * 2); ctx.fill()
+    ctx.beginPath(); ctx.ellipse(W / 2 + 9, H * 0.955, 7, 3.2, 0, 0, Math.PI * 2); ctx.fill()
+
+    const data = ctx.getImageData(0, 0, W, H).data
+    const out = new Uint8Array(W * H)
+    for (let i = 0; i < W * H; i++) {
+      const r = data[i * 4], g = data[i * 4 + 1], b = data[i * 4 + 2]
+      const lum = (r * 299 + g * 587 + b * 114) / 1000
+      // Quantise to four flat levels so identical blocks are genuinely identical
+      out[i] = lum > 200 ? 0xf6 : lum > 150 ? 0xe9 : lum > 90 ? 0xe0 : 0x18
+    }
+    return out
+  }
+
+  function paint(canvasId: string, bytes: Uint8Array) {
+    const c = document.getElementById(canvasId) as HTMLCanvasElement
+    const ctx = c.getContext('2d')!
+    const img = ctx.createImageData(W, H)
+    for (let i = 0; i < W * H; i++) {
+      const v = bytes[i]
+      img.data[i * 4] = v
+      img.data[i * 4 + 1] = v
+      img.data[i * 4 + 2] = v
+      img.data[i * 4 + 3] = 255
+    }
+    ctx.putImageData(img, 0, 0)
+  }
+
+  function distinctBlocks(bytes: Uint8Array): number {
+    const seen = new Set<string>()
+    for (let i = 0; i < bytes.length; i += 16) {
+      seen.add(bytesToHex(bytes.subarray(i, i + 16)))
+    }
+    return seen.size
+  }
+
+  function statCard(label: string, value: string, note: string, tone: string) {
+    return `<div class="rounded-lg border border-gray-200 bg-white px-3 py-2 dark:border-gray-800 dark:bg-gray-900">
+      <div class="text-[11px] font-medium uppercase tracking-wider ${tone}">${label}</div>
+      <div class="mt-0.5 font-mono text-sm font-semibold text-gray-900 dark:text-white">${value}</div>
+      <div class="mt-0.5 text-[11px] leading-snug text-gray-400 dark:text-gray-500">${note}</div>
+    </div>`
+  }
+
+  function run() {
+    const plain = sourceBytes()
+    const key = crypto.getRandomValues(new Uint8Array(16))
+    const rk = keyExpansion(key)
+    const iv = crypto.getRandomValues(new Uint8Array(16))
+
+    const ecb = ecbEncrypt(plain, rk)
+    const cbc = cbcEncrypt(plain, rk, iv)
+
+    paint('pgPlain', plain)
+    paint('pgEcb', ecb)
+    paint('pgCbc', cbc)
+
+    const pBlocks = distinctBlocks(plain)
+    const eBlocks = distinctBlocks(ecb)
+    const cBlocks = distinctBlocks(cbc)
+
+    document.getElementById('pgStats')!.innerHTML = [
+      statCard('Plaintext blocks', `${pBlocks} / 512 distinct`, 'Large flat areas repeat, so many blocks are identical.', 'text-gray-500 dark:text-gray-400'),
+      statCard('ECB ciphertext', `${eBlocks} / 512 distinct`, 'One-to-one with the plaintext — all structure is preserved.', 'text-red-600 dark:text-red-400'),
+      statCard('CBC ciphertext', `${cBlocks} / 512 distinct`, 'Chaining breaks the repetition entirely.', 'text-emerald-600 dark:text-emerald-400'),
+    ].join('')
+  }
+
+  document.getElementById('pgRekey')!.addEventListener('click', run)
+
+  // Encrypt once when the figure scrolls into view, so page load stays fast.
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        io.disconnect()
+        run()
+      }
+    })
+  }, { threshold: 0.2 })
+  io.observe(document.getElementById('pgPlain')!)
+</script>

@@ -1,0 +1,117 @@
+---
+/**
+ * PKCS#7 padding, live. Shows the block layout and the "always pad" rule
+ * that trips people up when comparing input and output lengths.
+ */
+---
+
+<div class="my-10 rounded-2xl border border-gray-200 bg-gray-50/60 p-4 sm:p-5 dark:border-gray-800 dark:bg-gray-900/40">
+  <div class="mb-4 flex items-center gap-1.5">
+    <svg class="w-4 h-4 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 4v16M3 12h18"/>
+    </svg>
+    <span class="text-sm font-semibold text-gray-900 dark:text-white">PKCS#7 Padding</span>
+  </div>
+
+  <div class="mb-4 text-[13px] leading-6 text-gray-600 dark:text-gray-400">
+    CBC and ECB can only process whole 16-byte blocks, so the last one is padded with
+    <strong class="text-gray-900 dark:text-white">PKCS#7</strong>: append N bytes, each with the value N.
+    When the data already fills a block exactly, a whole extra block of padding is added — otherwise the
+    receiver could not tell padding from real data.
+  </div>
+
+  <div class="mb-3">
+    <label class="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400" for="pdText">Input text</label>
+    <input id="pdText" type="text" value="Hello, AES!" class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 font-mono text-xs text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100" />
+  </div>
+
+  <div class="mb-4 flex flex-wrap gap-2">
+    <span class="text-xs text-gray-400 dark:text-gray-500">Try:</span>
+    <button data-demo="15" class="rounded border border-gray-300 bg-white px-2 py-0.5 text-xs text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">15 bytes</button>
+    <button data-demo="16" class="rounded border border-gray-300 bg-white px-2 py-0.5 text-xs text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">exactly 16</button>
+    <button data-demo="17" class="rounded border border-gray-300 bg-white px-2 py-0.5 text-xs text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">17 bytes</button>
+    <button data-demo="32" class="rounded border border-gray-300 bg-white px-2 py-0.5 text-xs text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">exactly 32</button>
+  </div>
+
+  <div id="pdStats" class="mb-4 grid gap-2 sm:grid-cols-3"></div>
+
+  <div id="pdBlocks" class="space-y-2"></div>
+
+  <div id="pdNote" class="mt-4"></div>
+</div>
+
+<script>
+  const $ = (id: string) => document.getElementById(id)! as HTMLElement
+  const enc = new TextEncoder()
+  const hex = (b: number) => b.toString(16).padStart(2, '0')
+
+  const SAMPLE = (n: number) => 'A'.repeat(n)
+
+  function render() {
+    const raw = ($('pdText') as HTMLInputElement).value
+    const bytes = Array.from(enc.encode(raw))
+    const len = bytes.length
+
+    // PKCS#7: N = 16 - (len % 16), always between 1 and 16
+    const padLen = 16 - (len % 16)
+    const padded = bytes.concat(new Array(padLen).fill(padLen))
+    const blockCount = padded.length / 16
+
+    const stat = (label: string, value: string, note: string) => `
+      <div class="rounded-lg border border-gray-200 bg-white px-3 py-2 dark:border-gray-800 dark:bg-gray-900">
+        <div class="text-[11px] font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">${label}</div>
+        <div class="mt-0.5 font-mono text-sm font-semibold text-gray-900 dark:text-white">${value}</div>
+        <div class="mt-0.5 text-[11px] leading-snug text-gray-400 dark:text-gray-500">${note}</div>
+      </div>`
+
+    $('pdStats').innerHTML = [
+      stat('Plaintext', `${len} bytes`, `${len % 16} bytes into the last block`),
+      stat('Padding added', `${padLen} bytes`, padLen === 16 ? 'a full extra block' : `each byte = 0x${hex(padLen)}`),
+      stat('Ciphertext', `${padded.length} bytes`, `${blockCount} block${blockCount > 1 ? 's' : ''} of 16`),
+    ].join('')
+
+    let html = ''
+    for (let b = 0; b < blockCount; b++) {
+      const isLast = b === blockCount - 1
+      let cells = ''
+      for (let i = 0; i < 16; i++) {
+        const idx = b * 16 + i
+        const isPad = isLast && i >= 16 - padLen
+        const val = padded[idx]
+        if (isPad) {
+          cells += `<span class="rounded bg-amber-100 px-1 py-0.5 text-center text-amber-700 dark:bg-amber-900/40 dark:text-amber-300" title="padding byte">${hex(val)}</span>`
+        } else {
+          const ch = String.fromCharCode(val)
+          const printable = val >= 0x20 && val <= 0x7e
+          cells += `<span class="rounded bg-gray-100 px-1 py-0.5 text-center text-gray-600 dark:bg-gray-800 dark:text-gray-300" title="${printable ? ch.replace(/"/g, '') : '0x' + hex(val)}">${hex(val)}</span>`
+        }
+      }
+      html += `<div class="rounded-lg border border-gray-200 bg-white p-2 dark:border-gray-800 dark:bg-gray-900">
+        <div class="mb-1 flex items-center justify-between text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+          <span>Block ${b + 1}</span>
+          <span>${isLast && padLen ? `${padLen} byte${padLen > 1 ? 's' : ''} of padding` : 'full data block'}</span>
+        </div>
+        <div class="grid grid-cols-8 gap-1 font-mono text-[10px] sm:grid-cols-[repeat(16,minmax(0,1fr))]">${cells}</div>
+      </div>`
+    }
+    $('pdBlocks').innerHTML = html
+
+    const exact = len % 16 === 0
+    $('pdNote').innerHTML = `<div class="rounded-lg border-l-4 border-blue-500 bg-blue-50/60 px-4 py-3 text-[13px] leading-6 text-blue-900 dark:bg-blue-950/30 dark:text-blue-200">
+      ${exact
+        ? `Your input is exactly ${len} bytes — a perfect multiple of 16. PKCS#7 still adds <strong>a whole extra block</strong> of 16 padding bytes, making the ciphertext ${padded.length} bytes. This is the rule that surprises people: CBC output is <em>always</em> longer than the input, by 1 to 16 bytes.`
+        : `Your input is ${len} bytes, so the final block is ${len % 16} bytes short and gets ${padLen} padding bytes, each holding the value 0x${hex(padLen)}. On decryption the receiver reads the last byte (0x${hex(padLen)}) and removes exactly that many bytes — then verifies they were all identical.`}
+    </div>`
+  }
+
+  $('pdText').addEventListener('input', render)
+  document.querySelectorAll('[data-demo]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const n = parseInt((btn as HTMLElement).dataset.demo!, 10)
+      ;($('pdText') as HTMLInputElement).value = SAMPLE(n)
+      render()
+    })
+  })
+
+  render()
+</script>

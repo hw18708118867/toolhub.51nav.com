@@ -1,0 +1,110 @@
+---
+/**
+ * JsonNestingDemo — the "JSON bomb" made real. A tiny nested literal whose
+ * fully-expanded size explodes exponentially with depth. Stepping through
+ * depths shows why parsers cap nesting depth and input size.
+ */
+---
+
+<div class="my-10 rounded-2xl border border-gray-200 bg-gray-50/60 p-4 sm:p-5 dark:border-gray-800 dark:bg-gray-900/40">
+  <div class="mb-1 flex flex-wrap items-center gap-x-3 gap-y-2">
+    <span class="text-sm font-semibold text-gray-900 dark:text-white">A small file can expand into a huge one</span>
+  </div>
+  <p class="mb-4 text-xs text-gray-500 dark:text-gray-400">Each level wraps the previous one in 9 copies. Step deeper and watch the expanded value count explode. Computed live.</p>
+
+  <div class="mb-4 flex flex-wrap items-center gap-2">
+    <button id="jb-reset" class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">⟲ Reset</button>
+    <button id="jb-prev" class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">‹ Prev</button>
+    <button id="jb-play" class="rounded-lg border border-blue-500 bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700">▶ Play</button>
+    <button id="jb-next" class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">Next ›</button>
+    <input id="jb-speed" type="range" min="500" max="2200" step="100" value="1200" class="ml-1 w-28 accent-blue-600" />
+  </div>
+
+  <div id="jb-progress" class="mb-4 h-1.5 w-full rounded-full bg-gray-200 dark:bg-gray-800">
+    <div class="h-full rounded-full bg-blue-600 transition-all" style="width:0%"></div>
+  </div>
+
+  <div id="jb-card" class="rounded-lg border border-gray-300 bg-white p-4 text-sm dark:border-gray-700 dark:bg-gray-950"></div>
+
+  <div id="jb-explain" class="mt-4 text-[13px] leading-6 text-gray-600 dark:text-gray-400"></div>
+  <div id="jb-timeline" class="mt-4 flex flex-wrap gap-1.5"></div>
+</div>
+
+<script>
+  const B = 9
+  const MAX_DEPTH = 8
+
+  // L(d): literal length of a value that is one array of B copies of depth d-1.
+  // L(0) = 1 ("0"); L(d) = 2 (brackets) + (B-1) (commas) + B * L(d-1).
+  const steps = []
+  {
+    let L = 1 // depth 0
+    for (let d = 1; d <= MAX_DEPTH; d++) {
+      const prev = L
+      L = 2 + (B - 1) + B * prev
+      const leaves = Math.pow(B, d)
+      const ratio = leaves // relative to the single scalar at depth 0
+      steps.push({
+        depth: d,
+        inputLen: L,
+        leaves,
+        ratio,
+        note:
+          'Depth ' + d + ': the source is only ' + L.toLocaleString() + ' characters, but it parses into ' +
+          leaves.toLocaleString() + ' values. A parser that expands it fully uses far more memory than the wire size suggests.',
+      })
+    }
+  }
+
+  let idx = 0
+  let timer = null
+  const $ = (id) => document.getElementById(id)
+  const cardEl = $('jb-card'), explainEl = $('jb-explain')
+  const progressEl = $('jb-progress').firstElementChild, timelineEl = $('jb-timeline')
+  const playBtn = $('jb-play')
+
+  function render() {
+    const s = steps[idx]
+    cardEl.innerHTML =
+      '<div class="font-semibold text-gray-900 dark:text-white">Nesting depth ' + s.depth + ' (branching ' + B + '×)</div>' +
+      '<div class="mt-2 grid grid-cols-3 gap-3 text-center">' +
+        '<div class="rounded-lg bg-gray-50 p-2 dark:bg-gray-900"><div class="text-lg font-bold text-gray-900 dark:text-white">' + s.inputLen.toLocaleString() + '</div><div class="text-[11px] text-gray-500 dark:text-gray-400">input chars</div></div>' +
+        '<div class="rounded-lg bg-gray-50 p-2 dark:bg-gray-900"><div class="text-lg font-bold text-blue-600 dark:text-blue-400">' + s.leaves.toLocaleString() + '</div><div class="text-[11px] text-gray-500 dark:text-gray-400">expanded values</div></div>' +
+        '<div class="rounded-lg bg-gray-50 p-2 dark:bg-gray-900"><div class="text-lg font-bold text-rose-600 dark:text-rose-400">' + s.ratio.toLocaleString() + '×</div><div class="text-[11px] text-gray-500 dark:text-gray-400">expansion</div></div>' +
+      '</div>'
+    explainEl.textContent = (idx + 1) + '/' + steps.length + ' · ' + s.note
+    progressEl.style.width = ((idx + 1) / steps.length) * 100 + '%'
+    ;[...timelineEl.children].forEach((el, k) => el.classList.toggle('bg-blue-600', k === idx))
+  }
+
+  function buildTimeline() {
+    timelineEl.innerHTML = steps.map((_, k) =>
+      '<button class="h-2 w-2 rounded-full bg-gray-300 dark:bg-gray-600" data-i="' + k + '"></button>'
+    ).join('')
+    timelineEl.querySelectorAll('button').forEach((b) =>
+      b.addEventListener('click', () => { pause(); idx = +b.dataset.i; render() }))
+  }
+
+  function play() {
+    if (timer) return
+    playBtn.textContent = '⏸ Pause'
+    timer = setInterval(() => {
+      if (idx >= steps.length - 1) { pause(); return }
+      idx++; render()
+    }, +$('jb-speed').value)
+  }
+  function pause() { clearInterval(timer); timer = null; playBtn.textContent = '▶ Play' }
+
+  $('jb-reset').addEventListener('click', () => { pause(); idx = 0; render() })
+  $('jb-prev').addEventListener('click', () => { pause(); idx = Math.max(0, idx - 1); render() })
+  $('jb-next').addEventListener('click', () => { pause(); idx = Math.min(steps.length - 1, idx + 1); render() })
+  playBtn.addEventListener('click', () => (timer ? pause() : play()))
+  $('jb-speed').addEventListener('input', () => { if (timer) { pause(); play() } })
+
+  new IntersectionObserver((es, ob) => {
+    es.forEach((e) => { if (e.isIntersecting) { render(); ob.disconnect() } })
+  }, { threshold: 0.4 }).observe(cardEl)
+
+  buildTimeline()
+  render()
+</script>

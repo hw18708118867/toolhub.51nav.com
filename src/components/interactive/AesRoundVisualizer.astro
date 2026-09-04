@@ -1,0 +1,373 @@
+---
+/**
+ * Step-by-step AES round visualiser.
+ *
+ * Driven by the real AES implementation in src/lib/aes.ts, so every byte
+ * shown is a genuine intermediate value — not an illustration.
+ */
+---
+
+<div
+  id="aes-round-viz"
+  class="my-10 rounded-2xl border border-gray-200 bg-gray-50/60 p-4 sm:p-5 dark:border-gray-800 dark:bg-gray-900/40"
+>
+  <!-- Header -->
+  <div class="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2">
+    <div class="flex items-center gap-1.5">
+      <svg class="w-4 h-4 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+      </svg>
+      <span class="text-sm font-semibold text-gray-900 dark:text-white">AES Round Visualiser</span>
+    </div>
+    <label class="ml-auto flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+      Key size
+      <select id="rvKeySize" class="rounded border border-gray-300 bg-white px-2 py-1 text-xs text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100">
+        <option value="128" selected>AES-128 · 10 rounds</option>
+        <option value="192">AES-192 · 12 rounds</option>
+        <option value="256">AES-256 · 14 rounds</option>
+      </select>
+    </label>
+  </div>
+
+  <!-- Input -->
+  <div class="mb-4 grid gap-3 sm:grid-cols-2">
+    <label class="block">
+      <span class="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">Plaintext (16 bytes)</span>
+      <input id="rvText" type="text" value="Attack at dawn!!" class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 font-mono text-xs text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100" />
+    </label>
+    <label class="block">
+      <span class="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">Key</span>
+      <input id="rvKey" type="text" value="yellow submarine" class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 font-mono text-xs text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100" />
+    </label>
+  </div>
+
+  <!-- Transport controls -->
+  <div class="mb-3 flex flex-wrap items-center gap-2">
+    <button id="rvReset" class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">↺ Reset</button>
+    <button id="rvPrev" class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">◀ Prev</button>
+    <button id="rvPlay" class="rounded-lg bg-blue-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-blue-700">▶ Play</button>
+    <button id="rvNext" class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">Next ▶</button>
+    <label class="ml-auto flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+      Speed
+      <input id="rvSpeed" type="range" min="1" max="10" value="6" class="w-24 accent-blue-600" />
+    </label>
+  </div>
+
+  <!-- Progress -->
+  <div class="mb-4">
+    <div class="mb-1.5 flex items-baseline justify-between text-xs">
+      <span id="rvStepTitle" class="font-semibold text-gray-900 dark:text-white">Initial AddRoundKey</span>
+      <span id="rvCounter" class="font-mono text-gray-500 dark:text-gray-400">step 1 / 40</span>
+    </div>
+    <div class="h-1.5 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-800">
+      <div id="rvProgress" class="h-full rounded-full bg-blue-600 transition-all duration-200" style="width:0%"></div>
+    </div>
+  </div>
+
+  <div class="grid gap-4 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
+    <!-- State matrix -->
+    <div>
+      <div class="mb-2 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+        <span>State</span>
+        <span class="font-mono" id="rvChangedCount"></span>
+      </div>
+      <div id="rvGrid" class="grid grid-cols-4 gap-1.5"></div>
+      <div class="mt-2 text-[11px] leading-relaxed text-gray-400 dark:text-gray-500">
+        Filled column by column (FIPS-197 order). Click any byte to inspect it.
+      </div>
+    </div>
+
+    <!-- Explanation -->
+    <div class="min-w-0">
+      <div id="rvOpBadge" class="mb-2 inline-block rounded px-2 py-0.5 text-[11px] font-semibold"></div>
+      <div id="rvDetail" class="text-[13px] leading-6 text-gray-600 dark:text-gray-400"></div>
+      <div id="rvSpecific" class="mt-3 rounded-lg border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-gray-900"></div>
+    </div>
+  </div>
+
+  <!-- Timeline -->
+  <div class="mt-4">
+    <div class="mb-1.5 text-xs text-gray-500 dark:text-gray-400">Timeline — click to jump to any step</div>
+    <div id="rvTimeline" class="flex flex-wrap gap-[3px]"></div>
+  </div>
+</div>
+
+<script>
+  import {
+    keyExpansion, traceEncryption, gmul, SBOX, sboxSteps,
+  } from '../../lib/aes'
+
+  const root = document.getElementById('aes-round-viz')!
+  const $ = (id: string) => document.getElementById(id)! as HTMLElement
+
+  const keySizeSel = $('rvKeySize') as HTMLSelectElement
+  const textInput = $('rvText') as HTMLInputElement
+  const keyInput = $('rvKey') as HTMLInputElement
+  const gridEl = $('rvGrid')
+  const timelineEl = $('rvTimeline')
+  const titleEl = $('rvStepTitle')
+  const counterEl = $('rvCounter')
+  const progressEl = $('rvProgress')
+  const badgeEl = $('rvOpBadge')
+  const detailEl = $('rvDetail')
+  const specificEl = $('rvSpecific')
+  const changedEl = $('rvChangedCount')
+  const playBtn = $('rvPlay') as HTMLButtonElement
+  const speedEl = $('rvSpeed') as HTMLInputElement
+
+  type Step = ReturnType<typeof traceEncryption>[number]
+
+  const OP_STYLE: Record<string, { bg: string; badge: string; bar: string; label: string }> = {
+    initial:     { bg: 'bg-gray-400',    badge: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',         bar: 'bg-gray-400',    label: 'AddRoundKey' },
+    addroundkey: { bg: 'bg-emerald-500', badge: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300', bar: 'bg-emerald-500', label: 'AddRoundKey' },
+    subbytes:    { bg: 'bg-amber-500',   badge: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',     bar: 'bg-amber-500',   label: 'SubBytes' },
+    shiftrows:   { bg: 'bg-blue-500',    badge: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',         bar: 'bg-blue-500',    label: 'ShiftRows' },
+    mixcolumns:  { bg: 'bg-violet-500',  badge: 'bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300', bar: 'bg-violet-500',  label: 'MixColumns' },
+  }
+
+  let steps: Step[] = []
+  let idx = 0
+  let focus = 0
+  let playing = false
+  let timer: number | null = null
+
+  const hex = (b: number) => b.toString(16).padStart(2, '0')
+
+  /** Pad or truncate a UTF-8 string to exactly `n` bytes. */
+  function toBytes(s: string, n: number): Uint8Array {
+    const enc = new TextEncoder()
+    let src = Array.from(enc.encode(s))
+    if (src.length === 0) src = [0]
+    const out = new Uint8Array(n)
+    for (let i = 0; i < n; i++) out[i] = src[i % src.length]
+    return out
+  }
+
+  function rebuild(keepIndex: boolean) {
+    const bits = parseInt(keySizeSel.value, 10)
+    // The key must be exactly bits/8 bytes, otherwise the schedule would fall
+    // back to a shorter round count. Short passphrases are cycled to length.
+    const rk = keyExpansion(toBytes(keyInput.value, bits / 8))
+    const pt = toBytes(textInput.value, 16)
+    steps = traceEncryption(pt, rk)
+    if (!keepIndex) idx = 0
+    idx = Math.min(idx, steps.length - 1)
+    buildTimeline()
+    render()
+  }
+
+  function buildTimeline() {
+    timelineEl.innerHTML = ''
+    steps.forEach((s, i) => {
+      const b = document.createElement('button')
+      b.type = 'button'
+      b.className = `h-3 w-3 rounded-sm transition-all ${OP_STYLE[s.kind].bar} ${i === idx ? 'ring-2 ring-offset-1 ring-gray-900 dark:ring-white dark:ring-offset-gray-900 scale-125' : 'opacity-40 hover:opacity-100'}`
+      b.title = `${i + 1}. ${s.title}`
+      b.setAttribute('aria-label', `Jump to step ${i + 1}: ${s.title}`)
+      b.addEventListener('click', () => { pause(); idx = i; render() })
+      timelineEl.appendChild(b)
+    })
+  }
+
+  function renderGrid(step: Step) {
+    gridEl.innerHTML = ''
+    let changed = 0
+    const diff: boolean[] = []
+    for (let i = 0; i < 16; i++) {
+      diff.push(step.before[i] !== step.after[i])
+      if (diff[i]) changed++
+    }
+    changedEl.textContent = step.kind === 'initial' ? '' : `${changed}/16 bytes changed`
+
+    for (let row = 0; row < 4; row++) {
+      for (let col = 0; col < 4; col++) {
+        const i = col * 4 + row
+        const cell = document.createElement('button')
+        cell.type = 'button'
+        const isFocus = i === focus
+        const isChanged = diff[i]
+        cell.className = [
+          'relative rounded-md border py-2 font-mono text-sm tabular-nums transition-all duration-200',
+          isFocus
+            ? 'border-blue-500 ring-2 ring-blue-500/40 dark:border-blue-400'
+            : isChanged
+              ? 'border-gray-300 dark:border-gray-700'
+              : 'border-dashed border-gray-300 dark:border-gray-700',
+          isChanged
+            ? 'bg-white text-gray-900 dark:bg-gray-800 dark:text-white'
+            : 'bg-transparent text-gray-400 dark:text-gray-500',
+        ].join(' ')
+        cell.innerHTML = `
+          <span class="block leading-none">${hex(step.after[i])}</span>
+          <span class="mt-0.5 block text-[9px] leading-none text-gray-400 dark:text-gray-500">${step.before[i] === step.after[i] ? '·' : hex(step.before[i])}</span>
+        `
+        cell.title = `byte ${i} (row ${row}, col ${col})`
+        cell.addEventListener('click', () => { focus = i; render() })
+        gridEl.appendChild(cell)
+      }
+    }
+  }
+
+  function renderSpecific(step: Step) {
+    const row = focus % 4
+    const col = Math.floor(focus / 4)
+    const hx = (n: number) => `<span class="font-mono text-gray-900 dark:text-gray-100">${hex(n)}</span>`
+
+    if (step.kind === 'subbytes') {
+      const st = sboxSteps(step.before[focus])
+      const sboxGrid = buildSboxGrid(step.before[focus])
+      specificEl.innerHTML = `
+        <div class="text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-2">S-box lookup — byte ${focus} (row ${row}, col ${col})</div>
+        <div class="flex flex-wrap items-center gap-1.5 font-mono text-xs">
+          ${hx(st.input)}<span class="text-gray-400">→ inverse →</span>${hx(st.inverse)}
+          <span class="text-gray-400">→ rotl(1..4)</span>
+          <span class="text-gray-400">${st.rotations.map(r => hex(r)).join(' ')}</span>
+          <span class="text-gray-400">→ xor →</span>${hx(st.xored)}
+          <span class="text-gray-400">→ ⊕ 0x63 →</span><span class="font-mono text-xs font-semibold text-amber-600 dark:text-amber-400">${hex(st.output)}</span>
+        </div>
+        <div class="mt-3 text-[11px] text-gray-400 dark:text-gray-500">The 16×16 S-box. Row = high nibble, column = low nibble. The highlighted cell is this byte.</div>
+        ${sboxGrid}
+      `
+    } else if (step.kind === 'shiftrows') {
+      let html = `<div class="text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-2">ShiftRows — row ${row} rotates left by ${row}</div>`
+      html += '<div class="space-y-1 font-mono text-xs">'
+      for (let r = 0; r < 4; r++) {
+        const vals = [0, 1, 2, 3].map(c => hex(step.before[((c + r) % 4) * 4 + r]))
+        const active = r === row
+        html += `<div class="${active ? 'font-semibold text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500'}">
+          row ${r} ${'←'.repeat(r) || '·'} [${vals.join(' ')}]
+        </div>`
+      }
+      html += '</div>'
+      html += `<div class="mt-2 font-mono text-xs">byte ${focus}: ${hx(step.before[((col + row) % 4) * 4 + row])} at col ${(col + row) % 4} → col ${col}</div>`
+      specificEl.innerHTML = html
+    } else if (step.kind === 'mixcolumns') {
+      const before = [0, 1, 2, 3].map(r => step.before[col * 4 + r])
+      const after = [0, 1, 2, 3].map(r => step.after[col * 4 + r])
+      const terms = [
+        [2, 3, 1, 1], [1, 2, 3, 1], [1, 1, 2, 3], [3, 1, 1, 2],
+      ]
+      let html = `<div class="text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-2">MixColumns — column ${col}</div>`
+      html += '<div class="space-y-1 font-mono text-xs overflow-x-auto">'
+      for (let r = 0; r < 4; r++) {
+        const t = terms[r]
+        const parts = t.map((m, k) => {
+          const prod = m === 1 ? before[k] : gmul(before[k], m)
+          return `${m}·${hex(before[k])}=${hex(prod)}`
+        })
+        html += `<div class="whitespace-nowrap"><span class="text-violet-600 dark:text-violet-400">${hex(after[r])}</span> <span class="text-gray-400">=</span> ${parts.join(' <span class="text-gray-400">⊕</span> ')}</div>`
+      }
+      html += '</div>'
+      html += `<div class="mt-2 text-[11px] text-gray-400 dark:text-gray-500">Multiplication is in GF(2⁸) — the same field as the S-box. Every output byte of the column depends on all four input bytes.</div>`
+      specificEl.innerHTML = html
+    } else {
+      const rk = step.roundKey!
+      let html = `<div class="text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-2">AddRoundKey — round key ${step.round}</div>`
+      html += `<div class="font-mono text-xs">${hx(step.before[focus])} <span class="text-gray-400">⊕</span> ${hx(rk[focus])} <span class="text-gray-400">=</span> <span class="font-semibold text-emerald-600 dark:text-emerald-400">${hex(step.after[focus])}</span></div>`
+      html += '<div class="mt-2 text-[11px] text-gray-400 dark:text-gray-500">Round key bytes (from the key schedule):</div>'
+      html += '<div class="mt-1 grid grid-cols-8 gap-1">'
+      for (let i = 0; i < 16; i++) {
+        html += `<span class="rounded px-1 py-0.5 text-center font-mono text-[10px] ${i === focus ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'}">${hex(rk[i])}</span>`
+      }
+      html += '</div>'
+      specificEl.innerHTML = html
+    }
+  }
+
+  function buildSboxGrid(focusByte: number) {
+    let html = '<div class="mt-2 inline-grid gap-[1px] text-[7px] leading-none" style="grid-template-columns:repeat(17,minmax(0,1fr))">'
+    html += '<span></span>'
+    for (let c = 0; c < 16; c++) {
+      html += `<span class="px-[1px] text-center text-gray-400 dark:text-gray-500">${c.toString(16)}</span>`
+    }
+    for (let r = 0; r < 16; r++) {
+      html += `<span class="pr-[2px] text-right text-gray-400 dark:text-gray-500">${r.toString(16)}</span>`
+      for (let c = 0; c < 16; c++) {
+        const i = r * 16 + c
+        const active = i === focusByte
+        html += `<span class="px-[1px] py-[1px] text-center font-mono ${active ? 'bg-amber-400 font-bold text-gray-900' : 'text-gray-400 dark:text-gray-600'}">${hex(SBOX[i])}</span>`
+      }
+    }
+    html += '</div>'
+    return html
+  }
+
+  function render() {
+    const step = steps[idx]
+    const total = steps.length
+    titleEl.textContent = step.title
+    counterEl.textContent = `step ${idx + 1} / ${total}`
+    progressEl.style.width = `${((idx + 1) / total) * 100}%`
+    progressEl.className = `h-full rounded-full transition-all duration-200 ${OP_STYLE[step.kind].bg}`
+
+    badgeEl.className = `mb-2 inline-block rounded px-2 py-0.5 text-[11px] font-semibold ${OP_STYLE[step.kind].badge}`
+    badgeEl.textContent = step.kind === 'initial'
+      ? 'Initial round · AddRoundKey'
+      : `${step.final ? 'Final round' : `Round ${step.round}`} · ${OP_STYLE[step.kind].label}`
+
+    detailEl.textContent = step.detail
+    renderGrid(step)
+    renderSpecific(step)
+
+    // keep timeline highlight in sync
+    const kids = timelineEl.children
+    for (let i = 0; i < kids.length; i++) {
+      const k = kids[i] as HTMLElement
+      k.className = `h-3 w-3 rounded-sm transition-all ${OP_STYLE[steps[i].kind].bar} ${i === idx ? 'ring-2 ring-offset-1 ring-gray-900 dark:ring-white dark:ring-offset-gray-900 scale-125' : 'opacity-40 hover:opacity-100'}`
+    }
+  }
+
+  function delay() {
+    // slider 1..10 → ~1600ms down to ~150ms
+    return 1750 - parseInt(speedEl.value, 10) * 160
+  }
+
+  function tick() {
+    if (!playing) return
+    if (idx >= steps.length - 1) { pause(); return }
+    idx++
+    render()
+    timer = window.setTimeout(tick, delay())
+  }
+
+  function play() {
+    if (idx >= steps.length - 1) idx = 0
+    playing = true
+    playBtn.textContent = '⏸ Pause'
+    playBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700')
+    playBtn.classList.add('bg-amber-600', 'hover:bg-amber-700')
+    timer = window.setTimeout(tick, delay())
+  }
+
+  function pause() {
+    playing = false
+    if (timer !== null) { window.clearTimeout(timer); timer = null }
+    playBtn.textContent = '▶ Play'
+    playBtn.classList.add('bg-blue-600', 'hover:bg-blue-700')
+    playBtn.classList.remove('bg-amber-600', 'hover:bg-amber-700')
+  }
+
+  playBtn.addEventListener('click', () => (playing ? pause() : play()))
+  $('rvNext').addEventListener('click', () => { pause(); if (idx < steps.length - 1) { idx++; render() } })
+  $('rvPrev').addEventListener('click', () => { pause(); if (idx > 0) { idx--; render() } })
+  $('rvReset').addEventListener('click', () => { pause(); idx = 0; focus = 0; render() })
+  keySizeSel.addEventListener('change', () => { pause(); rebuild(false) })
+  textInput.addEventListener('input', () => { pause(); rebuild(false) })
+  keyInput.addEventListener('input', () => { pause(); rebuild(false) })
+
+  rebuild(false)
+
+  // Autoplay the first time it scrolls into view, so the diagram reads as
+  // "live" — but never again, and never if the user has already touched it.
+  let started = false
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting && !started) {
+        started = true
+        io.disconnect()
+        if (!playing) play()
+      }
+    })
+  }, { threshold: 0.35 })
+  io.observe(root)
+</script>

@@ -1,69 +1,239 @@
 ---
 import GuideLayout from '../../layouts/GuideLayout.astro'
+import JsonParserVisualizer from '../../components/interactive/JsonParserVisualizer.astro'
+import JsonEscapeDemo from '../../components/interactive/JsonEscapeDemo.astro'
+import JsonNumberDemo from '../../components/interactive/JsonNumberDemo.astro'
+import JsonNestingDemo from '../../components/interactive/JsonNestingDemo.astro'
 
-const content = `
-<h2>When JSON Gets Deep, Reading It Gets Hard</h2>
-<p>A flat JSON object with ten keys is easy. A JSON object nested six levels deep with mixed arrays and objects — that's the one that makes you scroll up and down, lose track of which closing brace matches which opening brace, and eventually copy the whole thing into a text editor just to fold sections.</p>
-<p>Deeply nested JSON is everywhere. API responses from GraphQL, configuration files for complex tools, geospatial data, e-commerce product catalogs. The data has structure — meaningful structure — but seeing that structure in a wall of indented text is hard. This guide covers three techniques for working with nested JSON: flattening it into key-value pairs, visualizing it as a collapsible tree, and sorting keys to impose order on chaos.</p>
-
-<h2>Flattening: Turn Deep Nests into Flat Maps</h2>
-<p>Flattening converts nested JSON into a single-level object where keys are dot-notation paths. So <code>{"user":{"address":{"city":"NYC"}}}</code> becomes <code>{"user.address.city":"NYC"}</code>. Each leaf value gets a unique path-based key, and the nesting structure is preserved in the key names rather than the object hierarchy.</p>
-
-<h3>When Flattening Helps</h3>
-<p>The most common use case is preparing JSON for systems that only understand flat data. SQL databases work with rows and columns — a flat map of <code>column_name</code> → <code>value</code> maps directly to an INSERT statement. CSV files are inherently flat. Key-value stores like Redis or etcd use flat namespaces.</p>
-<p>Flattening also makes it easier to search for values. If you're debugging and need to find every occurrence of a specific value, a flat structure lets you scan keys and values in O(n) time. In a nested structure, you'd need recursive traversal — doable, but harder to do in your head while staring at a screen.</p>
-<p>Use the <a href="/tools/json-flatten/">JSON Flatten</a> tool for this. Paste your nested JSON, click Flatten, and you get a clean flat map. The reverse direction — Unflatten — takes flat key-value pairs and reconstructs the nested structure. This is useful when you're loading data from a CSV or database back into an application that expects nested JSON objects.</p>
-
-<h3>How Arrays Are Handled</h3>
-<p>Arrays in flattened JSON use bracket notation: <code>items[0].name</code>, <code>items[1].name</code>. This preserves the index and structure. If your array contains objects, each object's keys become individual flat paths. If your array contains primitives, the index alone is the key path.</p>
-<p>One limitation: if your data has varying array lengths or sparse arrays, the flat representation can become verbose. An array with 500 items will produce 500 times the number of keys. For large arrays, consider whether flattening the entire object is the right approach, or whether you should flatten only the header-level metadata and keep the array as a serialized JSON string.</p>
-
-<h2>Tree View: See the Structure at a Glance</h2>
-<p>A tree view is a collapsible visual representation of your JSON. Instead of reading indented text, you see nodes connected by lines, with expand/collapse arrows next to every object and array. You drill into the parts you care about and collapse everything else.</p>
-<p>The <a href="/tools/json-tree-viewer/">JSON Tree Viewer</a> renders your JSON as an interactive tree. Each node shows its key, type, and a preview of its value. Objects show their key count, arrays show their length, and you can click to expand any branch. Clicking a value copies it to your clipboard.</p>
-
-<h3>Why Trees Beat Indentation</h3>
-<p>Indentation tells you depth. A tree shows you structure. Those are different things. When you scan an indented text block, you're doing mental bracket-matching: "this <code>}</code> on line 47 closes the object that opened on line 12." A tree view eliminates that cognitive load — the lines and expand/collapse arrows make the parent-child relationships visually obvious.</p>
-<p>This matters most when you're exploring unfamiliar JSON. You don't know the structure yet. You need to build a mental model of what's where. A tree view lets you expand one section at a time, building understanding incrementally, rather than being confronted with 500 lines of formatted text all at once.</p>
-
-<h3>Type Coloring: Spot Inconsistencies Instantly</h3>
-<p>The tree viewer color-codes values by type: strings in green, numbers in blue, booleans in orange, null in gray, keys in purple. This seems like a minor visual touch, but it catches real bugs. A field that should be a number rendering in green tells you it's actually a string <code>"42"</code> not the number <code>42</code>. A boolean <code>false</code> vs the string <code>"false"</code> — invisible in plain text, immediately obvious with color coding.</p>
-<p>API documentation often gets types wrong, or the API returns types that differ from what the docs claim. Type coloring is a quick visual check: do the colors match what you expected? If not, dig deeper.</p>
-
-<h2>Sorting: Impose Order on Key Chaos</h2>
-<p>JSON objects are unordered by specification, but in practice, most parsers preserve insertion order. Two developers working on the same config file will produce different key orderings — not because the data is different, but because they added keys in a different sequence.</p>
-<p>The <a href="/tools/json-sort/">JSON Sort</a> tool recursively alphabetizes every object's keys. After sorting, two structurally identical JSON files will have the same key ordering, making them trivially comparable with any diff tool.</p>
-
-<h3>Where Sorting Helps</h3>
-<ul>
-  <li><strong>Git diffs.</strong> Sorted keys produce clean, minimal diffs when config files change. You see the added and removed keys, not the reordering noise.</li>
-  <li><strong>Code review.</strong> When reviewing a PR that touches a JSON config, sort first, then diff. You'll find actual changes in seconds instead of scanning through formatting noise.</li>
-  <li><strong>Translation files.</strong> i18n JSON files with hundreds of translation keys benefit enormously from sorting. Adding a new translation key is a one-line diff; without sorting, the entire file might show as changed if the developer's editor reorders keys on save.</li>
-  <li><strong>Configuration consistency.</strong> If your project has multiple JSON config files (one per environment, or per service), sorting them all creates a consistent standard. New team members know exactly where to find a given key.</li>
-</ul>
-
-<h3>What Sorting Doesn't Do</h3>
-<p>Sorting doesn't change the meaning of your JSON. It doesn't reorder arrays, flatten nested structures, or modify values. It purely reorders object keys. The output is semantically identical to the input — just more organized.</p>
-
-<h2>Putting It All Together: A Workflow for Complex JSON</h2>
-<p>When you're dropped into a project with deeply nested, unfamiliar JSON data, here's a systematic approach:</p>
-<ol>
-  <li><strong>Validate first.</strong> Run it through the <a href="/tools/json-formatter/">JSON Formatter</a>. If it doesn't parse, nothing else matters.</li>
-  <li><strong>Tree view the structure.</strong> Paste into the <a href="/tools/json-tree-viewer/">JSON Tree Viewer</a>. Expand the top few levels to understand the overall shape. How many top-level keys? Where are the arrays? How deep does it go?</li>
-  <li><strong>Flatten if needed.</strong> If you need to export to CSV or a database, use the <a href="/tools/json-flatten/">JSON Flatten</a> tool to get a flat key-value map.</li>
-  <li><strong>Sort for consistency.</strong> If this JSON will be committed to version control, run it through the <a href="/tools/json-sort/">JSON Sort</a> tool first.</li>
-  <li><strong>Compare versions.</strong> If you have multiple versions of this data, use the <a href="/tools/json-compare/">JSON Compare</a> tool to see exactly what differs.</li>
-</ol>
-<p>Each tool does one thing well. Combined, they turn a confusing deeply nested JSON file into something you can understand, export, version-control, and compare.</p>
+const part1 = `
+  <h2 id="what-is-json">What JSON Actually Is</h2>
+  <p>JSON started as a footnote. In 2001 Douglas Crockford and Chip Morningstar were documenting how they passed data around in a web app, noticed it was just JavaScript object literals with the dangerous parts removed, and wrote it down. A few years later it became <a href="https://www.rfc-editor.org/rfc/rfc8259" rel="noopener">RFC 8259</a>. Today it is the default format for APIs, config files, and almost anything two systems need to trade.</p>
+  <p>The reason is boring and good: JSON has only two structures. A collection of name/value pairs (an object), and an ordered list of values (an array). Everything else is built from those two. That smallness is why a parser can be written in a weekend and why every language ships one.</p>
+  <p>This guide walks through what JSON is made of, how a parser reads it, where the sharp edges are, and how to keep it safe. The diagrams below are wired to real parsers running in your browser, so what you see is what actually happens, not a cartoon.</p>
 `
+
+const part2 = `
+  <h2 id="six-types">The Six Value Types</h2>
+  <p>A JSON value is one of exactly six things. There is no date, no function, no <code>undefined</code>, no comment. If your data needs those, you model them as strings or numbers.</p>
+  <table class="w-full text-sm border-collapse my-4">
+    <thead>
+      <tr class="border-b border-gray-300 dark:border-gray-700 text-left">
+        <th class="py-2 pr-4 font-semibold text-gray-900 dark:text-white">Type</th>
+        <th class="py-2 pr-4 font-semibold text-gray-900 dark:text-white">Example</th>
+        <th class="py-2 font-semibold text-gray-900 dark:text-white">Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="border-b border-gray-200 dark:border-gray-800">
+        <td class="py-2 pr-4 font-mono text-emerald-700 dark:text-emerald-300">string</td>
+        <td class="py-2 pr-4 font-mono">"name"</td>
+        <td class="py-2 text-gray-600 dark:text-gray-400">Double-quoted only. No single quotes.</td>
+      </tr>
+      <tr class="border-b border-gray-200 dark:border-gray-800">
+        <td class="py-2 pr-4 font-mono text-amber-700 dark:text-amber-300">number</td>
+        <td class="py-2 pr-4 font-mono">36, -1.5, 1e3</td>
+        <td class="py-2 text-gray-600 dark:text-gray-400">One float type. No hex, no leading zero.</td>
+      </tr>
+      <tr class="border-b border-gray-200 dark:border-gray-800">
+        <td class="py-2 pr-4 font-mono text-sky-700 dark:text-sky-300">object</td>
+        <td class="py-2 pr-4 font-mono">{"k": "v"}</td>
+        <td class="py-2 text-gray-600 dark:text-gray-400">Unordered name/value pairs. Keys are strings.</td>
+      </tr>
+      <tr class="border-b border-gray-200 dark:border-gray-800">
+        <td class="py-2 pr-4 font-mono text-sky-700 dark:text-sky-300">array</td>
+        <td class="py-2 pr-4 font-mono">[1, 2, 3]</td>
+        <td class="py-2 text-gray-600 dark:text-gray-400">Ordered. Elements may be mixed types.</td>
+      </tr>
+      <tr class="border-b border-gray-200 dark:border-gray-800">
+        <td class="py-2 pr-4 font-mono text-purple-600 dark:text-purple-300">true / false</td>
+        <td class="py-2 pr-4 font-mono">true</td>
+        <td class="py-2 text-gray-600 dark:text-gray-400">Lowercase literals, no quotes.</td>
+      </tr>
+      <tr>
+        <td class="py-2 pr-4 font-mono text-purple-600 dark:text-purple-300">null</td>
+        <td class="py-2 pr-4 font-mono">null</td>
+        <td class="py-2 text-gray-600 dark:text-gray-400">The only way to say "no value".</td>
+      </tr>
+    </tbody>
+  </table>
+  <p>The thing people forget: a JSON <em>file</em> must contain exactly one value at the top level. That value is almost always an object or an array. <code>{ "a": 1 }</code> is valid; <code>{ "a": 1 }{ "b": 2 }</code> is not, because there are two values.</p>
+`
+
+const part3 = `
+  <h2 id="how-parser-works">How a Parser Reads It</h2>
+  <p>JSON is simple enough that you can hold the whole grammar in your head. A parser is a set of rules: "if I see <code>{</code>, read pairs until <code>}</code>; if I see <code>[</code>, read values until <code>]</code>; if I see a quote, read a string; otherwise read a number, true, false, or null." It calls itself for nested objects and arrays. That is the whole trick.</p>
+  <p>The diagram below runs a small but real recursive-descent parser over a sample value. Press play and watch the source cursor advance one token at a time while the tree on the right fills in. When it hits <code>"tags"</code>, it opens an array; when it hits <code>"active"</code>, it reads a boolean; the final <code>null</code> closes the object.</p>
+`
+
+const part4 = `
+  <h2 id="syntax-rules">The Rules People Break</h2>
+  <p>Most "broken JSON" errors come from a handful of habits borrowed from JavaScript. JSON is a subset of JS object syntax, not equal to it.</p>
+  <ul class="list-disc list-inside space-y-2 my-4 text-gray-600 dark:text-gray-400">
+    <li><strong class="text-gray-900 dark:text-white">No trailing commas.</strong> <code>[1, 2,]</code> is fine in JS, a syntax error in JSON.</li>
+    <li><strong class="text-gray-900 dark:text-white">No comments.</strong> <code>//</code> and <code>/* */</code> do not exist in JSON. Put notes in a real field like <code>"_comment"</code> if you must.</li>
+    <li><strong class="text-gray-900 dark:text-white">Double quotes only.</strong> Keys and strings use <code>"</code>. Single quotes and unquoted keys are rejected.</li>
+    <li><strong class="text-gray-900 dark:text-white">No unquoted names.</strong> <code>{ name: "x" }</code> fails; it must be <code>{ "name": "x" }</code>.</li>
+    <li><strong class="text-gray-900 dark:text-white">No special numbers.</strong> <code>NaN</code>, <code>Infinity</code>, <code>0xFF</code>, and leading zeros like <code>01</code> are all invalid.</li>
+    <li><strong class="text-gray-900 dark:text-white">One root value.</strong> Two objects side by side is not a document.</li>
+  </ul>
+  <p>When a parser throws, the position it reports is your friend. A missing comma, an unclosed brace, or a stray trailing comma are the usual suspects, and they almost always sit right where the error points.</p>
+`
+
+const part5 = `
+  <h2 id="escaping">Strings and Escaping</h2>
+  <p>A JSON string is any text between double quotes, with one rule that trips everyone: characters that would end or confuse the string have to be escaped first. The quote itself needs a backslash, and so does the backslash. Newlines cannot appear raw inside a string, so they become <code>\\n</code>.</p>
+  <p>Characters below U+0020 (control characters) must be escaped, usually as <code>\\uXXXX</code>. The common ones have short forms: <code>\\n</code>, <code>\\t</code>, <code>\\r</code>, <code>\\b</code>, <code>\\f</code>. Anything above ASCII can be left as the literal character or written as <code>\\uXXXX</code> — both round-trip the same.</p>
+  <p>Step through the next diagram to see each character become its escaped form. Notice that one newline turns into two characters (<code>\\</code> and <code>n</code>), which is why "pretty" strings take more room than they look like they should.</p>
+`
+
+const part6 = `
+  <h2 id="numbers">Numbers: The Quiet Trap</h2>
+  <p>JSON defines numbers loosely, but every parser turns them into an IEEE-754 double (a 64-bit float). That single fact is responsible for most JSON number bugs in production, because doubles are great for physics and bad for accounting and identity.</p>
+  <p>The diagram below computes each result in your browser. None of it is staged.</p>
+`
+
+const part7 = `
+  <h2 id="json-vs-js">JSON Is Not JavaScript</h2>
+  <p>The oldest JSON mistake is to read it with <code>eval()</code>. JavaScript object literals and JSON look alike, but JSON is the safe subset: no variables, no function calls, no assignments. <code>eval()</code> would happily run <code>alert(1)</code> if it were slipped into the data, so it is out of the question.</p>
+  <p>Use <code>JSON.parse()</code> and <code>JSON.stringify()</code>. They only accept the real grammar and throw on anything else. One more difference worth knowing: <code>JSON.stringify()</code> drops properties whose value is <code>undefined</code> or a function, and turns <code>NaN</code>/<code>Infinity</code> into <code>null</code>. If your object has those, they will not survive the round trip, so normalize first.</p>
+  <h3 id="dates-in-json">Dates do not exist</h3>
+  <p>There is no date type. The convention is to send an ISO-8601 string like <code>"2026-09-04T12:00:00Z"</code> and parse it on the other side. Watch out for timezones — store and send in UTC, format for the user's locale only at display time.</p>
+`
+
+const part8 = `
+  <h2 id="security">Security: Injection and Pollution</h2>
+  <p>JSON is data, not code, so the classic code-injection bugs do not apply. But two classes of problem do show up, and both are easy to walk into.</p>
+  <h3 id="xss">JSON inside a page is still data</h3>
+  <p>When you embed JSON into HTML to seed a client app, never drop it raw into a <code>&lt;script&gt;</code> tag. A string containing <code>&lt;/script&gt;</code> closes the tag early and lets attacker content run. The safe pattern is to escape <code>&lt;</code> as <code>\\u003c</code> (which our own JSON tools do), or serve the data from a separate fetch. If the JSON ever reaches the DOM as markup, escape it first.</p>
+  <h3 id="prototype-pollution">Prototype pollution</h3>
+  <p><code>JSON.parse()</code> itself is safe: it builds plain objects with no prototype tricks, so <code>{"__proto__": {"admin": true}}</code> just becomes a normal property called <code>"__proto__"</code>. The danger is in what you do next. Merge helpers, object spreads, and "deep assign" libraries that copy unknown keys onto existing objects can turn that key into a real prototype change. Only <code>JSON.parse</code> the data, then copy the specific fields you expect. Never shallow-merge an untrusted object onto a live one.</p>
+`
+
+const part9 = `
+  <h2 id="nesting">Nesting, Depth, and the JSON Bomb</h2>
+  <p>JSON can nest without limit, and that is a feature an attacker can use. A small file that expands into a giant structure on parse is called a "JSON bomb" (the XML world calls it a billion-laughs attack). The parser reads a few hundred bytes and then tries to build millions of objects, running the host out of memory.</p>
+  <p>Step the next diagram. Each level wraps the previous one in nine copies. The source stays tiny, but the number of values it expands into grows by 9× every step. By depth eight it is tens of millions of values from a file you could paste from a chat message.</p>
+  <p>The defense is boring and correct: cap the input size, cap the nesting depth, and cap the number of nodes you will expand before you give up. Any serious parser or gateway does this; if you are hand-rolling ingestion, do it too.</p>
+`
+
+const part10 = `
+  <h2 id="schema">Validation and JSON Schema</h2>
+  <p>For a config file or an API contract, "it parses" is a low bar. You also want to know the shape is right: the keys exist, the types are correct, the numbers are in range. That is what JSON Schema is for. A schema is itself JSON that describes what valid looks like.</p>
+  <pre><code class="language-json">{
+  "type": "object",
+  "required": ["name", "age"],
+  "properties": {
+    "name": { "type": "string" },
+    "age":  { "type": "integer", "minimum": 0 }
+  }
+}</code></pre>
+  <p>Point a validator at your data and it tells you which field broke the contract and why, instead of letting a missing field surface as a confusing error three screens later. For bigger teams, the schema doubles as documentation that cannot drift from the code.</p>
+`
+
+const part11 = `
+  <h2 id="working">Working With JSON Day to Day</h2>
+  <p>A few habits make JSON painless:</p>
+  <ul class="list-disc list-inside space-y-2 my-4 text-gray-600 dark:text-gray-400">
+    <li><strong class="text-gray-900 dark:text-white">Pretty-print while developing, minify in production.</strong> Indentation is for humans; whitespace is wasted bytes on the wire.</li>
+    <li><strong class="text-gray-900 dark:text-white">Send big integers as strings.</strong> Database IDs and timestamps in nanoseconds do not fit a double. Quote them.</li>
+    <li><strong class="text-gray-900 dark:text-white">Flatten for spreadsheets.</strong> Dot-notation (<code>user.address.city</code>) turns nested objects into rows a CSV can hold.</li>
+    <li><strong class="text-gray-900 dark:text-white">Diff before you merge.</strong> A structural comparison ignores key order, so it catches real changes, not just reformatting.</li>
+    <li><strong class="text-gray-900 dark:text-white">Generate types from it.</strong> One JSON sample can become a TypeScript, Go, or Rust struct, so the wire shape and the code shape stay in sync.</li>
+  </ul>
+`
+
+const part12 = `
+  <h2 id="mistakes">The Mistakes Worth Remembering</h2>
+  <table class="w-full text-sm border-collapse my-4">
+    <thead>
+      <tr class="border-b border-gray-300 dark:border-gray-700 text-left">
+        <th class="py-2 pr-4 font-semibold text-gray-900 dark:text-white">Symptom</th>
+        <th class="py-2 font-semibold text-gray-900 dark:text-white">Cause</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="border-b border-gray-200 dark:border-gray-800">
+        <td class="py-2 pr-4 text-gray-600 dark:text-gray-400">"Unexpected token" at the end</td>
+        <td class="py-2 text-gray-600 dark:text-gray-400">Two root values, or a stray comma before <code>}</code>.</td>
+      </tr>
+      <tr class="border-b border-gray-200 dark:border-gray-800">
+        <td class="py-2 pr-4 text-gray-600 dark:text-gray-400">ID changed after a round trip</td>
+        <td class="py-2 text-gray-600 dark:text-gray-400">A 64-bit integer was sent as a number and lost precision.</td>
+      </tr>
+      <tr class="border-b border-gray-200 dark:border-gray-800">
+        <td class="py-2 pr-4 text-gray-600 dark:text-gray-400">0.1 + 0.2 ≠ 0.3</td>
+        <td class="py-2 text-gray-600 dark:text-gray-400">Float math. Compare with a tolerance, or use integers (cents).</td>
+      </tr>
+      <tr class="border-b border-gray-200 dark:border-gray-800">
+        <td class="py-2 pr-4 text-gray-600 dark:text-gray-400">A key vanished on stringify</td>
+        <td class="py-2 text-gray-600 dark:text-gray-400">Its value was <code>undefined</code> or a function.</td>
+      </tr>
+      <tr>
+        <td class="py-2 pr-4 text-gray-600 dark:text-gray-400">Server chokes on a small payload</td>
+        <td class="py-2 text-gray-600 dark:text-gray-400">Nested expansion (JSON bomb). Cap depth and size.</td>
+      </tr>
+    </tbody>
+  </table>
+`
+
+const part13 = `
+  <h2 id="recommended">Recommended Reading</h2>
+  <p>These guides and tools go deeper on the pieces above:</p>
+  <ul class="list-disc list-inside space-y-2 my-4 text-gray-600 dark:text-gray-400">
+    <li><a href="/guides/json-debugging-guide/">JSON Data Debugging Guide</a> — find and fix parse errors fast.</li>
+    <li><a href="/guides/string-escaping-guide/">String Escaping in JS &amp; JSON</a> — the full escape-sequence table.</li>
+    <li><a href="/guides/csv-json-conversion-guide/">CSV to JSON Conversion</a> — moving between tabular and nested shapes.</li>
+    <li><a href="/guides/web-encoding-guide/">Web Encoding: Base64, URL &amp; HTML Entities</a> — the other encodings JSON sits next to.</li>
+  </ul>
+`
+
+const relatedTools = [
+  { href: '/tools/json-formatter/', title: 'JSON Formatter', desc: 'Format, validate, and minify JSON instantly.', type: 'tool' },
+  { href: '/tools/json-escape/', title: 'JSON Escape', desc: 'Escape and unescape JSON strings.', type: 'tool' },
+  { href: '/tools/json-tree-viewer/', title: 'JSON Tree Viewer', desc: 'Visualize JSON structure as a tree.', type: 'tool' },
+  { href: '/tools/json-schema-generator/', title: 'JSON Schema Generator', desc: 'Generate JSON Schema from your data.', type: 'tool' },
+  { href: '/tools/json-compare/', title: 'JSON Compare', desc: 'Diff two JSON objects structurally.', type: 'tool' },
+  { href: '/tools/json-flatten/', title: 'JSON Flatten', desc: 'Flatten nested JSON to dot-notation keys.', type: 'tool' },
+  { href: '/tools/json-to-code/', title: 'JSON to Code', desc: 'Turn JSON into typed code.', type: 'tool' },
+]
 ---
 
 <GuideLayout
-  title="Working with Nested JSON: Flattening, Tree Views, and Key Sorting | DevTools Hub"
-  description="Learn how to handle deeply nested JSON data. Covers flattening to key-value pairs, interactive tree visualization, recursive key sorting, and a systematic workflow for complex JSON structures."
-  breadcrumb="JSON Structure" relatedTools={[{"href":"/tools/json-flatten/","title":"JSON Flatten","desc":"Flatten nested JSON to dot-notation keys","type":"tool"},{"href":"/tools/json-tree-viewer/","title":"JSON Tree Viewer","desc":"Visualize JSON structure as a tree","type":"tool"},{"href":"/tools/json-sort/","title":"JSON Sort","desc":"Sort JSON object keys alphabetically","type":"tool"},{"href":"/tools/json-formatter/","title":"JSON Formatter","desc":"Format, validate, minify JSON","type":"tool"}]}
+  title="JSON Explained: Syntax, Types, Parsing & Pitfalls"
+  description="JSON in full: the six value types, how a parser reads it, string escaping, number traps, the JSON bomb, and safe handling. With playable diagrams."
+  breadcrumb="JSON"
+  relatedTools={relatedTools}
 >
-  <Fragment slot="title">Working with Nested JSON:<br class="hidden sm:block" />Flattening, Tree Views & Key Sorting</Fragment>
-  <Fragment slot="intro">Deeply nested JSON doesn't have to be a headache. Three techniques — flattening, tree visualization, and key sorting — turn confusing hierarchies into something you can actually work with.</Fragment>
-  <Fragment set:html={content} />
+  <Fragment slot="title">JSON Explained</Fragment>
+  <Fragment slot="intro">A plain-language tour of the format that moves data between nearly every system on the web — what it is, how parsers read it, and the edges that bite.</Fragment>
+
+  <Fragment set:html={part1} />
+  <Fragment set:html={part2} />
+
+  <h2 id="parser-demo" class="text-2xl font-bold text-gray-900 mt-10 mb-4 dark:text-white">See a Parser Run</h2>
+  <JsonParserVisualizer />
+
+  <Fragment set:html={part3} />
+  <Fragment set:html={part4} />
+
+  <h2 id="escape-demo" class="text-2xl font-bold text-gray-900 mt-10 mb-4 dark:text-white">See a String Get Escaped</h2>
+  <JsonEscapeDemo />
+
+  <Fragment set:html={part5} />
+
+  <h2 id="number-demo" class="text-2xl font-bold text-gray-900 mt-10 mb-4 dark:text-white">See the Number Traps</h2>
+  <JsonNumberDemo />
+
+  <Fragment set:html={part6} />
+  <Fragment set:html={part7} />
+  <Fragment set:html={part8} />
+
+  <h2 id="bomb-demo" class="text-2xl font-bold text-gray-900 mt-10 mb-4 dark:text-white">See a JSON Bomb Expand</h2>
+  <JsonNestingDemo />
+
+  <Fragment set:html={part9} />
+  <Fragment set:html={part10} />
+  <Fragment set:html={part11} />
+  <Fragment set:html={part12} />
+  <Fragment set:html={part13} />
 </GuideLayout>

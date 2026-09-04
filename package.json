@@ -6,7 +6,10 @@
     "dev": "astro dev",
     "start": "astro dev",
     "build": "astro build",
-    "preview": "astro preview"
+    "preview": "astro preview",
+    "verify:aes": "node scripts/verify-aes.mjs",
+    "e2e:aes-guide": "node scripts/e2e-aes-guide.mjs",
+    "e2e:json-guide": "node scripts/e2e-json-guide.mjs"
   },
   "dependencies": {
     "astro": "^4.0.0"

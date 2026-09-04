@@ -124,7 +124,7 @@ export const tools: Tool[] = [
   { id: 'password-strength', name: 'Password Strength Meter', description: 'Evaluate password strength', icon: 'password', category: 'security' },
   { id: 'crc32-hash', name: 'CRC32 Hash', description: 'Generate CRC32 checksum from text', icon: 'hash', category: 'security' },
   { id: 'bcrypt-hash', name: 'Bcrypt Hash Generator', description: 'Hash passwords with bcrypt algorithm', icon: 'hash', category: 'security' },
-  { id: 'aes-encrypt', name: 'AES Encrypt/Decrypt', description: 'Encrypt and decrypt text with AES', icon: 'hash', category: 'security' },
+  { id: 'aes-encrypt', name: 'AES Encrypt/Decrypt', description: 'Encrypt and decrypt text with AES-256/192/128-GCM', icon: 'hash', category: 'security' },
   { id: 'rsa-key-generator', name: 'RSA Key Generator', description: 'Generate RSA public/private key pairs', icon: 'hash', category: 'security' },
   { id: 'hmac-generator', name: 'HMAC Generator', description: 'Generate HMAC with SHA-256 and SHA-512', icon: 'hash', category: 'security' },
 

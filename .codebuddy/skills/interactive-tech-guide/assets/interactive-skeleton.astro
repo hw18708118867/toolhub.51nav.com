@@ -1,0 +1,114 @@
+---
+/**
+ * SKELETON for a playable interactive diagram.
+ *
+ * Copy to src/components/interactive/<Name>.astro and fill the TODOs.
+ * The diagram is driven by REAL computation (import from src/lib/aes.ts or use
+ * Web Crypto) — never hard-coded "expected" outputs.
+ *
+ * See references/interactive-diagrams.md for the gotchas.
+ */
+---
+
+<div class="my-10 rounded-2xl border border-gray-200 bg-gray-50/60 p-4 sm:p-5 dark:border-gray-800 dark:bg-gray-900/40">
+  <div class="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2">
+    <span class="text-sm font-semibold text-gray-900 dark:text-white"><TITLE></span>
+  </div>
+
+  <!-- Controls -->
+  <div class="mb-4 flex flex-wrap items-center gap-2">
+    <button id="reset" class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">⟲ Reset</button>
+    <button id="prev" class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">‹ Prev</button>
+    <button id="play" class="rounded-lg border border-blue-500 bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700">▶ Play</button>
+    <button id="next" class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">Next ›</button>
+    <input id="speed" type="range" min="200" max="2000" step="100" value="900" class="ml-1 w-28 accent-blue-600" />
+  </div>
+
+  <!-- Progress -->
+  <div id="progress" class="mb-4 h-1.5 w-full rounded-full bg-gray-200 dark:bg-gray-800">
+    <div class="h-full rounded-full bg-blue-600 transition-all" style="width:0%"></div>
+  </div>
+
+  <!-- The visual (replace with your grid/canvas) -->
+  <div id="stage" class="grid grid-cols-4 gap-1 sm:gap-1.5" aria-live="polite"></div>
+
+  <!-- Current-step explanation -->
+  <div id="explain" class="mt-4 text-[13px] leading-6 text-gray-600 dark:text-gray-400"></div>
+
+  <!-- Timeline (clickable steps) -->
+  <div id="timeline" class="mt-4 flex flex-wrap gap-1.5"></div>
+</div>
+
+<script>
+  // import { somethingReal } from '../../lib/aes'  // use real data
+
+  // TODO: build the trace. Each step = { before, after, text }.
+  // `before`/`after` are the states; `text` explains what this step did.
+  // Rendering highlights the cells that changed between before -> after.
+  const steps = [
+    // { before: [...], after: [...], text: 'SubBytes: each byte is replaced via the S-box.' },
+  ]
+
+  let idx = 0
+  let timer = null
+
+  const stage = document.getElementById('stage')
+  const explain = document.getElementById('explain')
+  const progress = document.querySelector('#progress > div')
+  const timeline = document.getElementById('timeline')
+  const playBtn = document.getElementById('play')
+
+  function renderCell(byte, changed) {
+    const cls = changed
+      ? 'bg-blue-100 border-blue-400 text-blue-900 dark:bg-blue-900/50 dark:border-blue-600 dark:text-blue-100'
+      : 'bg-white border-gray-300 text-gray-800 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200'
+    return `<div class="flex aspect-square items-center justify-center rounded border font-mono text-xs ${cls}">${byte}</div>`
+  }
+
+  function render() {
+    const s = steps[idx]
+    if (!s) return
+    // TODO: compute which cells changed between s.before and s.after
+    const changed = (s.before || []).map((b, i) => b !== (s.after || [])[i])
+    stage.innerHTML = (s.after || []).map((b, i) => renderCell(b, changed[i])).join('')
+    explain.textContent = `${idx + 1}/${steps.length} · ${s.text}`
+    progress.style.width = `${((idx + 1) / steps.length) * 100}%`
+    ;[...timeline.children].forEach((el, i) =>
+      el.classList.toggle('bg-blue-600', i === idx))
+  }
+
+  function buildTimeline() {
+    timeline.innerHTML = steps
+      .map((_, i) => `<button class="h-2 w-2 rounded-full bg-gray-300 dark:bg-gray-600" data-i="${i}"></button>`)
+      .join('')
+    timeline.querySelectorAll('button').forEach((b) =>
+      b.addEventListener('click', () => { pause(); idx = +b.dataset.i; render() }))
+  }
+
+  function play() {
+    if (timer) return
+    playBtn.textContent = '⏸ Pause'
+    timer = setInterval(() => {
+      if (idx >= steps.length - 1) { pause(); return }
+      idx++; render()
+    }, +document.getElementById('speed').value)
+  }
+  function pause() {
+    clearInterval(timer); timer = null
+    playBtn.textContent = '▶ Play'
+  }
+
+  document.getElementById('reset').addEventListener('click', () => { pause(); idx = 0; render() })
+  document.getElementById('prev').addEventListener('click', () => { pause(); idx = Math.max(0, idx - 1); render() })
+  document.getElementById('next').addEventListener('click', () => { pause(); idx = Math.min(steps.length - 1, idx + 1); render() })
+  playBtn.addEventListener('click', () => (timer ? pause() : play()))
+  document.getElementById('speed').addEventListener('input', () => { if (timer) { pause(); play() } })
+
+  // Autoplay once when scrolled into view.
+  new IntersectionObserver((es, ob) => {
+    es.forEach((e) => { if (e.isIntersecting) { render(); ob.disconnect() } })
+  }, { threshold: 0.4 }).observe(stage)
+
+  buildTimeline()
+  render()
+</script>

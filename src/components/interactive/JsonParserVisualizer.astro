@@ -1,0 +1,265 @@
+---
+/**
+ * JsonParserVisualizer — a playable recursive-descent JSON parser.
+ * Driven by a REAL hand-written parser (not a mock): each step records the
+ * token consumed and a snapshot of the tree built so far, so the reader can
+ * stop and inspect exactly what each rule did.
+ */
+---
+
+<div class="my-10 rounded-2xl border border-gray-200 bg-gray-50/60 p-4 sm:p-5 dark:border-gray-800 dark:bg-gray-900/40">
+  <div class="mb-1 flex flex-wrap items-center gap-x-3 gap-y-2">
+    <span class="text-sm font-semibold text-gray-900 dark:text-white">Watch a JSON parser read this value</span>
+  </div>
+  <p class="mb-4 text-xs text-gray-500 dark:text-gray-400">Press play to step through token-by-token. The tree on the right grows as each value is attached.</p>
+
+  <div class="mb-4 flex flex-wrap items-center gap-2">
+    <button id="jp-reset" class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">⟲ Reset</button>
+    <button id="jp-prev" class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">‹ Prev</button>
+    <button id="jp-play" class="rounded-lg border border-blue-500 bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700">▶ Play</button>
+    <button id="jp-next" class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">Next ›</button>
+    <input id="jp-speed" type="range" min="250" max="1800" step="100" value="850" class="ml-1 w-28 accent-blue-600" />
+  </div>
+
+  <div id="jp-progress" class="mb-4 h-1.5 w-full rounded-full bg-gray-200 dark:bg-gray-800">
+    <div class="h-full rounded-full bg-blue-600 transition-all" style="width:0%"></div>
+  </div>
+
+  <div class="grid gap-4 md:grid-cols-2">
+    <div class="min-w-0">
+      <div class="mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">Source (input)</div>
+      <pre id="jp-source" class="min-h-[7rem] min-w-0 overflow-x-auto rounded-lg border border-gray-300 bg-white p-3 text-xs leading-6 font-mono dark:border-gray-700 dark:bg-gray-950"></pre>
+    </div>
+    <div class="min-w-0">
+      <div class="mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">Parsed tree (so far)</div>
+      <pre id="jp-tree" class="min-h-[7rem] min-w-0 overflow-x-auto rounded-lg border border-gray-300 bg-white p-3 text-xs leading-6 font-mono dark:border-gray-700 dark:bg-gray-950"></pre>
+    </div>
+  </div>
+
+  <div id="jp-explain" class="mt-4 text-[13px] leading-6 text-gray-600 dark:text-gray-400"></div>
+  <div id="jp-timeline" class="mt-4 flex flex-wrap gap-1.5"></div>
+</div>
+
+<script>
+  // --- A real recursive-descent JSON parser that records steps ---------------
+  function buildSteps(text) {
+    const steps = []
+    let i = 0
+    const n = text.length
+    const holder = { v: undefined }      // root value
+    const stack = []                     // [{ type:'obj'|'arr', ref, key }]
+
+    const clone = (o) => {
+      if (o === null || typeof o !== 'object') return o
+      if (Array.isArray(o)) return o.map(clone)
+      const r = {}
+      for (const k in o) r[k] = clone(o[k])
+      return r
+    }
+    const markPath = () => stack.map((e) => e.key).filter((k) => k !== null && k !== undefined)
+    const snap = (label, mark) => steps.push({ label, pos: i, value: clone(holder.v), mark: mark != null ? mark.slice() : [] })
+
+    const skipWs = () => { while (i < n && /\s/.test(text[i])) i++ }
+
+    function parseValue() {
+      skipWs()
+      const c = text[i]
+      let v
+      if (c === '{') v = parseObject()
+      else if (c === '[') v = parseArray()
+      else if (c === '"') v = parseString()
+      else if (c === 't') v = parseLiteral('true', true)
+      else if (c === 'f') v = parseLiteral('false', false)
+      else if (c === 'n') v = parseLiteral('null', null)
+      else if (c === '-' || (c >= '0' && c <= '9')) v = parseNumber()
+      else throw new Error('Unexpected character ' + JSON.stringify(c) + ' at position ' + i)
+      // attach to parent
+      if (stack.length) {
+        const top = stack[stack.length - 1]
+        if (top.type === 'obj') top.ref[top.key] = v
+        else top.ref.push(v)
+      } else {
+        holder.v = v
+      }
+      return v
+    }
+
+    function parseObject() {
+      i++; skipWs()
+      const obj = {}
+      const entry = { type: 'obj', ref: obj, key: null }
+      stack.push(entry)
+      snap('open object {', [])
+      if (text[i] === '}') { i++; stack.pop(); snap('close empty object }', []); return obj }
+      while (true) {
+        skipWs()
+        if (text[i] !== '"') throw new Error('Expected string key at ' + i)
+        const key = parseString()
+        entry.key = key
+        snap('read key "' + key + '"', markPath().concat(key))
+        skipWs()
+        if (text[i] !== ':') throw new Error('Expected ":" at ' + i)
+        i++; snap('read :', markPath().concat(key))
+        parseValue()
+        snap('attach member "' + key + '"', markPath().concat(key))
+        skipWs()
+        if (text[i] === ',') { i++; continue }
+        if (text[i] === '}') { i++; break }
+        throw new Error('Expected "," or "}" at ' + i)
+      }
+      stack.pop()
+      snap('close object }', [])
+      return obj
+    }
+
+    function parseArray() {
+      i++; skipWs()
+      const arr = []
+      const entry = { type: 'arr', ref: arr, key: null }
+      stack.push(entry)
+      snap('open array [', [])
+      if (text[i] === ']') { i++; stack.pop(); snap('close empty array ]', []); return arr }
+      while (true) {
+        entry.key = arr.length
+        parseValue()
+        snap('attach array[' + entry.key + ']', markPath())
+        skipWs()
+        if (text[i] === ',') { i++; continue }
+        if (text[i] === ']') { i++; break }
+        throw new Error('Expected "," or "]" at ' + i)
+      }
+      stack.pop()
+      snap('close array ]', [])
+      return arr
+    }
+
+    function parseString() {
+      i++ // opening quote
+      let s = ''
+      while (i < n) {
+        const c = text[i]
+        if (c === '"') { i++; return s }
+        if (c === '\\') {
+          i++
+          const e = text[i]
+          const map = { '"': '"', '\\': '\\', '/': '/', b: '\b', f: '\f', n: '\n', r: '\r', t: '\t' }
+          s += map[e] !== undefined ? map[e] : (e === 'u' ? (i += 4, '�') : e)
+          i++
+        } else { s += c; i++ }
+      }
+      throw new Error('Unterminated string')
+    }
+
+    function parseLiteral(lit, val) {
+      for (let k = 0; k < lit.length; k++) { if (text[i] !== lit[k]) throw new Error('Invalid literal at ' + i); i++ }
+      return val
+    }
+
+    function parseNumber() {
+      const start = i
+      if (text[i] === '-') i++
+      while (i < n && /[0-9]/.test(text[i])) i++
+      if (text[i] === '.') { i++; while (i < n && /[0-9]/.test(text[i])) i++ }
+      if (text[i] === 'e' || text[i] === 'E') {
+        i++
+        if (text[i] === '+' || text[i] === '-') i++
+        while (i < n && /[0-9]/.test(text[i])) i++
+      }
+      return Number(text.slice(start, i))
+    }
+
+    parseValue()
+    return steps
+  }
+
+  // --- Rendering ------------------------------------------------------------
+  const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+
+  function renderSource(text, pos) {
+    let html = ''
+    for (let k = 0; k < text.length; k++) {
+      const ch = text[k] === ' ' ? ' ' : esc(text[k])
+      if (k < pos) html += '<span class="text-gray-400 dark:text-gray-600">' + ch + '</span>'
+      else if (k === pos) html += '<span class="rounded bg-blue-200 px-0.5 text-black dark:bg-blue-800 dark:text-white">' + ch + '</span>'
+      else html += '<span class="text-gray-800 dark:text-gray-200">' + ch + '</span>'
+    }
+    return html
+  }
+
+  const eq = (a, b) => Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((x, idx) => x === b[idx])
+
+  function renderTree(v, path, mark) {
+    if (v === null) return '<span class="text-purple-600 dark:text-purple-300">null</span>'
+    const t = typeof v
+    if (t === 'string') return '<span class="text-emerald-700 dark:text-emerald-300">"' + esc(v) + '"</span>'
+    if (t === 'number') return '<span class="text-amber-700 dark:text-amber-300">' + v + '</span>'
+    if (t === 'boolean') return '<span class="text-purple-600 dark:text-purple-300">' + v + '</span>'
+    const isMark = eq(path, mark)
+    const wrap = isMark ? ' rounded bg-blue-50 px-1 outline outline-2 outline-blue-400 dark:bg-blue-900/30' : ''
+    if (Array.isArray(v)) {
+      if (v.length === 0) return '<span class="' + wrap + '">[]</span>'
+      const items = v.map((e, idx) => renderTree(e, path.concat(idx), mark)).join(', ')
+      return '<span class="' + wrap + '">[ ' + items + ' ]</span>'
+    }
+    const keys = Object.keys(v)
+    if (keys.length === 0) return '<span class="' + wrap + '">{}</span>'
+    const items = keys.map((k) =>
+      '<span class="text-sky-700 dark:text-sky-300">"' + esc(k) + '"</span>: ' + renderTree(v[k], path.concat(k), mark)
+    ).join(', ')
+    return '<span class="' + wrap + '">{ ' + items + ' }</span>'
+  }
+
+  // --- Wiring ---------------------------------------------------------------
+  const SOURCE = '{"name":"Ada","age":36,"tags":["math","cs"],"active":true,"meta":null}'
+  let steps
+  try { steps = buildSteps(SOURCE) } catch (e) { steps = [{ label: 'Parse error: ' + e.message, pos: 0, value: null, mark: [] }] }
+
+  let idx = 0
+  let timer = null
+  const $ = (id) => document.getElementById(id)
+  const sourceEl = $('jp-source'), treeEl = $('jp-tree'), explainEl = $('jp-explain')
+  const progressEl = $('jp-progress').firstElementChild, timelineEl = $('jp-timeline')
+  const playBtn = $('jp-play')
+
+  function render() {
+    const s = steps[idx]
+    if (!s) return
+    sourceEl.innerHTML = renderSource(SOURCE, s.pos)
+    treeEl.innerHTML = s.value === undefined ? '<span class="text-gray-400">—</span>'
+      : s.value === null ? renderTree(null, [], s.mark) : renderTree(s.value, [], s.mark)
+    explainEl.textContent = (idx + 1) + '/' + steps.length + ' · ' + s.label
+    progressEl.style.width = ((idx + 1) / steps.length) * 100 + '%'
+    ;[...timelineEl.children].forEach((el, k) => el.classList.toggle('bg-blue-600', k === idx))
+  }
+
+  function buildTimeline() {
+    timelineEl.innerHTML = steps.map((_, k) =>
+      '<button class="h-2 w-2 rounded-full bg-gray-300 dark:bg-gray-600" data-i="' + k + '"></button>'
+    ).join('')
+    timelineEl.querySelectorAll('button').forEach((b) =>
+      b.addEventListener('click', () => { pause(); idx = +b.dataset.i; render() }))
+  }
+
+  function play() {
+    if (timer) return
+    playBtn.textContent = '⏸ Pause'
+    timer = setInterval(() => {
+      if (idx >= steps.length - 1) { pause(); return }
+      idx++; render()
+    }, +$('jp-speed').value)
+  }
+  function pause() { clearInterval(timer); timer = null; playBtn.textContent = '▶ Play' }
+
+  $('jp-reset').addEventListener('click', () => { pause(); idx = 0; render() })
+  $('jp-prev').addEventListener('click', () => { pause(); idx = Math.max(0, idx - 1); render() })
+  $('jp-next').addEventListener('click', () => { pause(); idx = Math.min(steps.length - 1, idx + 1); render() })
+  playBtn.addEventListener('click', () => (timer ? pause() : play()))
+  $('jp-speed').addEventListener('input', () => { if (timer) { pause(); play() } })
+
+  new IntersectionObserver((es, ob) => {
+    es.forEach((e) => { if (e.isIntersecting) { render(); ob.disconnect() } })
+  }, { threshold: 0.4 }).observe(sourceEl)
+
+  buildTimeline()
+  render()
+</script>

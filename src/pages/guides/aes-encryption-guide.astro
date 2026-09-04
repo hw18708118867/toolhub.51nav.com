@@ -1,0 +1,390 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+import AesRoundVisualizer from '../../components/interactive/AesRoundVisualizer.astro'
+import ModeVisualizer from '../../components/interactive/ModeVisualizer.astro'
+import EcbPenguin from '../../components/interactive/EcbPenguin.astro'
+import IvReuseDemo from '../../components/interactive/IvReuseDemo.astro'
+import PaddingDemo from '../../components/interactive/PaddingDemo.astro'
+import Pbkdf2Demo from '../../components/interactive/Pbkdf2Demo.astro'
+import TamperDemo from '../../components/interactive/TamperDemo.astro'
+
+const part1 = `
+<h2>What Is AES?</h2>
+<p>AES (Advanced Encryption Standard) is the symmetric block cipher that encrypts most of the data on the planet. Open a HTTPS page, unlock your phone, join a Wi-Fi network, read a file off an encrypted disk — AES is doing the work. You have almost certainly used it thousands of times today without noticing.</p>
+<p>It came out of an open competition. In 1997 NIST announced that DES — the 56-bit standard researchers had brute-forced in 1998 — needed replacing. Rather than design one behind closed doors, NIST threw it open: 15 submissions from cryptographers around the world, picked apart in public for three years. The winner, announced in October 2000, was Rijndael, built by two Belgians, Joan Daemen and Vincent Rijmen. It was standardised as FIPS 197 in November 2001.</p>
+<p>That open process is the main reason to trust it. Rijndael had already absorbed years of public attack before anyone standardised it, and it has held up for another two decades since. Very little mathematics in history has been examined this closely.</p>
+
+<h2>AES Under the Hood: Inside a Block Cipher</h2>
+<p>AES is a <em>block cipher</em>, meaning it works on fixed-size chunks rather than one byte at a time. You don't need the internals to use it correctly. But knowing the shape of it makes it obvious why the choices around it — mode, IV, padding — carry so much weight.</p>
+
+<h3>The State: A 4×4 Matrix of Bytes</h3>
+<p>AES always works on a 128-bit block: 16 bytes, laid out as a 4×4 grid called the <em>state</em> and filled column by column. Every byte is treated as an element of the finite field GF(2<sup>8</sup>), where addition is XOR and multiplication follows an irreducible polynomial. That structure is what makes AES both cheap to compute and resistant to linear and differential cryptanalysis.</p>
+<p>The block size never varies: always 128 bits, whatever the key. "AES-256" means a 256-bit key, not a 256-bit block.</p>
+
+<h3>Key Expansion</h3>
+<p>Before anything is encrypted, the key gets expanded into <em>round keys</em>. Each round key is 16 bytes, and there is always one more round key than there are rounds: 11 for AES-128 (176 bytes), 13 for AES-192 (208 bytes), 15 for AES-256 (240 bytes). The expansion mixes byte substitution, rotation and XOR with a round constant, so each round key derives from the original without simply being a copy of it.</p>
+
+<h3>The Four Round Operations</h3>
+<p>Every round applies four transformations. Together they deliver what cryptographers call <strong>confusion</strong>, where each output bit depends on many key bits in a complicated way, and <strong>diffusion</strong>, where flipping one input bit ends up affecting roughly half the output bits within a few rounds.</p>
+<ul>
+  <li><strong>SubBytes</strong> — each byte is swapped for another via a fixed lookup table, the S-box. The table isn't arbitrary: it's built from the multiplicative inverse in GF(2<sup>8</sup>) followed by an affine transform. This is AES's only non-linear step, and the reason linear and differential cryptanalysis don't get anywhere.</li>
+  <li><strong>ShiftRows</strong> — rows are rotated left by 0, 1, 2 and 3 positions. Bytes move between columns, spreading each column's influence sideways.</li>
+  <li><strong>MixColumns</strong> — each column is multiplied by a fixed matrix over GF(2<sup>8</sup>). Combined with ShiftRows, this is what makes every output byte depend on every input byte after a couple of rounds.</li>
+  <li><strong>AddRoundKey</strong> — the state is XORed with the current round key. This is the only point where the secret actually enters the computation.</li>
+</ul>
+
+<h3>Round Counts by Key Size</h3>
+<p>The round count follows the key length. The last round skips MixColumns, which keeps encryption and decryption structurally symmetric:</p>
+<table>
+  <thead><tr><th>Variant</th><th>Key size</th><th>Block size</th><th>Rounds</th><th>Round keys</th><th>Security level</th></tr></thead>
+  <tbody>
+    <tr><td>AES-128</td><td>16 bytes (128 bits)</td><td>128 bits</td><td>10</td><td>11</td><td>128-bit</td></tr>
+    <tr><td>AES-192</td><td>24 bytes (192 bits)</td><td>128 bits</td><td>12</td><td>13</td><td>192-bit</td></tr>
+    <tr><td>AES-256</td><td>32 bytes (256 bits)</td><td>128 bits</td><td>14</td><td>15</td><td>256-bit</td></tr>
+  </tbody>
+</table>
+<p>Decryption runs the same structure backwards with the inverse operations: InvShiftRows, InvSubBytes, AddRoundKey, InvMixColumns. The inverse S-box and inverse matrix are fixed by the mathematics, so any correct implementation of encryption essentially gives you decryption along with it.</p>
+<p>Here's the catch. On its own, AES encrypts exactly 16 bytes and nothing more. Handling longer messages, making identical input produce different output, detecting tampering — none of that is AES. That's the job of a <em>mode of operation</em>, which is where we're headed next.</p>
+`
+
+const part2 = `
+<h2>Choosing a Key Size: 128, 192 or 256 Bits</h2>
+<p>All three key sizes hold up against classical computers today. The choice is about margin, not absolutes.</p>
+<p><strong>AES-128</strong> is the fastest and sets the floor for the family. Brute-forcing it takes about 2<sup>128</sup> operations, a number no plausible classical computer will ever reach. It's what TLS, WPA3 and most performance-sensitive systems run on.</p>
+<p><strong>AES-192</strong> is the awkward middle child. It works, but libraries support it inconsistently and it has had less cryptanalytic attention than its siblings. The best-known related-key attacks actually target AES-192 and AES-256 rather than AES-128.</p>
+<p><strong>AES-256</strong> is the conservative pick: when you want the widest margin, when compliance demands it (CNSSP-15 requires 192 or 256-bit keys for TOP SECRET), or when you're thinking ahead to quantum computers. It costs roughly 40% more computation than AES-128, which is nothing on a CPU with hardware acceleration.</p>
+<blockquote><p>The key size is almost never your weakest link. A 256-bit key protected by the passphrase "password123" is vastly weaker than a 128-bit key from a hardware random number generator. <strong>Spend your effort on key generation and key management, not on picking the bigger number.</strong></p></blockquote>
+
+<h2>Block Ciphers Need a Mode of Operation</h2>
+<p>A block cipher on its own handles one block. Encrypting a real message takes a <em>mode of operation</em>: a recipe for applying the cipher across many blocks. Nearly every real-world AES vulnerability traces back to this one choice. Pick the wrong mode and the strength of the underlying cipher stops mattering.</p>
+`
+
+const part3 = `
+<h3>ECB — Electronic Codebook: Never Use It</h3>
+<p>ECB is the naive approach: cut the message into blocks, encrypt each one separately with the same key. No IV, no chaining. It's also trivially insecure, and it's the mistake beginners make most often.</p>
+<p>The flaw is that ECB is deterministic. Identical plaintext blocks always produce identical ciphertext blocks, so structure survives encryption. Encrypt a bitmap in ECB mode and you can still see the picture, which is the famous "ECB penguin" from every cryptography textbook. Encrypt a JSON document and an attacker can see exactly which records repeat.</p>
+<pre><code class="language-python"># ❌ DO NOT DO THIS — ECB preserves patterns in the plaintext
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+
+cipher = Cipher(algorithms.AES(key), modes.ECB())
+# Encrypting the same 16 bytes twice yields the same ciphertext twice.
+# Structure leaks. Repetition leaks. The image is still visible.</code></pre>
+<p>Web Crypto, the browser API, deliberately doesn't implement ECB at all. If you find yourself reaching for it, something has already gone wrong upstream.</p>
+`
+
+const part4 = `
+<h3>CBC — Cipher Block Chaining: The Legacy Workhorse</h3>
+<p>CBC fixes ECB's determinism by XORing each plaintext block with the previous ciphertext block before encrypting it. The first block has nothing to chain from, so it gets XORed with an <strong>initialization vector (IV)</strong>. Because each block now depends on everything before it, two identical plaintext blocks no longer produce the same ciphertext.</p>
+<p>CBC is still everywhere in legacy systems, and it's the mode you're most likely to be forced into when talking to older code. It has three real drawbacks:</p>
+<ul>
+  <li><strong>It can't be parallelised.</strong> Each block depends on the previous one, so encryption is inherently serial. Decryption can be parallelised, since you already have all the ciphertext.</li>
+  <li><strong>It needs padding</strong> to a 16-byte boundary, which brings padding oracle risk with it (see below).</li>
+  <li><strong>It provides no authentication.</strong> CBC tells you nothing about whether the ciphertext was modified or whether you used the right key. A wrong passphrase usually produces garbage rather than an error, which is why our tool warns about this explicitly.</li>
+</ul>
+<p>CBC's IV must be <strong>unpredictable</strong>, which means 16 cryptographically random bytes generated fresh for every message. It doesn't need to be secret, and by convention it's stored right next to the ciphertext.</p>
+
+<h3>CTR — Counter Mode: A Block Cipher as a Stream Cipher</h3>
+<p>CTR turns AES into a stream cipher. Rather than encrypting the plaintext, it encrypts a sequence of counter blocks (nonce plus an incrementing counter) to produce a keystream, then XORs that keystream with the plaintext.</p>
+<p>It's an elegant construction: encryption and decryption are the same operation, both directions parallelise completely, and no padding is needed. It's also what GCM is built on top of. But like CBC, <strong>CTR provides no authentication</strong>. An attacker who flips a bit of CTR ciphertext flips exactly the corresponding bit of plaintext, silently and surgically. Don't use bare CTR.</p>
+
+<h3>GCM — Galois/Counter Mode: The Modern Default</h3>
+<p>GCM bolts an authentication tag onto CTR-mode encryption. The tag comes from <strong>GHASH</strong>, a universal hash function over GF(2<sup>128</sup>). The result is an <strong>AEAD</strong> cipher — Authenticated Encryption with Associated Data — and you get three properties from one primitive:</p>
+<ul>
+  <li><strong>Confidentiality</strong>, from CTR. An attacker without the key can't read the plaintext.</li>
+  <li><strong>Integrity and authenticity</strong>, from GHASH. Any modification makes decryption fail loudly instead of quietly returning bad data.</li>
+  <li><strong>Associated data</strong>. You can authenticate extra unencrypted data, such as a packet header or a record sequence number, without encrypting it.</li>
+</ul>
+<p>GCM calls its IV a <em>nonce</em>, and 96 bits (12 bytes) is the recommended size. The tag is 128 bits by default; it can be truncated to 96, 104, 112 or 120 bits for bandwidth-constrained protocols, but truncation weakens forgery resistance, so keep the full 128 bits unless you have a specific reason.</p>
+<p>GCM is the default for new systems. It's mandatory-to-implement in TLS 1.3, hardware-accelerated on modern CPUs, and it's what our <a href="/tools/aes-encrypt/">AES Encrypt/Decrypt tool</a> uses by default.</p>
+<p>Two limits to keep in mind: a single GCM invocation should stay under roughly 64 GiB of plaintext (2<sup>39</sup> − 256 bits), and NIST recommends re-keying well before 2<sup>32</sup> invocations under one key.</p>
+
+<h3>Other Modes</h3>
+<ul>
+  <li><strong>AES-CCM</strong> — Counter with CBC-MAC. Another AEAD mode, used in WPA3 and IoT protocols. Simpler than GCM but not parallelisable, so it runs slower.</li>
+  <li><strong>AES-GCM-SIV</strong> (RFC 8452) — a <em>nonce-misuse-resistant</em> AEAD. If a nonce does get reused, GCM-SIV degrades to revealing only whether two messages were identical instead of collapsing entirely. Worth considering when you can't guarantee perfect key and nonce management.</li>
+  <li><strong>AES-KW</strong> — key wrap mode, built specifically for encrypting other keys.</li>
+</ul>
+
+<h3>Mode Comparison</h3>
+<table>
+  <thead><tr><th>Mode</th><th>IV / nonce</th><th>Padding</th><th>Parallel</th><th>Authenticates?</th><th>Verdict</th></tr></thead>
+  <tbody>
+    <tr><td>ECB</td><td>None</td><td>Yes</td><td>Yes</td><td>No</td><td>Never use</td></tr>
+    <tr><td>CBC</td><td>16 B, random</td><td>Yes</td><td>Decrypt only</td><td>No</td><td>Legacy interop only</td></tr>
+    <tr><td>CTR</td><td>16 B, unique</td><td>No</td><td>Yes</td><td>No</td><td>Building block, not standalone</td></tr>
+    <tr><td>GCM</td><td>12 B, unique</td><td>No</td><td>Yes</td><td>Yes (AEAD)</td><td>Default choice</td></tr>
+    <tr><td>CCM</td><td>13 B, unique</td><td>No</td><td>No</td><td>Yes (AEAD)</td><td>IoT / WPA3</td></tr>
+    <tr><td>GCM-SIV</td><td>12 B, unique</td><td>No</td><td>Yes</td><td>Yes (AEAD)</td><td>When nonce reuse is a risk</td></tr>
+  </tbody>
+</table>
+
+<h2>IVs, Nonces and the Cardinal Sin of Reuse</h2>
+<p>An IV or nonce is a non-secret value that makes the same plaintext encrypt to different ciphertext each time. It travels alongside the ciphertext, which is expected and safe. Three things matter about it: <strong>length</strong>, <strong>source</strong>, and <strong>uniqueness</strong>.</p>
+<ul>
+  <li><strong>CBC needs an unpredictable IV.</strong> Use a cryptographically secure random 16-byte value. If an attacker can predict your next IV, chosen-plaintext attacks come back into play.</li>
+  <li><strong>GCM and CTR need a unique nonce.</strong> It doesn't have to be random or secret, but it must <em>never repeat under the same key</em>. A counter works fine, and so does a random 96-bit value, as long as you re-key before collisions start to matter.</li>
+  <li><strong>Never reuse a nonce with the same key in GCM or CTR.</strong> This isn't a theoretical concern.</li>
+</ul>
+<blockquote><p>Reuse a CTR nonce and both messages get XORed with the same keystream. XOR the two ciphertexts together and the keystream cancels, leaving you with <em>plaintext XOR plaintext</em>. Apply some language statistics or a bit of known plaintext and both messages fall out. Confidentiality is gone.</p>
+<p>Reusing a GCM nonce is worse. It can leak the GHASH authentication subkey <em>H</em>, after which an attacker can <strong>forge valid authentication tags</strong> for messages of their own choosing. You lose confidentiality and authenticity together.</p></blockquote>
+<p>So: a fresh random IV or nonce for every single encryption. Generating 12 or 16 random bytes costs essentially nothing, so there's no performance argument for skipping it. It's also why encrypting the same text twice with the same key in our tool gives you two completely different ciphertexts.</p>
+`
+
+const part5 = `
+<h2>Padding: Filling the Last Block</h2>
+<p>ECB and CBC can only chew on whole 16-byte blocks, so the last one has to be filled out. The standard scheme is <strong>PKCS#7</strong>: append N bytes, each holding the value N, where N is between 1 and 16. If the plaintext already fills a block exactly, you add a whole extra block of padding. That looks wasteful but it's deliberate — otherwise the receiver couldn't tell padding apart from real data.</p>
+<p>The size consequence catches people out: <strong>CBC output is always longer than the input</strong>, by 1 to 16 bytes. GCM adds exactly the tag length, 16 bytes by default. CTR output matches the input exactly. So an encrypted file being slightly larger than the original is normal, not a bug.</p>
+<p>CTR and GCM need no padding at all, which is one of several reasons to prefer them.</p>
+`
+
+const part6 = `
+<h3>Padding Oracle Attacks</h3>
+<p>Padding sounds like a formatting detail. Historically it has been one of the most productive attack surfaces in the field. A <strong>padding oracle</strong> exists whenever a system behaves differently depending on whether the padding of a decrypted ciphertext was valid. That difference could be a distinct error message, a different HTTP status code, or just a few milliseconds of timing.</p>
+<p>Given such an oracle, an attacker can decrypt ciphertext <strong>one byte at a time</strong> without ever learning the key. Serge Vaudenay formalised this in 2002, and the attack has a long and painful record against real systems: <strong>POODLE</strong> (2014) against SSL 3.0, and <strong>Lucky Thirteen</strong> (2013) against TLS implementations that leaked timing through MAC-then-padding handling.</p>
+<p>The fix is to use an <strong>AEAD mode</strong> like AES-GCM, which authenticates the ciphertext before any padding or parsing logic runs. When authentication fails, the data is rejected wholesale and nothing about the padding ever reaches the attacker. This is a large part of why TLS 1.3 dropped every non-AEAD cipher.</p>
+
+<h2>From Passphrase to Key: Key Derivation</h2>
+<p>AES wants a key of exactly 16, 24 or 32 bytes of near-uniform random data. Humans remember things like "correct horse battery staple", which is neither the right length nor remotely uniform. A <strong>key derivation function (KDF)</strong> bridges that gap.</p>
+
+<h3>Why You Cannot Just Use the Password</h3>
+<p>Padding a password with zeros, or running it through SHA-256 once to reach 32 bytes, is a serious mistake. Human-chosen passwords carry maybe 20 to 40 bits of entropy, and a single SHA-256 is extremely fast. An attacker who steals your ciphertext can test billions of candidates per second on commodity GPUs. It doesn't matter how strong the resulting 256-bit key is if the secret behind it is guessable.</p>
+<p>A proper KDF contributes two things: a <strong>salt</strong>, and <strong>deliberate slowness</strong>.</p>
+
+<h3>Salt: Defeating Precomputation</h3>
+<p>A salt is a random value mixed into the derivation. With a unique random salt per encryption, the same passphrase yields a different key every time, so an attacker can't build one rainbow table and reuse it across all your data. They have to attack each encryption from scratch.</p>
+<p>Two rules follow directly:</p>
+<ul>
+  <li>The salt must be <strong>random and unique</strong> per encryption. A hardcoded salt, even a long and obscure-looking one, defeats the point entirely — it lets an attacker precompute a single table that works against every user of the system at once.</li>
+  <li>The salt is <strong>not secret</strong>. Store it next to the ciphertext. Its job is uniqueness, not secrecy.</li>
+</ul>
+<p>Use at least 16 bytes (128 bits). Our tool generates exactly that, fresh on every encryption.</p>
+
+<h3>PBKDF2, scrypt and Argon2</h3>
+<p><strong>PBKDF2</strong> (NIST SP 800-132) is the most widely supported KDF. It applies a pseudorandom function, usually HMAC-SHA256, over and over, with the iteration count setting the cost. Double the iterations and you double the attacker's work per guess. PBKDF2 uses very little memory, which makes it relatively cheap to accelerate on GPUs, but it's available everywhere including every browser via Web Crypto, so it's the standard choice for browser-based encryption. OWASP currently recommends <strong>600,000 iterations</strong> for PBKDF2-HMAC-SHA256.</p>
+<p><strong>scrypt</strong> and <strong>Argon2</strong> are memory-hard: they deliberately consume significant RAM, which makes GPU and ASIC attacks far more expensive relative to CPU cost. <strong>Argon2id</strong> won the 2015 Password Hashing Competition and is the preferred choice for new server-side work, with OWASP suggesting roughly 19 MiB of memory and 2 iterations. Argon2 isn't available in the browser's Web Crypto API yet, which is why browser tools generally fall back to PBKDF2.</p>
+
+<h3>Choosing an Iteration Count</h3>
+<p>Pick the highest count your users' patience and hardware allow. The trade-off is direct: more iterations means slower derivation for everyone, including the legitimate user. That's the entire point. A few hundred milliseconds is fine for an interactive tool; a login server handling thousands of requests per second needs to budget carefully. Raise the number over time as hardware gets faster.</p>
+<p>Our tool offers 250,000 (fast, still well above the old 100,000 default), 600,000 (the OWASP recommendation), and 1,000,000 (slow but about as much protection as is practical in a browser).</p>
+`
+
+const part7 = `
+<h2>Authenticated Encryption: Confidentiality Isn't Enough</h2>
+<p>Confidentiality means an attacker can't <em>read</em> your data. Authenticity means they can't <em>modify</em> it without being detected. Most of the time you need both.</p>
+<p>Take a bank transfer encrypted with AES-CBC. An attacker who can't read the message can still flip bits in the ciphertext, and because CBC has no integrity check, decryption succeeds and hands back modified plaintext. Maybe a different account number. Confidentiality without authenticity is worse than nothing in a lot of real systems, because it creates confidence that isn't earned.</p>
+<p><strong>AEAD</strong> modes like AES-GCM solve this with a single primitive. Decryption verifies the authentication tag first and either returns the correct plaintext or throws. There's no third outcome where you quietly receive tampered data. If you're stuck with a non-AEAD mode, the manual alternative is to compute an HMAC over the ciphertext and verify it <em>before</em> decrypting (<strong>encrypt-then-MAC</strong>), which you can try with the <a href="/tools/hmac-generator/">HMAC Generator</a>. Never MAC-then-encrypt, and never MAC the plaintext.</p>
+`
+
+const part8 = `
+<h2>What AES Does Not Protect You From</h2>
+<p>AES does one job well: it scrambles data under a key. It does not do any of the following, and assuming otherwise is how systems actually get breached:</p>
+<ul>
+  <li><strong>Key management.</strong> Where does the key live, who can read it, how is it rotated, how is it revoked? These questions are harder than the cryptography, and they're where most real failures happen.</li>
+  <li><strong>Endpoint security.</strong> If the machine doing the encryption is compromised — malware, a malicious browser extension, XSS on the page — the attacker sees the plaintext before it's encrypted and the key right next to it.</li>
+  <li><strong>Metadata.</strong> AES hides content, not context. Message timing, sizes, sender, recipient and frequency all stay visible.</li>
+  <li><strong>Data existence.</strong> Encryption doesn't hide the fact that the data is there. Rubber-hose cryptanalysis, legal or physical, couldn't care less about your key length.</li>
+  <li><strong>Weak passphrases.</strong> No KDF rescues "password123". A KDF raises the cost of each guess; it can't manufacture entropy that was never there.</li>
+  <li><strong>Integrity of your code.</strong> A compromised application can just exfiltrate the key. Cryptography protects data in transit and at rest, not the program holding it.</li>
+</ul>
+<p>So browser-based encryption carries an honest caveat however well it's built: the mathematics is sound and nothing leaves your device, but your key does sit in memory where a malicious extension or script could reach it. For genuinely sensitive data, use a dedicated, audited application.</p>
+
+<h2>Known Attacks and AES's Security Margin</h2>
+<p>No serious cryptanalytic attack threatens AES as it's actually deployed. That said, "no practical attack" describes today rather than proving anything about tomorrow.</p>
+<ul>
+  <li><strong>Brute force</strong> is infeasible, full stop. The 2<sup>128</sup> operations AES-128 needs is beyond any plausible classical computing effort.</li>
+  <li><strong>Biclique attacks</strong> (Bogdanov, Khovratovich and Rechberger, 2011) recover an AES-128 key in about 2<sup>126.1</sup> operations. That's marginally faster than brute force and still nowhere near practical. It's a theoretical improvement, not a break.</li>
+  <li><strong>Related-key attacks</strong> against AES-192 and AES-256 (Biryukov and Khovratovich, 2009) need the attacker to obtain encryptions under several keys with a specific mathematical relationship they chose. Properly generated random keys have no such relationship, so these don't apply to real systems. They're still a reminder that key derivation has to be done right.</li>
+  <li><strong>Side-channel attacks</strong> are the most productive line of attack against AES today. They skip the mathematics and go after the implementation, measuring power consumption, electromagnetic emissions, cache timing or branch behaviour to recover key material. The defences belong in the implementation (constant-time code, hardware isolation), not in the algorithm.</li>
+</ul>
+
+<h3>Quantum Computers and Grover's Algorithm</h3>
+<p>Grover's algorithm gives a quantum computer a <strong>quadratic</strong> speedup on unstructured search. Applied to key recovery, it halves the effective security level: AES-128 would offer roughly 2<sup>64</sup> quantum operations, AES-256 roughly 2<sup>128</sup>. Quadratic, not exponential, which is very different from Shor's algorithm breaking RSA and elliptic-curve cryptography outright.</p>
+<p>What that means for you: <strong>AES-256 is comfortably quantum-resistant, and even AES-128 is probably fine</strong>, because 2<sup>64</sup> quantum operations is still an enormous and likely unreachable requirement. Grover's algorithm also resists parallelisation in ways that make large-scale attacks harder than the headline number suggests. NIST's own post-quantum guidance keeps AES-256 in the approved category. If you want the extra margin regardless, AES-256 costs you almost nothing.</p>
+
+<h2>Performance and Hardware Acceleration</h2>
+<p>AES's clean structure turned out to be unusually easy to implement in silicon, and modern CPUs ship dedicated instructions for it. Intel and AMD provide <strong>AES-NI</strong> (introduced around 2010) with the AESENC, AESDEC and AESKEYGENASSIST instructions, plus <strong>PCLMULQDQ</strong> for the carry-less multiplication GHASH depends on. ARM has equivalents in its Cryptography Extensions.</p>
+<p>The effect is dramatic. Hardware-accelerated AES-GCM runs at multiple gigabytes per second on a desktop CPU, and encryption is rarely the bottleneck in a modern system. On platforms without hardware support, such as some embedded devices and older mobile chips, AES gets much slower and <strong>ChaCha20-Poly1305</strong> is the better choice. That's exactly why TLS 1.3 offers both and lets the two peers negotiate.</p>
+<p>Rule of thumb: prefer AES where hardware acceleration exists, which covers nearly all servers and desktop clients, and prefer ChaCha20-Poly1305 on low-end mobile and embedded targets. In the browser, Web Crypto is hardware-accelerated on virtually every platform you'll run into.</p>
+
+<h2>AES vs ChaCha20-Poly1305 vs RSA</h2>
+<table>
+  <thead><tr><th></th><th>AES-GCM</th><th>ChaCha20-Poly1305</th><th>RSA</th></tr></thead>
+  <tbody>
+    <tr><td>Type</td><td>Symmetric block cipher (AEAD)</td><td>Symmetric stream cipher (AEAD)</td><td>Asymmetric</td></tr>
+    <tr><td>Key</td><td>128/192/256-bit shared secret</td><td>256-bit shared secret</td><td>Key pair, 2048–4096 bits</td></tr>
+    <tr><td>Speed</td><td>Very fast with AES-NI</td><td>Fast without hardware support</td><td>Slow; tiny payloads only</td></tr>
+    <tr><td>Best for</td><td>Bulk data, disk/TLS encryption</td><td>Mobile, embedded, no-AES-NI</td><td>Key exchange, signatures</td></tr>
+    <tr><td>Payload limit</td><td>Effectively unlimited</td><td>Effectively unlimited</td><td>A few hundred bytes</td></tr>
+  </tbody>
+</table>
+<p>The important relationship is that these are <strong>not competitors, they're collaborators</strong>. RSA is far too slow to encrypt a file, and AES has no way to establish a shared secret with someone you've never met. Real systems use both, in <em>hybrid encryption</em>: use RSA (or ECDH) to agree on or wrap a random AES key, then use AES for the actual data. TLS does exactly this. You can try the asymmetric half with the <a href="/tools/rsa-key-generator/">RSA Key Generator</a>.</p>
+<p>This pattern also gives you a useful operational trick called <strong>crypto shredding</strong>. Encrypt each user's data under a key of their own, then destroy that key when they ask to be deleted. The ciphertext becomes permanently unreadable without touching a single byte of storage, which is a practical way to satisfy data-deletion requirements.</p>
+
+<h2>Using AES: Code Examples</h2>
+
+<h3>JavaScript — Web Crypto (Browser and Node.js)</h3>
+<p>This is the correct pattern, and it's essentially what our tool does internally. Note the random salt, the random IV, the high iteration count, and the fact that salt and IV travel with the ciphertext instead of being kept secret.</p>
+<pre><code class="language-javascript">const enc = new TextEncoder();
+const dec = new TextDecoder();
+
+// 1. Derive a 256-bit key from a passphrase: random salt + slow KDF
+const salt = crypto.getRandomValues(new Uint8Array(16));
+const baseKey = await crypto.subtle.importKey(
+  'raw', enc.encode(passphrase), 'PBKDF2', false, ['deriveKey']
+);
+const key = await crypto.subtle.deriveKey(
+  { name: 'PBKDF2', salt, iterations: 600000, hash: 'SHA-256' },
+  baseKey,
+  { name: 'AES-GCM', length: 256 },
+  false,
+  ['encrypt', 'decrypt']
+);
+
+// 2. Encrypt with a FRESH random IV, every single time
+const iv = crypto.getRandomValues(new Uint8Array(12));
+const ct = new Uint8Array(
+  await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, enc.encode(plaintext))
+);
+
+// 3. Store salt + iv + ciphertext together. None of them are secret.
+const blob = new Uint8Array(salt.length + iv.length + ct.length);
+blob.set(salt, 0);
+blob.set(iv, salt.length);
+blob.set(ct, salt.length + iv.length);</code></pre>
+<p>Decryption is the mirror image. The critical property is that <code>decrypt()</code> throws on either a wrong key or a modified ciphertext — there is no silent corruption.</p>
+<pre><code class="language-javascript">const salt = blob.slice(0, 16);
+const iv   = blob.slice(16, 28);
+const ct   = blob.slice(28);
+
+// re-derive the key from the passphrase and the stored salt, then:
+const plaintext = dec.decode(
+  await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ct)
+);
+// Throws if the key is wrong OR the ciphertext was tampered with.</code></pre>
+
+<h3>Python — the cryptography Library</h3>
+<p>The library's <code>AESGCM</code> class is an AEAD interface, which makes it hard to misuse by design: it won't let you encrypt without a nonce, and it refuses to return plaintext when the tag doesn't verify.</p>
+<pre><code class="language-python">from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+import os
+
+key = AESGCM.generate_key(bit_length=256)   # 32 random bytes
+nonce = os.urandom(12)                      # fresh for every message
+
+ct = AESGCM(key).encrypt(nonce, b"secret message", None)
+pt = AESGCM(key).decrypt(nonce, ct, None)   # raises InvalidTag on tampering</code></pre>
+
+<h3>Command Line — OpenSSL</h3>
+<p>OpenSSL's <code>enc</code> command defaults to a weak legacy KDF, so you have to pass <code>-pbkdf2</code> explicitly. It's a classic case of a dangerous default catching people out.</p>
+<pre><code class="language-bash"># Encrypt — always pass -pbkdf2 (and a high -iter)
+openssl enc -aes-256-cbc -pbkdf2 -iter 600000 -in secret.txt -out secret.enc
+
+# Decrypt
+openssl enc -d -aes-256-cbc -pbkdf2 -iter 600000 -in secret.enc -out secret.txt
+
+# AES-256-GCM is not available via 'enc'; use a library for AEAD instead.</code></pre>
+<blockquote><p>One thing to watch: OpenSSL's output format, a <code>Salted__</code> header plus its own KDF parameters, is <strong>not interchangeable</strong> with what our browser tool produces. Each format embeds its own parameter layout. If you need cross-tool compatibility, use a library where you control every parameter explicitly.</p></blockquote>
+
+<h2>Common Mistakes Checklist</h2>
+<p>Almost every real-world AES failure is one of these. Not one of them involves breaking the cipher.</p>
+<ul>
+  <li><strong>Using ECB mode.</strong> It leaks plaintext structure. Use GCM.</li>
+  <li><strong>Reusing an IV or nonce under the same key.</strong> In GCM and CTR this can enable forgery, not just decryption.</li>
+  <li><strong>Using a static or hardcoded salt.</strong> Lets an attacker precompute one rainbow table that works against every user at once.</li>
+  <li><strong>Deriving keys with a single hash</strong> (<code>sha256(password)</code>) instead of a real KDF with salt and iterations.</li>
+  <li><strong>Skipping authentication</strong>, by using CBC or CTR alone with no MAC and no AEAD.</li>
+  <li><strong>MAC-then-encrypt, or MAC-ing the plaintext.</strong> Always encrypt-then-MAC, or just use an AEAD.</li>
+  <li><strong>Using <code>Math.random()</code> for keys, IVs or salts.</strong> It isn't cryptographically secure. Use <code>crypto.getRandomValues()</code> or <code>os.urandom()</code>.</li>
+  <li><strong>Treating encoding as encryption.</strong> <a href="/guides/how-to-decode-base64/">Base64</a> is reversible by anyone and provides no confidentiality at all.</li>
+  <li><strong>Rolling your own crypto.</strong> Use the standard library.</li>
+  <li><strong>Hardcoding keys in source code</strong> or committing them to a repository.</li>
+  <li><strong>Logging plaintext or keys</strong>, then wondering how the secret leaked.</li>
+  <li><strong>Never rotating keys</strong>, and never planning for what happens after a suspected compromise.</li>
+</ul>
+
+<h2>Try It Yourself: AES in Your Browser</h2>
+<p>Reading about a cipher is one thing; watching it work is another. The <a href="/tools/aes-encrypt/">AES Encrypt/Decrypt tool</a> implements everything described here using the browser's native Web Crypto API, the same hardware-accelerated primitives that secure your TLS connections.</p>
+<p>What it actually does under the hood:</p>
+<ul>
+  <li><strong>A fresh 16-byte random salt</strong> on every encryption, so the same passphrase never produces the same key twice.</li>
+  <li><strong>PBKDF2-HMAC-SHA256</strong> at 250,000, 600,000 or 1,000,000 iterations, picked according to how much delay you can tolerate.</li>
+  <li><strong>AES-128, AES-192 or AES-256</strong>, in <strong>GCM</strong> (authenticated, recommended) or <strong>CBC</strong> (for compatibility with older systems), with the IV sized correctly for each mode.</li>
+  <li><strong>Base64 or Hex output</strong>, with the salt, IV and algorithm parameters packed into the blob. Decryption needs only the passphrase, so you don't have to remember which settings you picked.</li>
+  <li><strong>A built-in key strength meter</strong> and a random key generator, because the key matters more than the key size.</li>
+</ul>
+<p>Three things to try, each of which demonstrates a real property of the cipher:</p>
+<ol>
+  <li><strong>Encrypt the same text twice with the same key.</strong> You'll get two completely different ciphertexts. That's the random salt and IV doing their job, and it's exactly the property ECB lacks.</li>
+  <li><strong>Decrypt with the wrong key in GCM mode.</strong> You get a clean error. Switch to CBC and the same mistake may produce garbled nonsense instead, which shows concretely why authentication matters.</li>
+  <li><strong>Watch the output length.</strong> GCM adds exactly 16 bytes for the authentication tag; CBC rounds up to the next 16-byte boundary because of PKCS#7 padding.</li>
+</ol>
+<p>Everything runs locally in your browser. No key, plaintext or ciphertext is transmitted anywhere, which you can verify by disconnecting from the network after the page loads.</p>
+
+<h2>Quick Reference</h2>
+<table>
+  <thead><tr><th>Task</th><th>Recommended approach</th></tr></thead>
+  <tbody>
+    <tr><td>Encrypt arbitrary data</td><td>AES-256-GCM with a random 12-byte nonce</td></tr>
+    <tr><td>Derive a key from a passphrase</td><td>PBKDF2-HMAC-SHA256, 600,000+ iterations, random 16-byte salt (or Argon2id server-side)</td></tr>
+    <tr><td>Generate a key or IV</td><td><code>crypto.getRandomValues()</code> — never <code>Math.random()</code></td></tr>
+    <tr><td>Encrypt on low-end mobile or embedded</td><td>ChaCha20-Poly1305 when no AES hardware exists</td></tr>
+    <tr><td>Share a key with a stranger</td><td>RSA or ECDH key exchange, then AES for the data</td></tr>
+    <tr><td>Verify a key without encrypting data</td><td><a href="/tools/hmac-generator/">HMAC Generator</a></td></tr>
+    <tr><td>Store a password</td><td>Hash it with bcrypt or Argon2. Don't encrypt it.</td></tr>
+  </tbody>
+</table>
+<p>One last distinction to carry with you: <strong>encryption is reversible, hashing is not</strong>. Encrypt a user's data when you need to read it back. Hash a user's password when you only ever need to verify it. Getting these two backwards is one of the most consequential mistakes in application security.</p>
+
+<h2>Related Tools</h2>
+<ul>
+  <li><strong><a href="/tools/aes-encrypt/">AES Encrypt/Decrypt</a></strong> — encrypt and decrypt text with AES-128/192/256 in GCM or CBC mode, with PBKDF2 key derivation.</li>
+  <li><strong><a href="/tools/hmac-generator/">HMAC Generator</a></strong> — add authentication when you cannot use an AEAD mode.</li>
+  <li><strong><a href="/tools/hash-generator/">Hash Generator</a></strong> — SHA-256 and friends for integrity checking, not encryption.</li>
+  <li><strong><a href="/tools/rsa-key-generator/">RSA Key Generator</a></strong> — the asymmetric half of a hybrid encryption scheme.</li>
+  <li><strong><a href="/tools/password-generator/">Password Generator</a></strong> — create strong random keys instead of memorable passphrases.</li>
+</ul>
+`
+---
+
+<GuideLayout
+  title="AES Encryption Explained: How It Works, Modes & Best Practices | DevTools Hub"
+  description="Complete guide to AES encryption — Rijndael internals, key sizes, block cipher modes (ECB/CBC/CTR/GCM), IV and nonce reuse, PKCS#7 padding oracles, PBKDF2 key derivation, AEAD, side-channel and quantum considerations, with code examples."
+  breadcrumb="AES Encryption"
+  relatedTools={[
+    {href:'/tools/aes-encrypt/',title:'AES Encrypt/Decrypt',desc:'AES-128/192/256 in GCM or CBC, PBKDF2 key derivation',type:'tool'},
+    {href:'/tools/hmac-generator/',title:'HMAC Generator',desc:'Generate HMAC-SHA256 and SHA-512 codes',type:'tool'},
+    {href:'/tools/rsa-key-generator/',title:'RSA Key Generator',desc:'Public/private key pairs for hybrid encryption',type:'tool'},
+    {href:'/tools/password-generator/',title:'Password Generator',desc:'Create strong random AES keys',type:'tool'},
+  ]}
+>
+  <Fragment slot="title">AES Encryption Explained:<br class="hidden sm:block" />Modes, Keys &amp; Best Practices</Fragment>
+  <Fragment slot="intro">AES protects more data than any other algorithm in history. This guide walks through how Rijndael actually works, why the mode of operation matters more than the key size, and the specific mistakes that break real systems — with working code in JavaScript, Python and OpenSSL.</Fragment>
+  <Fragment set:html={part1} />
+
+  <AesRoundVisualizer />
+
+  <Fragment set:html={part2} />
+
+  <ModeVisualizer />
+
+  <Fragment set:html={part3} />
+
+  <EcbPenguin />
+
+  <Fragment set:html={part4} />
+
+  <IvReuseDemo />
+
+  <Fragment set:html={part5} />
+
+  <PaddingDemo />
+
+  <Fragment set:html={part6} />
+
+  <Pbkdf2Demo />
+
+  <Fragment set:html={part7} />
+
+  <TamperDemo />
+
+  <Fragment set:html={part8} />
+</GuideLayout>

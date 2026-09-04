@@ -21,7 +21,7 @@ const content = `
 <p>The <a href="/tools/hmac-generator/">HMAC Generator</a> produces HMAC-SHA256 and HMAC-SHA512 codes. Choose SHA-256 for general use. Choose SHA-512 when compliance or policy requires the longer hash. The secret key must be random, kept private, and at least 32 bytes. Generate HMAC keys with the <a href="/tools/password-generator/">Password Generator</a> — never use human-memorable passwords as HMAC keys.</p>
 
 <h2>Encryption: AES and RSA</h2>
-<p><strong>Symmetric encryption (AES):</strong> One key for both encryption and decryption. Fast, suitable for encrypting large amounts of data. The <a href="/tools/aes-encrypt/">AES Encrypt/Decrypt</a> tool uses AES-256-GCM — the gold standard for symmetric encryption. GCM mode provides both confidentiality (no one can read the data) and authentication (no one can tamper with it). The output includes a random IV (initialization vector) that ensures encrypting the same plaintext twice produces different ciphertext.</p>
+<p><strong>Symmetric encryption (AES):</strong> One key for both encryption and decryption. Fast, suitable for encrypting large amounts of data. The <a href="/tools/aes-encrypt/">AES Encrypt/Decrypt</a> tool uses AES-256-GCM — the gold standard for symmetric encryption. GCM mode provides both confidentiality (no one can read the data) and authentication (no one can tamper with it). The output includes a random IV (initialization vector) that ensures encrypting the same plaintext twice produces different ciphertext. For a full treatment of block cipher modes, IV reuse, padding and key derivation, see the <a href="/guides/aes-encryption-guide/">AES Encryption Explained</a> guide.</p>
 <p><strong>Asymmetric encryption (RSA):</strong> Two mathematically related keys — a public key for encryption, a private key for decryption. Slow, suitable for encrypting small amounts of data (like symmetric keys). The <a href="/tools/rsa-key-generator/">RSA Key Generator</a> produces 2048, 3072, or 4096-bit key pairs in standard PEM format. Use RSA to securely exchange AES keys, to sign digital documents, or to establish TLS connections. The public key can be shared freely. The private key must be protected — anyone with your private key can decrypt everything encrypted with your public key.</p>
 
 <h2>Putting It Together: A Crypto Workflow</h2>
@@ -38,6 +38,7 @@ const content = `
     {href:'/tools/bcrypt-hash/',title:'Bcrypt Hash Generator',desc:'Hash passwords with bcrypt algorithm',type:'tool'},
     {href:'/tools/hmac-generator/',title:'HMAC Generator',desc:'Generate HMAC-SHA256 and SHA-512 codes',type:'tool'},
     {href:'/tools/aes-encrypt/',title:'AES Encrypt/Decrypt',desc:'Encrypt and decrypt with AES-256-GCM',type:'tool'},
+    {href:'/guides/aes-encryption-guide/',title:'AES Explained',desc:'Modes, IV reuse, padding, key derivation',type:'guide'},
   ]}
 >
   <Fragment slot="title">Crypto Tools Guide:<br class="hidden sm:block" />Hashing, HMAC & Encryption</Fragment>

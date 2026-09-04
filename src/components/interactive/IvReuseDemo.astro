@@ -1,0 +1,113 @@
+---
+/**
+ * Live demonstration of CTR / GCM nonce reuse, using the real Web Crypto API.
+ */
+---
+
+<div class="my-10 rounded-2xl border border-red-200 bg-red-50/40 p-4 sm:p-5 dark:border-red-900/60 dark:bg-red-950/20">
+  <div class="mb-4 flex items-center gap-1.5">
+    <svg class="w-4 h-4 text-red-600 dark:text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+    </svg>
+    <span class="text-sm font-semibold text-gray-900 dark:text-white">Nonce Reuse — Live Demonstration</span>
+  </div>
+
+  <div class="mb-4 text-[13px] leading-6 text-gray-600 dark:text-gray-400">
+    Both messages below are encrypted with <strong class="text-gray-900 dark:text-white">the same key and the same nonce</strong>,
+    using real AES-CTR from your browser's Web Crypto API. In CTR and GCM the keystream depends only on
+    the key and nonce — never on the message. Reuse it once and confidentiality is gone.
+  </div>
+
+  <div class="mb-4 grid gap-3 sm:grid-cols-2">
+    <label class="block">
+      <span class="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">Message A (16 bytes)</span>
+      <input id="ivA" type="text" value="ATTACK AT DAWN!!" class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 font-mono text-xs text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100" />
+    </label>
+    <label class="block">
+      <span class="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">Message B (16 bytes, secret)</span>
+      <input id="ivB" type="text" value="RETREAT AT NOON!" class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 font-mono text-xs text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100" />
+    </label>
+  </div>
+
+  <div id="ivOut" class="space-y-2 font-mono text-[11px]"></div>
+
+  <div id="ivRecover" class="mt-4"></div>
+
+  <div class="mt-3 text-[11px] leading-relaxed text-gray-500 dark:text-gray-400">
+    Change message A and watch the recovered text update instantly. You never need the key — you only
+    need one known message and the two ciphertexts. With GCM the damage is worse still: reusing a nonce
+    can leak the GHASH subkey and let an attacker forge valid authentication tags.
+  </div>
+</div>
+
+<script>
+  const $ = (id: string) => document.getElementById(id)! as HTMLElement
+  const enc = new TextEncoder()
+  const dec = new TextDecoder()
+  const hex = (b: number) => b.toString(16).padStart(2, '0')
+
+  function toBlock(s: string): Uint8Array {
+    const bytes = Array.from(enc.encode(s))
+    while (bytes.length < 16) bytes.push(32) // pad with spaces
+    return new Uint8Array(bytes.slice(0, 16))
+  }
+
+  // Deliberately fixed key and nonce — the reuse is the whole point.
+  const KEY_BYTES = new Uint8Array(16).fill(0x7a)
+  const NONCE = new Uint8Array(16) // all zero => same keystream for both messages
+
+  let cryptoKey: CryptoKey | null = null
+
+  async function getKey(): Promise<CryptoKey> {
+    if (!cryptoKey) {
+      cryptoKey = await crypto.subtle.importKey('raw', KEY_BYTES, { name: 'AES-CTR' }, false, ['encrypt'])
+    }
+    return cryptoKey
+  }
+
+  function row(label: string, value: string, tone = 'text-gray-900 dark:text-gray-100') {
+    return `<div class="flex flex-wrap items-baseline gap-2">
+      <span class="w-40 shrink-0 text-gray-400 dark:text-gray-500">${label}</span>
+      <span class="break-all ${tone}">${value}</span>
+    </div>`
+  }
+
+  async function run() {
+    const pa = toBlock(($('ivA') as HTMLInputElement).value)
+    const pb = toBlock(($('ivB') as HTMLInputElement).value)
+    const key = await getKey()
+
+    const opts = { name: 'AES-CTR', counter: NONCE, length: 64 } as const
+    const c1 = new Uint8Array(await crypto.subtle.encrypt(opts, key, pa))
+    const c2 = new Uint8Array(await crypto.subtle.encrypt(opts, key, pb))
+
+    const xorC = new Uint8Array(16)
+    const xorP = new Uint8Array(16)
+    const recovered = new Uint8Array(16)
+    for (let i = 0; i < 16; i++) {
+      xorC[i] = c1[i] ^ c2[i]
+      xorP[i] = pa[i] ^ pb[i]
+      recovered[i] = xorC[i] ^ pa[i] // P2 = (C1 ⊕ C2) ⊕ P1
+    }
+
+    const toHex = (b: Uint8Array) => Array.from(b).map(hex).join('')
+    const equal = toHex(xorC) === toHex(xorP)
+
+    $('ivOut').innerHTML = [
+      row('C₁ = E(P₁)', toHex(c1), 'text-blue-600 dark:text-blue-400'),
+      row('C₂ = E(P₂)', toHex(c2), 'text-violet-600 dark:text-violet-400'),
+      row('C₁ ⊕ C₂', toHex(xorC), 'text-red-600 dark:text-red-400'),
+      row('P₁ ⊕ P₂', toHex(xorP), 'text-gray-500 dark:text-gray-400'),
+      row('keystream cancels?', equal ? 'YES — C₁ ⊕ C₂ = P₁ ⊕ P₂ exactly' : 'no', equal ? 'text-red-600 dark:text-red-400' : ''),
+    ].join('')
+
+    $('ivRecover').innerHTML = `<div class="rounded-lg border border-red-300 bg-white px-4 py-3 dark:border-red-800 dark:bg-gray-900">
+      <div class="text-[11px] font-semibold uppercase tracking-wider text-red-600 dark:text-red-400">Recovering the secret message</div>
+      <div class="mt-1 font-mono text-[12px] text-gray-500 dark:text-gray-400">P₂ = (C₁ ⊕ C₂) ⊕ P₁</div>
+      <div class="mt-2 font-mono text-sm font-semibold text-gray-900 dark:text-white">"${dec.decode(recovered).replace(/[<>&]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]!))}"</div>
+    </div>`
+  }
+
+  ;['ivA', 'ivB'].forEach(id => $(id).addEventListener('input', run))
+  run()
+</script>
