@@ -9,7 +9,8 @@
     "preview": "astro preview",
     "verify:aes": "node scripts/verify-aes.mjs",
     "e2e:aes-guide": "node scripts/e2e-aes-guide.mjs",
-    "e2e:json-guide": "node scripts/e2e-json-guide.mjs"
+    "e2e:json-guide": "node scripts/e2e-json-guide.mjs",
+    "e2e:base64-guide": "node scripts/e2e-base64-guide.mjs"
   },
   "dependencies": {
     "astro": "^4.0.0"

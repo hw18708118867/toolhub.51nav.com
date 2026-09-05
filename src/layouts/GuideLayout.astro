@@ -15,9 +15,11 @@ interface Props {
   description: string
   breadcrumb?: string
   relatedTools?: RelatedLink[]
+  datePublished?: string
+  dateModified?: string
 }
 
-const { title, description, breadcrumb = 'Guide', relatedTools = [] } = Astro.props
+const { title, description, breadcrumb = 'Guide', relatedTools = [], datePublished = '2026-09-05', dateModified = '2026-09-05' } = Astro.props
 
 const siteUrl = 'https://toolhub.51nav.com'
 const canonicalPath = Astro.url.pathname
@@ -29,7 +31,11 @@ const articleLd = {
   headline: title,
   description: description,
   url: pageUrl,
+  author: { '@type': 'Organization', name: 'DevTools Hub', url: siteUrl },
   publisher: { '@type': 'Organization', name: 'DevTools Hub', url: siteUrl },
+  datePublished,
+  dateModified,
+  image: { '@type': 'ImageObject', url: `${siteUrl}/og-image.png`, width: 1200, height: 630 },
   mainEntityOfPage: { '@type': 'WebPage', '@id': pageUrl },
 }
 

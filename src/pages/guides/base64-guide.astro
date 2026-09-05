@@ -1,0 +1,154 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+import Base64EncoderVisualizer from '../../components/interactive/Base64EncoderVisualizer.astro'
+import Base64PaddingDemo from '../../components/interactive/Base64PaddingDemo.astro'
+import Base64UrlSafeDemo from '../../components/interactive/Base64UrlSafeDemo.astro'
+import Base64NotEncryption from '../../components/interactive/Base64NotEncryption.astro'
+
+const part1 = `
+  <h2 id="what-is-base64">What Base64 Is</h2>
+  <p>Base64 is a way to write binary data using only 64 printable characters: the uppercase and lowercase letters, the digits 0-9, plus <code>+</code> and <code>/</code>. The name is just "base 64" — a positional system with 64 symbols, the same idea as base 10 or base 16, chosen so the output is safe to drop into text channels like email, JSON, or a URL.</p>
+  <p>It was born in the early 1990s for email. SMTP could only carry 7-bit text, so if you wanted to attach a file you had to turn its bytes into text first. Base64 became the standard for that job (MIME), and then spread everywhere: data URIs in CSS, tokens in web auth, binary blobs in JSON, you name it. RFC 4648 is the current definition.</p>
+  <p>The one thing to hold onto: Base64 is <em>encoding</em>, not <em>encryption</em>. It is a reversible translation with no key, like translating a sentence from English to Morse code. Anyone can translate it back. The diagrams below prove that by doing it in front of you.</p>
+`
+
+const part2 = `
+  <h2 id="why-it-exists">Why Bother Translating At All</h2>
+  <p>Many systems were built to move text, not bytes. They strip the high bit, mangle control characters, or choke on null bytes. A PNG file is full of bytes like 0x00 and 0xFF that are meaningless or dangerous in those systems. Base64 maps every byte onto a harmless letter, so the data survives the trip.</p>
+  <p>The cost is size. Every 3 bytes (24 bits) become 4 characters (each carrying 6 bits), so the output is about 33% larger than the input. That overhead is the price of being text-safe. A 30 KB image turns into roughly 40 KB of Base64 — fine for a small icon in a data URI, wasteful for a multi-megabyte file you should just host and link.</p>
+`
+
+const part3 = `
+  <h2 id="how-it-works">How the Encoding Works</h2>
+  <p>The whole scheme rests on one arithmetic fact: 3 bytes is 24 bits, and 24 is divisible by 6. So you can reshuffle three 8-bit bytes into four 6-bit values, and each 6-bit value (0-63) picks one character from the alphabet. Decoding is the exact reverse.</p>
+  <p>The diagram below runs the classic example, the word <code>Man</code>. Watch 3 bytes become 24 bits, split into four 6-bit groups, and each group become a character: <code>TWFu</code>.</p>
+`
+
+const part4 = `
+  <h2 id="padding">Padding With "="</h2>
+  <p>The math only works in groups of three bytes. Real input is rarely a neat multiple of three, so the last group is short. Base64 pads the missing bits with zeros and marks them with <code>=</code> characters so the decoder knows they are filler, not data.</p>
+  <p>One leftover byte (<code>M</code>) leaves two real characters and two <code>=</code>. Two leftover bytes (<code>Ma</code>) leave three real characters and one <code>=</code>. Three bytes need no padding. The step-through below shows all three cases computed live.</p>
+`
+
+const part5 = `
+  <h2 id="alphabet">The Alphabet and Its Variants</h2>
+  <p>The standard alphabet is fixed:</p>
+  <pre><code class="language-text">ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/
+
+  padding: =</code></pre>
+  <p>Two variants matter in everyday use:</p>
+  <ul class="list-disc list-inside space-y-2 my-4 text-gray-600 dark:text-gray-400">
+    <li><strong class="text-gray-900 dark:text-white">URL-safe (Base64url), RFC 4648 &sect;5.</strong> <code>+</code> becomes <code>-</code> and <code>/</code> becomes <code>_</code>, so the result is safe in a URL or filename. Trailing <code>=</code> is usually dropped because <code>=</code> is a query-string separator.</li>
+    <li><strong class="text-gray-900 dark:text-white">No line breaks.</strong> Old MIME wrapped output at 76 characters per line. Modern uses (JSON, data URIs) keep it as one unbroken string. If you decode a string with newlines and it fails, strip the whitespace first.</li>
+  </ul>
+  <p>Step through the URL-safe conversion. The example bytes are picked so the standard output contains both <code>+</code> and <code>/</code>, and you can watch each get swapped.</p>
+`
+
+const part6 = `
+  <h2 id="not-encryption">It Is Not Encryption</h2>
+  <p>This is the mistake that ships vulnerabilities. Because Base64 output looks scrambled, people treat it as if it hid something. It did not. There is no key, no secret, nothing to break — decoding is a fixed table lookup available to everyone.</p>
+  <p>Storing a password as Base64, or "obfuscating" an API token with it, protects nothing. Anyone who can read the string can decode it. Use it for transport and representation; for confidentiality use AES or a proper hashing scheme like bcrypt. The live demo makes the point directly.</p>
+`
+
+const part7 = `
+  <h2 id="uses">Where You Actually See It</h2>
+  <ul class="list-disc list-inside space-y-2 my-4 text-gray-600 dark:text-gray-400">
+    <li><strong class="text-gray-900 dark:text-white">Data URIs.</strong> <code>data:image/png;base64,&lt;string&gt;</code> inlines a small image into HTML or CSS so there is no extra request.</li>
+    <li><strong class="text-gray-900 dark:text-white">JSON with binary.</strong> You cannot put raw bytes in JSON, so files become Base64 strings: <code>{ "avatar": "iVBORw0KG..." }</code>.</li>
+    <li><strong class="text-gray-900 dark:text-white">Auth tokens.</strong> JWTs are <code>header.payload.signature</code>, each part Base64url. The payload is readable by design — do not put secrets in it.</li>
+    <li><strong class="text-gray-900 dark:text-white">Email attachments.</strong> Still the original use case, under the MIME standard.</li>
+    <li><strong class="text-gray-900 dark:text-white">Basic auth.</strong> <code>Authorization: Basic base64(user:pass)</code> — another reason not to confuse it with security.</li>
+  </ul>
+`
+
+const part8 = `
+  <h2 id="common-mistakes">Mistakes Worth Avoiding</h2>
+  <div class="overflow-x-auto">
+  <table class="w-full text-sm border-collapse my-4">
+    <thead>
+      <tr class="border-b border-gray-300 dark:border-gray-700 text-left">
+        <th class="py-2 pr-4 font-semibold text-gray-900 dark:text-white">Problem</th>
+        <th class="py-2 font-semibold text-gray-900 dark:text-white">Cause</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="border-b border-gray-200 dark:border-gray-800">
+        <td class="py-2 pr-4 text-gray-600 dark:text-gray-400">Decode throws "invalid character"</td>
+        <td class="py-2 text-gray-600 dark:text-gray-400">Line breaks or spaces in the string, or a URL-safe string fed to a standard decoder.</td>
+      </tr>
+      <tr class="border-b border-gray-200 dark:border-gray-800">
+        <td class="py-2 pr-4 text-gray-600 dark:text-gray-400">Garbled non-ASCII text</td>
+        <td class="py-2 text-gray-600 dark:text-gray-400">Encode the UTF-8 bytes, not the JS string. <code>btoa(unescape(encodeURIComponent(s)))</code> or <code>TextEncoder</code>.</td>
+      </tr>
+      <tr class="border-b border-gray-200 dark:border-gray-800">
+        <td class="py-2 pr-4 text-gray-600 dark:text-gray-400">Trailing <code>=</code> rejected in a URL</td>
+        <td class="py-2 text-gray-600 dark:text-gray-400">Use Base64url and drop padding for URL parameters.</td>
+      </tr>
+      <tr>
+        <td class="py-2 pr-4 text-gray-600 dark:text-gray-400">"Encoded" secret leaked</td>
+        <td class="py-2 text-gray-600 dark:text-gray-400">Base64 is not encryption. Anyone can decode it.</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+`
+
+const part9 = `
+  <h2 id="recommended">Recommended Reading</h2>
+  <ul class="list-disc list-inside space-y-2 my-4 text-gray-600 dark:text-gray-400">
+    <li><a href="/guides/web-encoding-guide/">Web Encoding: Base64, URL &amp; HTML Entities</a> — how Base64 sits next to the other text encodings.</li>
+    <li><a href="/guides/how-to-decode-base64/">How to Decode Base64</a> — a practical walkthrough with the tool.</li>
+    <li><a href="/guides/base64-image-guide/">Base64 Images: Data URIs Explained</a> — when inlining images helps and when it hurts.</li>
+    <li><a href="/guides/aes-encryption-guide/">AES Encryption Explained</a> — the real way to keep data confidential.</li>
+  </ul>
+`
+
+const relatedTools = [
+  { href: '/tools/base64-converter/', title: 'Base64 Converter', desc: 'Encode and decode Base64 text and files.', type: 'tool' },
+  { href: '/tools/image-to-base64/', title: 'Image to Base64', desc: 'Convert an image into a Base64 data URI.', type: 'tool' },
+  { href: '/tools/base64-image-viewer/', title: 'Base64 Image Viewer', desc: 'Decode and preview Base64-encoded images.', type: 'tool' },
+  { href: '/tools/ascii-converter/', title: 'ASCII Converter', desc: 'Text to bytes and back.', type: 'tool' },
+  { href: '/tools/binary-converter/', title: 'Binary Converter', desc: 'Inspect values in binary, hex and Base64.', type: 'tool' },
+  { href: '/tools/hex-converter/', title: 'Hex Converter', desc: 'Hex and Base64 side by side.', type: 'tool' },
+  { href: '/tools/url-encode/', title: 'URL Encode', desc: 'URL-safe encoding for query strings.', type: 'tool' },
+  { href: '/tools/utf8-converter/', title: 'UTF-8 Converter', desc: 'Encode text as UTF-8 bytes before Base64.', type: 'tool' },
+]
+---
+
+<GuideLayout
+  title="Base64 Explained: Encoding, Padding & Why It Is Not Encryption"
+  description="What Base64 is, how 3 bytes become 4 characters, the = padding rule, URL-safe Base64, and why it is encoding not encryption. With playable diagrams."
+  breadcrumb="Base64"
+  datePublished="2026-09-05"
+  dateModified="2026-09-05"
+  relatedTools={relatedTools}
+>
+  <Fragment slot="title">Base64 Explained</Fragment>
+  <Fragment slot="intro">The encoding that lets binary data travel through text. How it works, where the = comes from, and the difference between encoding and keeping a secret.</Fragment>
+
+  <Fragment set:html={part1} />
+  <Fragment set:html={part2} />
+
+  <h2 id="encoder-demo" class="text-2xl font-bold text-gray-900 mt-10 mb-4 dark:text-white">See 3 Bytes Become 4 Characters</h2>
+  <Base64EncoderVisualizer />
+
+  <Fragment set:html={part3} />
+
+  <h2 id="padding-demo" class="text-2xl font-bold text-gray-900 mt-10 mb-4 dark:text-white">See the Padding Appear</h2>
+  <Base64PaddingDemo />
+
+  <Fragment set:html={part4} />
+  <Fragment set:html={part5} />
+
+  <h2 id="urlsafe-demo" class="text-2xl font-bold text-gray-900 mt-10 mb-4 dark:text-white">See URL-Safe Base64</h2>
+  <Base64UrlSafeDemo />
+
+  <Fragment set:html={part6} />
+
+  <h2 id="notenc-demo" class="text-2xl font-bold text-gray-900 mt-10 mb-4 dark:text-white">See That It Decodes With No Key</h2>
+  <Base64NotEncryption />
+
+  <Fragment set:html={part7} />
+  <Fragment set:html={part8} />
+  <Fragment set:html={part9} />
+</GuideLayout>

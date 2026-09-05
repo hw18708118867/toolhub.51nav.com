@@ -76,7 +76,7 @@ base64.b64decode("SGVsbG8=")    # b'Hello'</code></pre>
 <h3>Why does Base64 end with = signs?</h3>
 <p>Padding. Base64 processes input in 3-byte groups producing 4 characters each. When the input length isn't divisible by 3, the last group is padded: 1 leftover byte → <code>==</code>, 2 leftover bytes → <code>=</code>. Some systems (JWTs, some APIs) omit padding entirely, which most decoders tolerate.</p>
 <h3>Why do JWTs and data URIs use Base64?</h3>
-<p>Because both need to carry arbitrary bytes through channels that only accept text — URLs and HTTP headers for JWTs, HTML/CSS attributes for data URIs. JWTs use the URL-safe variant; data URIs (like <code>data:image/png;base64,iVBOR…</code>) use standard Base64. The <a href="/guides/web-encoding-guide/">web encoding guide</a> compares Base64 against URL encoding and HTML entities in depth.</p>
+<p>Because both need to carry arbitrary bytes through channels that only accept text — URLs and HTTP headers for JWTs, HTML/CSS attributes for data URIs. JWTs use the URL-safe variant; data URIs (like <code>data:image/png;base64,iVBOR…</code>) use standard Base64. The <a href="/guides/web-encoding-guide/">web encoding guide</a> compares Base64 against URL encoding and HTML entities in depth, and <a href="/guides/base64-guide/">Base64 Explained</a> walks through the encoding bit-by-bit with playable diagrams.</p>
 <h3>Does Base64 work for images and files?</h3>
 <p>Yes — that's one of its main jobs. Encode an image with the <a href="/tools/image-to-base64/">Image to Base64 tool</a> to embed it directly in CSS or HTML. Keep it small: because of the 33% size overhead, inlining anything beyond a few KB usually hurts page performance more than an extra HTTP request would.</p>
 </div>

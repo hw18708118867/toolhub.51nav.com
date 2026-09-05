@@ -60,3 +60,27 @@ Instead locate it programmatically (see `scripts/_browser.mjs`, which walks
 Use a screenshot script (see `scripts/shoot-aes-guide.mjs`) at desktop and
 mobile widths to eyeball the diagrams and dark mode. The scanner and E2E catch
 errors; they don't catch "looks ugly".
+
+## 5. Google indexing check (do not skip)
+
+A guide that Google cannot crawl is wasted effort. This site generates
+`/sitemap.xml` from `src/pages/sitemap.xml.ts` (a custom endpoint, not an Astro
+integration). After `npm run build`, assert all of:
+
+- The new guide is in the sitemap:
+  `grep -c "/guides/<slug>/" dist/sitemap.xml` → ≥ 1. The endpoint auto-globs
+  `src/pages/guides/*.astro`, but if the file lives outside that flat folder it
+  will be missed — add the slug to the discovery list in that case.
+- `public/robots.txt` ends with
+  `Sitemap: https://toolhub.51nav.com/sitemap.xml` (real domain, no `{{ }}`).
+- `dist/guides/<slug>/index.html` contains `"@type":"Article"` and a
+  `"datePublished":"YYYY-MM-DD"` (you passed `datePublished`/`dateModified` to
+  `GuideLayout`).
+- Exactly one `<h1>` in the page (run
+  `grep -o "<h1" dist/guides/<slug>/index.html | wc -l` → 1).
+
+If `base64-guide`/`aes-encryption-guide` style omissions happen (guide built but
+absent from sitemap), it is almost always the hardcoded slug list — fix the
+discovery, never add a second sitemap integration.
+
+Full rules: see `references/seo-indexing.md`.

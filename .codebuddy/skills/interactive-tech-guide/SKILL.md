@@ -82,7 +82,7 @@ reasonable, zero stock phrases, varied paragraph rhythm. Facts stay identical.
 
 See `references/de-ai-flavor.md` for the exact marker list and rewrite rules.
 
-### Phase 5 — Verify
+### Phase 5 — Verify build, diagrams, and indexing
 
 1. `npm run build` — must complete with no errors.
 2. If the diagram uses `src/lib/aes.ts`, run `npm run verify:aes` (FIPS-197
@@ -90,8 +90,13 @@ See `references/de-ai-flavor.md` for the exact marker list and rewrite rules.
 3. Run a Playwright E2E regression against the **production build** (not a
    leftover `astro dev` server) covering: every interactive component mounts,
    play/step works, no console errors, no horizontal overflow, TOC populates.
+4. **Google indexing** (see `references/seo-indexing.md`): confirm the new guide
+   is in `dist/sitemap.xml`, `public/robots.txt` points at the sitemap, the
+   `Article` JSON-LD includes `datePublished`/`dateModified` (you passed them),
+   and there is exactly one `<h1>`. A guide Google cannot find is wasted work.
 
-See `references/verification.md` for the E2E pattern and a checklist.
+See `references/verification.md` for the E2E pattern and a checklist, and
+`references/seo-indexing.md` for the indexing rules.
 
 ## Conventions you must respect
 

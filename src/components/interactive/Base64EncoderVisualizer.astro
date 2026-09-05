@@ -1,0 +1,142 @@
+---
+/**
+ * Base64EncoderVisualizer — a playable walkthrough of the 3-byte -> 4-char
+ * Base64 transform. Real computation: the 24 bits are split into four 6-bit
+ * groups and each is mapped through the alphabet. Step through to watch each
+ * sextet become a character.
+ */
+---
+
+<div class="my-10 rounded-2xl border border-gray-200 bg-gray-50/60 p-4 sm:p-5 dark:border-gray-800 dark:bg-gray-900/40">
+  <div class="mb-1 flex flex-wrap items-center gap-x-3 gap-y-2">
+    <span class="text-sm font-semibold text-gray-900 dark:text-white">Turn 3 bytes into 4 Base64 characters</span>
+  </div>
+  <p class="mb-4 text-xs text-gray-500 dark:text-gray-400">Press play. The 24 bits of three bytes are split into four 6-bit groups, and each group maps to one character.</p>
+
+  <div class="mb-4 flex flex-wrap items-center gap-2">
+    <button id="be-reset" class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">⟲ Reset</button>
+    <button id="be-prev" class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">‹ Prev</button>
+    <button id="be-play" class="rounded-lg border border-blue-500 bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700">▶ Play</button>
+    <button id="be-next" class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">Next ›</button>
+    <input id="be-speed" type="range" min="400" max="2200" step="100" value="1100" class="ml-1 w-28 accent-blue-600" />
+  </div>
+
+  <div id="be-progress" class="mb-4 h-1.5 w-full rounded-full bg-gray-200 dark:bg-gray-800">
+    <div class="h-full rounded-full bg-blue-600 transition-all" style="width:0%"></div>
+  </div>
+
+  <div class="space-y-4">
+    <div>
+      <div class="mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">Input bytes</div>
+      <div id="be-bytes" class="flex flex-wrap gap-2"></div>
+    </div>
+    <div>
+      <div class="mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">24 bits joined</div>
+      <div id="be-bits" class="font-mono text-[11px] sm:text-xs leading-5 break-all text-gray-800 dark:text-gray-200"></div>
+    </div>
+    <div>
+      <div class="mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">Four 6-bit groups → characters</div>
+      <div id="be-sextets" class="grid grid-cols-2 gap-2 sm:grid-cols-4"></div>
+    </div>
+  </div>
+
+  <div id="be-explain" class="mt-4 text-[13px] leading-6 text-gray-600 dark:text-gray-400"></div>
+  <div id="be-timeline" class="mt-4 flex flex-wrap gap-1.5"></div>
+</div>
+
+<script>
+  const B64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+  const SAMPLE = [0x4d, 0x61, 0x6e] // "Man"
+
+  const byteBits = (b) => b.toString(2).padStart(8, '0')
+  const bits24 = SAMPLE.map(byteBits).join('')
+  const v = (SAMPLE[0] << 16) | (SAMPLE[1] << 8) | SAMPLE[2]
+  const sextets = [ (v >> 18) & 63, (v >> 12) & 63, (v >> 6) & 63, v & 63 ]
+  const chars = sextets.map((s) => B64[s])
+
+  const steps = [
+    { phase: 'read', label: 'Read the three bytes "Man" (0x4d, 0x61, 0x6e) as 24 bits total.' },
+    { phase: 'join', label: 'Join them into one 24-bit number. Nothing is lost yet — it is the same data.' },
+    { phase: 0, label: 'First 6 bits = ' + sextets[0] + ' → "' + chars[0] + '".' },
+    { phase: 1, label: 'Next 6 bits = ' + sextets[1] + ' → "' + chars[1] + '".' },
+    { phase: 2, label: 'Next 6 bits = ' + sextets[2] + ' → "' + chars[2] + '".' },
+    { phase: 3, label: 'Last 6 bits = ' + sextets[3] + ' → "' + chars[3] + '".' },
+    { phase: 'done', label: 'Result: "TWFu". Three bytes became four characters — a 33% size increase.' },
+  ]
+
+  function bitSpan(bits, from, to, active) {
+    let s = ''
+    for (let i = 0; i < bits.length; i++) {
+      const on = i >= from && i < to
+      const cls = on && active
+        ? 'rounded bg-blue-200 text-black dark:bg-blue-800 dark:text-white'
+        : 'text-gray-400 dark:text-gray-600'
+      s += '<span class="' + cls + '">' + bits[i] + '</span>'
+    }
+    return s
+  }
+
+  let idx = 0
+  let timer = null
+  const $ = (id) => document.getElementById(id)
+  const bytesEl = $('be-bytes'), bitsEl = $('be-bits'), sextetsEl = $('be-sextets')
+  const explainEl = $('be-explain'), progressEl = $('be-progress').firstElementChild
+  const timelineEl = $('be-timeline'), playBtn = $('be-play')
+
+  function render() {
+    const s = steps[idx]
+    bytesEl.innerHTML = SAMPLE.map((b, k) => {
+      const active = s.phase === 'read' || s.phase === 'join' || typeof s.phase === 'number' || s.phase === 'done'
+      return '<div class="rounded-lg border ' + (active ? 'border-blue-400 dark:border-blue-600' : 'border-gray-300 dark:border-gray-700') +
+        ' bg-white px-2 py-1 text-center dark:bg-gray-950">' +
+        '<div class="font-mono text-xs text-gray-800 dark:text-gray-200">' + byteBits(b) + '</div>' +
+        '<div class="text-[10px] text-gray-500 dark:text-gray-400">0x' + b.toString(16) + ' "' + String.fromCharCode(b) + '"</div></div>'
+    }).join('')
+
+    bitsEl.innerHTML = (typeof s.phase === 'number')
+      ? bitSpan(bits24, s.phase * 6, s.phase * 6 + 6, true)
+      : bitSpan(bits24, 0, 24, false)
+
+    sextetsEl.innerHTML = sextets.map((sv, k) => {
+      const shown = s.phase === 'done' || (typeof s.phase === 'number' && k <= s.phase) || s.phase === 0
+      const active = s.phase === k
+      const cls = active
+        ? 'border-blue-400 bg-blue-50 dark:border-blue-600 dark:bg-blue-900/30'
+        : 'border-gray-300 dark:border-gray-700'
+      return '<div class="rounded-lg border ' + cls + ' bg-white p-2 text-center dark:bg-gray-950">' +
+        '<div class="font-mono text-[10px] text-gray-400 dark:text-gray-600">' + sv.toString(2).padStart(6, '0') + '</div>' +
+        '<div class="mt-1 font-mono text-lg font-bold text-gray-900 dark:text-white">' + (shown ? chars[k] : '·') + '</div></div>'
+    }).join('')
+
+    explainEl.textContent = (idx + 1) + '/' + steps.length + ' · ' + s.label
+    progressEl.style.width = ((idx + 1) / steps.length) * 100 + '%'
+    ;[...timelineEl.children].forEach((el, k) => el.classList.toggle('bg-blue-600', k === idx))
+  }
+
+  function buildTimeline() {
+    timelineEl.innerHTML = steps.map((_, k) =>
+      '<button class="h-2 w-2 rounded-full bg-gray-300 dark:bg-gray-600" data-i="' + k + '"></button>'
+    ).join('')
+    timelineEl.querySelectorAll('button').forEach((b) =>
+      b.addEventListener('click', () => { pause(); idx = +b.dataset.i; render() }))
+  }
+  function play() {
+    if (timer) return
+    playBtn.textContent = '⏸ Pause'
+    timer = setInterval(() => { if (idx >= steps.length - 1) { pause(); return } idx++; render() }, +$('be-speed').value)
+  }
+  function pause() { clearInterval(timer); timer = null; playBtn.textContent = '▶ Play' }
+
+  $('be-reset').addEventListener('click', () => { pause(); idx = 0; render() })
+  $('be-prev').addEventListener('click', () => { pause(); idx = Math.max(0, idx - 1); render() })
+  $('be-next').addEventListener('click', () => { pause(); idx = Math.min(steps.length - 1, idx + 1); render() })
+  playBtn.addEventListener('click', () => (timer ? pause() : play()))
+  $('be-speed').addEventListener('input', () => { if (timer) { pause(); play() } })
+
+  new IntersectionObserver((es, ob) => {
+    es.forEach((e) => { if (e.isIntersecting) { render(); ob.disconnect() } })
+  }, { threshold: 0.4 }).observe(bytesEl)
+
+  buildTimeline()
+  render()
+</script>
