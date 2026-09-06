@@ -1,0 +1,146 @@
+---
+/**
+ * HtmlEntityEncoder — a playable walkthrough of HTML entity encoding.
+ * Real computation: the five HTML-significant characters (& < > " ') become
+ * named entities; everything else passes through. Step through to watch each
+ * character turn into its entity, building the source cumulatively.
+ */
+---
+
+<div class="my-10 rounded-2xl border border-gray-200 bg-gray-50/60 p-4 sm:p-5 dark:border-gray-800 dark:bg-gray-900/40">
+  <div class="mb-1 flex flex-wrap items-center gap-x-3 gap-y-2">
+    <span class="text-sm font-semibold text-gray-900 dark:text-white">Watch text become HTML entities</span>
+  </div>
+  <p class="mb-4 text-xs text-gray-500 dark:text-gray-400">Type something or keep the example. Press play to encode each HTML-significant character, one at a time.</p>
+
+  <div class="mb-4 flex flex-wrap items-center gap-2">
+    <input id="he-input" type="text" value="Tom & Jerry <3" class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 w-52" />
+    <button id="he-reset" class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">&#x27F2; Reset</button>
+    <button id="he-prev" class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">&#8249; Prev</button>
+    <button id="he-play" class="rounded-lg border border-blue-500 bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700">&#9654; Play</button>
+    <button id="he-next" class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">Next &#8250;</button>
+    <input id="he-speed" type="range" min="400" max="2200" step="100" value="1100" class="ml-1 w-28 accent-blue-600" />
+  </div>
+
+  <div id="he-progress" class="mb-4 h-1.5 w-full rounded-full bg-gray-200 dark:bg-gray-800">
+    <div class="h-full rounded-full bg-blue-600 transition-all" style="width:0%"></div>
+  </div>
+
+  <div class="space-y-4">
+    <div>
+      <div class="mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">Input characters</div>
+      <div id="he-chars" class="flex flex-wrap gap-2"></div>
+    </div>
+    <div>
+      <div class="mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">Current character &rarr; entity</div>
+      <div id="he-detail" class="font-mono text-[11px] sm:text-xs leading-6 break-all text-gray-800 dark:text-gray-200"></div>
+    </div>
+    <div>
+      <div class="mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">Encoded HTML source (builds up)</div>
+      <div id="he-out" class="font-mono text-[11px] sm:text-xs leading-6 break-all rounded-lg bg-white border border-gray-200 p-3 min-h-[2.5rem] text-gray-900 dark:bg-gray-950 dark:border-gray-800 dark:text-gray-100"></div>
+    </div>
+  </div>
+
+  <div id="he-explain" class="mt-4 text-[13px] leading-6 text-gray-600 dark:text-gray-400"></div>
+  <div id="he-timeline" class="mt-4 flex flex-wrap gap-1.5"></div>
+</div>
+
+<script>
+  const $ = (id) => document.getElementById(id)
+  const inputEl = $('he-input')
+  const charsEl = $('he-chars')
+  const detailEl = $('he-detail')
+  const outEl = $('he-out')
+  const explainEl = $('he-explain')
+  const progressEl = $('he-progress').firstElementChild
+  const timelineEl = $('he-timeline')
+  const playBtn = $('he-play')
+
+  const NAMED = { '&': 'amp', '<': 'lt', '>': 'gt', '"': 'quot', "'": 'apos' }
+  let chars = [], steps = [], idx = 0, timer = null
+
+  function displayName(c) {
+    if (c === ' ') return 'space'
+    if (c === '\t') return 'tab'
+    if (c === '\n') return 'newline'
+    return '"' + c + '"'
+  }
+  function entityOf(c) { return NAMED[c] ? '&' + NAMED[c] + ';' : c }
+
+  function buildSteps(str) {
+    chars = Array.from(str)
+    steps = [{ kind: 'start', label: 'Start with the raw text. Nothing is encoded yet.' }]
+    for (let k = 0; k < chars.length; k++) {
+      const c = chars[k]
+      const e = entityOf(c)
+      if (NAMED[c]) steps.push({ kind: 'char', idx: k, label: displayName(c) + ' is HTML-significant → ' + e })
+      else steps.push({ kind: 'char', idx: k, label: displayName(c) + ' is not HTML-significant → kept as-is' })
+    }
+    const n = chars.length
+    const encoded = chars.map(entityOf).join('').length
+    steps.push({ kind: 'done', label: 'Done. ' + n + ' characters produced ' + encoded + ' characters of source.' })
+    return steps
+  }
+
+  function cumulative(k) {
+    let s = ''
+    for (let i = 0; i < k; i++) s += entityOf(chars[i])
+    return s
+  }
+
+  function render() {
+    const s = steps[idx]
+    charsEl.innerHTML = chars.length
+      ? chars.map((c, k) => {
+          const isCurrent = s.kind === 'char' && s.idx === k
+          const isDone = s.kind === 'done' || (s.kind === 'char' && k < s.idx)
+          const cls = isCurrent
+            ? 'border-blue-400 bg-blue-50 dark:border-blue-600 dark:bg-blue-900/30'
+            : (isDone ? 'border-green-400 dark:border-green-600' : 'border-gray-300 dark:border-gray-700')
+          const ent = NAMED[c]
+          return '<div class="rounded-lg border ' + cls + ' bg-white px-2 py-1 text-center min-w-[2rem] dark:bg-gray-950">' +
+            '<span class="font-mono text-sm text-gray-800 dark:text-gray-200">' + (c === ' ' ? '&#9219;' : c) + '</span>' +
+            (ent ? '<span class="ml-1 font-mono text-[10px] text-blue-500">' + ent + '</span>' : '') + '</div>'
+        }).join('')
+      : '<span class="text-xs text-gray-400">empty string</span>'
+
+    if (s.kind === 'char') {
+      const c = chars[s.idx]
+      detailEl.innerHTML = NAMED[c]
+        ? "<span class='font-mono text-gray-800 dark:text-gray-200'>" + (c === ' ' ? '&#9219;' : c) + "</span> &rarr; <span class='font-mono text-blue-600 dark:text-blue-400'>" + entityOf(c) + "</span>"
+        : "<span class='font-mono text-gray-800 dark:text-gray-200'>" + (c === ' ' ? '&#9219;' : c) + "</span> &rarr; kept as-is (could be written numerically if needed)"
+    } else if (s.kind === 'done') {
+      detailEl.innerHTML = 'All characters processed.'
+    } else {
+      detailEl.innerHTML = '&mdash;'
+    }
+
+    outEl.textContent = s.kind === 'start' ? '' : cumulative(s.kind === 'char' ? s.idx + 1 : chars.length)
+
+    explainEl.textContent = (idx + 1) + '/' + steps.length + ' · ' + s.label
+    progressEl.style.width = ((idx + 1) / steps.length) * 100 + '%'
+    ;[...timelineEl.children].forEach((el, k) => el.classList.toggle('bg-blue-600', k === idx))
+  }
+
+  function buildTimeline() {
+    timelineEl.innerHTML = steps.map((_, k) => '<button class="h-2 w-2 rounded-full bg-gray-300 dark:bg-gray-600" data-i="' + k + '"></button>').join('')
+    timelineEl.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => { pause(); idx = +b.dataset.i; render() }))
+  }
+  function play() {
+    if (timer) return
+    playBtn.textContent = '⏸ Pause'
+    timer = setInterval(() => { if (idx >= steps.length - 1) { pause(); return } idx++; render() }, +$('he-speed').value)
+  }
+  function pause() { clearInterval(timer); timer = null; playBtn.textContent = '▶ Play' }
+  function recompute() { buildSteps(inputEl.value); buildTimeline(); idx = 0; render() }
+
+  $('he-reset').addEventListener('click', () => { pause(); idx = 0; render() })
+  $('he-prev').addEventListener('click', () => { pause(); idx = Math.max(0, idx - 1); render() })
+  $('he-next').addEventListener('click', () => { pause(); idx = Math.min(steps.length - 1, idx + 1); render() })
+  playBtn.addEventListener('click', () => (timer ? pause() : play()))
+  $('he-speed').addEventListener('input', () => { if (timer) { pause(); play() } })
+  inputEl.addEventListener('input', () => { pause(); recompute() })
+
+  new IntersectionObserver((es, ob) => { es.forEach((e) => { if (e.isIntersecting) { recompute(); ob.disconnect() } }) }, { threshold: 0.3 }).observe(charsEl)
+  recompute()
+</script>

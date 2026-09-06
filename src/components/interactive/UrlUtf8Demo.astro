@@ -1,0 +1,111 @@
+---
+/**
+ * UrlUtf8Demo — shows why non-ASCII text turns into multiple %XX sequences.
+ * Each code point is UTF-8 encoded with TextEncoder; ASCII maps to one byte,
+ * everything else to two or more. Step through to see the byte-by-byte split.
+ */
+---
+
+<div class="my-10 rounded-2xl border border-gray-200 bg-gray-50/60 p-4 sm:p-5 dark:border-gray-800 dark:bg-gray-900/40">
+  <div class="mb-1 flex flex-wrap items-center gap-x-3 gap-y-2">
+    <span class="text-sm font-semibold text-gray-900 dark:text-white">Why "café" becomes more than four %XX</span>
+  </div>
+  <p class="mb-4 text-xs text-gray-500 dark:text-gray-400">URL encoding works on bytes, not characters. Non-ASCII code points are expanded to UTF-8 bytes first. Try the examples or type your own.</p>
+
+  <div class="mb-4 flex flex-wrap items-center gap-2">
+    <button id="uu-cafe" class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">café</button>
+    <button id="uu-cn" class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">中文</button>
+    <input id="uu-input" type="text" value="café" class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 w-40" />
+    <button id="uu-reset" class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">&#x27F2; Reset</button>
+    <button id="uu-prev" class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">&#8249; Prev</button>
+    <button id="uu-play" class="rounded-lg border border-blue-500 bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700">&#9654; Play</button>
+    <button id="uu-next" class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">Next &#8250;</button>
+  </div>
+
+  <div id="uu-progress" class="mb-4 h-1.5 w-full rounded-full bg-gray-200 dark:bg-gray-800">
+    <div class="h-full rounded-full bg-blue-600 transition-all" style="width:0%"></div>
+  </div>
+
+  <div id="uu-rows" class="space-y-2"></div>
+  <div id="uu-out" class="mt-4 rounded-lg bg-white border border-gray-200 p-3 font-mono text-[12px] break-all min-h-[2.5rem] text-gray-900 dark:bg-gray-950 dark:border-gray-800 dark:text-gray-100"></div>
+  <div id="uu-explain" class="mt-4 text-[13px] leading-6 text-gray-600 dark:text-gray-400"></div>
+</div>
+
+<script>
+  const $ = (id) => document.getElementById(id)
+  const inputEl = $('uu-input')
+  const rowsEl = $('uu-rows')
+  const outEl = $('uu-out')
+  const explainEl = $('uu-explain')
+  const progressEl = $('uu-progress').firstElementChild
+  const playBtn = $('uu-play')
+
+  const UNRESERVED = new Set('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~'.split(''))
+  function hexOf(b) { return b.toString(16).padStart(2, '0').toUpperCase() }
+
+  let units = [], idx = 0, timer = null
+
+  function build() {
+    const str = inputEl.value
+    units = Array.from(str).map(c => {
+      const bytes = Array.from(new TextEncoder().encode(c))
+      return { c, bytes, hex: bytes.map(hexOf) }
+    })
+    rowsEl.innerHTML = units.map((u, k) => {
+      const showC = u.c === ' ' ? '␣' : u.c
+      const isAscii = u.bytes.length === 1
+      return '<div data-i="' + k + '" class="rounded-lg border border-gray-200 bg-white px-3 py-2 flex flex-wrap items-center gap-x-3 gap-y-1 dark:bg-gray-950 dark:border-gray-800">' +
+        '<span class="font-mono text-sm text-gray-800 dark:text-gray-200">' + showC + '</span>' +
+        '<span class="text-gray-400">→</span>' +
+        '<span class="font-mono text-xs text-gray-500 dark:text-gray-400">' + (isAscii ? '1 byte' : u.bytes.length + ' bytes') + '</span>' +
+        '<span class="font-mono text-xs text-gray-700 dark:text-gray-300">' + u.hex.join(' ') + '</span>' +
+        '<span class="ml-auto font-mono text-xs text-blue-600 dark:text-blue-400">' + u.hex.map(h => '%' + h).join('') + '</span>' +
+        '</div>'
+    }).join('')
+  }
+
+  function cumulative(k) {
+    let s = ''
+    for (let i = 0; i < k; i++) s += units[i].hex.map(h => '%' + h).join('')
+    return s
+  }
+
+  function render() {
+    const rows = [...rowsEl.children]
+    rows.forEach((r, k) => {
+      const on = k === idx
+      r.classList.toggle('ring-2', on)
+      r.classList.toggle('ring-blue-500', on)
+      r.style.opacity = k <= idx ? '1' : '0.4'
+    })
+    if (idx < 0 || !units.length) { outEl.textContent = ''; explainEl.textContent = ''; return }
+    const u = units[idx]
+    outEl.textContent = cumulative(idx + 1)
+    if (u.bytes.length === 1) {
+      explainEl.innerHTML = "<span class='font-mono'>" + (u.c === ' ' ? 'space' : u.c) + "</span> is ASCII, so it becomes a single byte <span class='font-mono'>%' + u.hex[0] + '</span>."
+    } else {
+      explainEl.innerHTML = "<span class='font-mono'>" + u.c + "</span> is non-ASCII. UTF-8 expands it into <span class='font-mono'>" + u.bytes.length + "</span> bytes, so it becomes " + u.hex.map(h => '<span class=\'font-mono\'>%' + h + '</span>').join('') + "."
+    }
+    progressEl.style.width = ((idx + 1) / units.length) * 100 + '%'
+  }
+
+  function play() {
+    if (timer) return
+    playBtn.textContent = '⏸ Pause'
+    timer = setInterval(() => { if (idx >= units.length - 1) { pause(); return } idx++; render() }, 1000)
+  }
+  function pause() { clearInterval(timer); timer = null; playBtn.textContent = '▶ Play' }
+
+  function recompute() { build(); idx = 0; render() }
+
+  $('uu-cafe').addEventListener('click', () => { pause(); inputEl.value = 'café'; recompute() })
+  $('uu-cn').addEventListener('click', () => { pause(); inputEl.value = '中文'; recompute() })
+  $('uu-reset').addEventListener('click', () => { pause(); idx = 0; render() })
+  $('uu-prev').addEventListener('click', () => { pause(); idx = Math.max(0, idx - 1); render() })
+  $('uu-next').addEventListener('click', () => { pause(); idx = Math.min(units.length - 1, idx + 1); render() })
+  playBtn.addEventListener('click', () => (timer ? pause() : play()))
+  inputEl.addEventListener('input', () => { pause(); recompute() })
+  rowsEl.addEventListener('click', (e) => { const d = e.target.closest('[data-i]'); if (!d) return; pause(); idx = +d.dataset.i; render() })
+
+  recompute()
+</script>

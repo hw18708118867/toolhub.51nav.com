@@ -1,0 +1,184 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+import HtmlEntityEncoder from '../../components/interactive/HtmlEntityEncoder.astro'
+import HtmlEntityForms from '../../components/interactive/HtmlEntityForms.astro'
+import HtmlEntityAmpersand from '../../components/interactive/HtmlEntityAmpersand.astro'
+import HtmlEntityNbsp from '../../components/interactive/HtmlEntityNbsp.astro'
+
+const relatedTools = [
+  { title: 'HTML Entities', href: '/tools/html-entities/' },
+  { title: 'URL Encoder / Decoder', href: '/tools/url-encode/' },
+  { title: 'Base64 Encoder', href: '/tools/base64-converter/' },
+  { title: 'String Escaper', href: '/tools/string-escaper/' },
+]
+---
+
+<GuideLayout
+  title="HTML Entities Explained: &amp;, &lt;, &nbsp; and the Rest"
+  description="A plain-language guide to HTML entities: the three syntaxes (named, decimal, hex), the characters you must encode, the ampersand trap, and non-breaking spaces, with live demos."
+  relatedTools={relatedTools}
+  datePublished="2026-09-06"
+  dateModified="2026-09-06"
+>
+  <p>
+    When you write <code>&lt;div&gt;</code> inside a web page, the browser does not render the angle
+    brackets. It reads them as markup. To show a literal <code>&lt;</code> on the page, you write
+    <code>&amp;lt;</code> instead. That is an HTML entity: a text sequence that stands in for a character
+    the HTML syntax would otherwise treat differently. This guide explains when entities are needed, the
+    three ways to write them, and where the rules surprise people. The diagrams below run the real logic in
+    your browser.
+  </p>
+
+  <h2>What an HTML entity is</h2>
+  <p>
+    An HTML entity is a placeholder in your source that the parser replaces with a single character. It lets
+    you write characters that are either reserved by HTML syntax or simply awkward to type. Entities are not
+    encryption, not compression, and not a different character set. They are a writing convention that
+    resolves to ordinary Unicode characters when the page is parsed.
+  </p>
+  <p>
+    Entities only matter in HTML source. Once the browser has parsed the document, <code>&amp;amp;</code> is
+    just the character <code>&amp;</code> sitting in the text. If you inspect the rendered text with
+    JavaScript, you will see the plain character, not the entity.
+  </p>
+
+  <h2>Why HTML needs entities</h2>
+  <p>
+    HTML uses a handful of characters for its own syntax. If those characters appear in your content, the
+    parser cannot tell whether you meant markup or text.
+  </p>
+  <ul>
+    <li><code>&amp;</code> introduces an entity, so a bare <code>&amp;</code> can be misread as the start of one.</li>
+    <li><code>&lt;</code> starts a tag, so a bare <code>&lt;</code> can be misread as markup.</li>
+    <li><code>&gt;</code> ends a tag, and matters most right after a <code>&lt;</code>.</li>
+    <li><code>"</code> and <code>'</code> delimit attribute values, so they must be escaped inside an attribute.</li>
+  </ul>
+  <p>
+    Leave these unescaped and the page can break or, worse, let user input inject its own tags. That injection
+    path is the basis of cross-site scripting (XSS), so escaping content before it reaches the DOM is a
+    security control, not just a formatting detail.
+  </p>
+
+  <h2>The three syntaxes</h2>
+  <p>
+    Every entity fits one of three forms:
+  </p>
+  <ul>
+    <li><strong>Named</strong>: a human-readable name, like <code>&amp;amp;</code>, <code>&amp;copy;</code>, or <code>&amp;nbsp;</code>.</li>
+    <li><strong>Decimal numeric</strong>: a <code>#</code> followed by the character's Unicode code point, like <code>&amp;#169;</code>.</li>
+    <li><strong>Hexadecimal numeric</strong>: a <code>#x</code> followed by the code point in hex, like <code>&amp;#xA9;</code>.</li>
+  </ul>
+  <p>
+    Named entities are easier to read but only exist for a fixed list. Numeric references work for any
+    character, which is why they are the safe fallback. Decimal and hex mean the same character; pick whichever
+    you find clearer.
+  </p>
+
+  <h2>The characters you must encode</h2>
+  <p>
+    For everyday HTML, only a small set needs encoding in text content:
+  </p>
+  <ul>
+    <li><code>&amp;</code> &rarr; <code>&amp;amp;</code></li>
+    <li><code>&lt;</code> &rarr; <code>&amp;lt;</code></li>
+    <li><code>&gt;</code> &rarr; <code>&amp;gt;</code></li>
+    <li><code>"</code> &rarr; <code>&amp;quot;</code> (inside double-quoted attributes)</li>
+    <li><code>'</code> &rarr; <code>&amp;apos;</code> (inside single-quoted attributes)</li>
+  </ul>
+  <p>
+    Everything else, including accented letters and emoji, is fine as raw UTF-8 text in a modern document. You
+    can encode any character numerically if you want, but you rarely need to. The diagram turns a string into
+    entities one character at a time:
+  </p>
+  <HtmlEntityEncoder />
+
+  <h2>Three ways to write one character</h2>
+  <p>
+    The same character can be written three ways. Click through the grid to see the named form (when there is
+    one), the decimal reference, and the hex reference for each:
+  </p>
+  <HtmlEntityForms />
+
+  <h2>The ampersand trap</h2>
+  <p>
+    The ampersand is the one character with a trap attached. An <code>&amp;</code> only becomes an entity when
+    it starts a valid entity name followed by a semicolon. Write <code>AT&amp;T</code> and the browser leaves
+    it alone, because <code>&amp;T</code> is not a known entity. Write <code>Tom &amp;amp; Jerry</code> and it
+    renders as <code>Tom &amp; Jerry</code>. Write <code>M&amp;Ms</code> and it stays <code>M&amp;Ms</code>.
+  </p>
+  <p>
+    This matters because a missing semicolon or a near-miss name silently fails to decode. The box below uses
+    the real browser parser, so what you type is exactly what a browser would show:
+  </p>
+  <HtmlEntityAmpersand />
+
+  <h2>Non-breaking spaces and whitespace entities</h2>
+  <p>
+    Some entities are not about escaping syntax but about controlling layout. The most useful is
+    <code>&amp;nbsp;</code>, a non-breaking space. It looks like a space but tells the browser not to start a
+    new line there. That keeps short phrases like "New York City" or "100 km/h" from splitting across lines.
+    Shrink the box below to see a normal space wrap while <code>&amp;nbsp;</code> holds the words together:
+  </p>
+  <HtmlEntityNbsp />
+
+  <h2>HTML entities versus URL encoding and Base64</h2>
+  <p>
+    Entities solve a different problem from the other two encodings you meet on the web:
+  </p>
+  <ul>
+    <li>
+      <strong>HTML entities</strong> target HTML markup. They keep <code>&lt;</code>, <code>&amp;</code>, and
+      friends from being read as tags. They live in HTML source only.
+    </li>
+    <li>
+      <strong>URL encoding</strong> targets URL syntax. It produces <code>%XX</code> so characters survive in a
+      query string or path. Our <a href="/guides/url-encoding-guide/">URL encoding guide</a> covers it.
+    </li>
+    <li>
+      <strong>Base64</strong> targets binary data. It turns bytes into text that is safe to embed anywhere. Our
+      <a href="/guides/base64-guide/">Base64 guide</a> covers it.
+    </li>
+  </ul>
+  <p>
+    A common slip is to use the wrong one: HTML-escaping a URL parameter leaves the <code>&amp;</code> as
+    <code>&amp;amp;</code>, which the server then reads literally, while URL-encoding the same value would have
+    produced <code>%26</code>. Pick the encoding for the layer you are writing into.
+  </p>
+
+  <h2>Common mistakes</h2>
+  <ul>
+    <li>
+      <strong>Forgetting to escape <code>&amp;</code></strong>. Any <code>&amp;</code> in text should be
+      <code>&amp;amp;</code> unless it starts a real entity. A bare <code>&amp;</code> is the most common source
+      of rendering glitches.
+    </li>
+    <li>
+      <strong>Double encoding</strong>. Escaping <code>&amp;amp;</code> again turns it into
+      <code>&amp;amp;amp;</code>, which renders as the literal text <code>&amp;amp;</code> instead of
+      <code>&amp;</code>.
+    </li>
+    <li>
+      <strong>Using entities inside JavaScript strings</strong>. The HTML parser does not run inside a
+      <code>&lt;script&gt;</code> block the same way, so <code>&amp;amp;</code> there stays as text, not a
+      character. Escape for the JavaScript string, not for HTML.
+    </li>
+    <li>
+      <strong>Trusting named entities everywhere</strong>. A name like <code>&amp;copy;</code> only decodes in
+      HTML. In an attribute value, in CSS, or in JSON it means nothing. Use numeric references or the raw
+      character when you are outside HTML text.
+    </li>
+    <li>
+      <strong>Mixing layers</strong>. HTML-escaping a value that is about to be URL-encoded, or the reverse,
+      produces output neither layer expects.
+    </li>
+  </ul>
+
+  <h2>Recommended reading</h2>
+  <p>
+    Put it into practice with the <a href="/tools/html-entities/">HTML Entities</a> tool, or escape strings for
+    code with the <a href="/tools/string-escaper/">String Escaper</a>. For the surrounding concepts, read our
+    <a href="/guides/web-encoding-guide/">web encoding guide</a>,
+    <a href="/guides/url-encoding-guide/">URL encoding guide</a>, and
+    <a href="/guides/base64-guide/">Base64 guide</a>.
+  </p>
+</GuideLayout>

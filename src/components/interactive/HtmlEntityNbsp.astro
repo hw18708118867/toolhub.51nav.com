@@ -1,0 +1,67 @@
+---
+/**
+ * HtmlEntityNbsp — shows the practical effect of the non-breaking space entity
+ * (&nbsp;): it keeps two words on the same line even when the container is too
+ * narrow to fit them. Compare it against a normal space, which lets the line wrap.
+ */
+---
+
+<div class="my-10 rounded-2xl border border-gray-200 bg-gray-50/60 p-4 sm:p-5 dark:border-gray-800 dark:bg-gray-900/40">
+  <div class="mb-1 flex flex-wrap items-center gap-x-3 gap-y-2">
+    <span class="text-sm font-semibold text-gray-900 dark:text-white">&amp;nbsp; keeps words stuck together</span>
+  </div>
+  <p class="mb-4 text-xs text-gray-500 dark:text-gray-400">Drag the width slider to shrink the box. A normal space lets the phrase wrap; a non-breaking space (&amp;nbsp;) keeps the words on one line.</p>
+
+  <div class="mb-4 flex flex-wrap items-center gap-4">
+    <label class="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+      Width
+      <input id="hn-width" type="range" min="90" max="360" step="10" value="150" class="w-40 accent-blue-600" />
+    </label>
+    <label class="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+      <input id="hn-toggle" type="checkbox" class="accent-blue-600" checked /> Use &amp;nbsp;
+    </label>
+  </div>
+
+  <div class="grid gap-3 sm:grid-cols-2">
+    <div>
+      <div class="mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">HTML source</div>
+      <div id="hn-src" class="font-mono text-[12px] break-all rounded-lg bg-white border border-gray-200 p-3 text-gray-900 dark:bg-gray-950 dark:border-gray-800 dark:text-gray-100"></div>
+    </div>
+    <div>
+      <div class="mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">Rendered output</div>
+      <div id="hn-box" class="rounded-lg bg-white border border-gray-200 p-3 text-sm text-gray-900 dark:bg-gray-950 dark:border-gray-800 dark:text-gray-100"></div>
+    </div>
+  </div>
+
+  <div id="hn-explain" class="mt-4 text-[13px] leading-6 text-gray-600 dark:text-gray-400"></div>
+</div>
+
+<script>
+  const $ = (id) => document.getElementById(id)
+  const widthEl = $('hn-width')
+  const toggleEl = $('hn-toggle')
+  const srcEl = $('hn-src')
+  const boxEl = $('hn-box')
+  const explainEl = $('hn-explain')
+
+  const PHRASE = 'New York City'
+  const NBSP = String.fromCharCode(160)
+
+  function update() {
+    const useNbsp = toggleEl.checked
+    const sep = useNbsp ? NBSP : ' '
+    boxEl.style.width = widthEl.value + 'px'
+    boxEl.style.whiteSpace = 'normal'
+    boxEl.textContent = PHRASE.split(' ').join(sep)
+    srcEl.textContent = useNbsp ? 'New&nbsp;York&nbsp;City' : 'New York City'
+    if (useNbsp) {
+      explainEl.innerHTML = 'The single spaces are <span class="font-mono">&amp;nbsp;</span> (non-breaking). The three words cannot split, so the line overflows the box instead of wrapping.'
+    } else {
+      explainEl.innerHTML = 'Plain spaces let the browser break the line wherever it fits. Shrink the box and the words wrap onto separate lines.'
+    }
+  }
+
+  widthEl.addEventListener('input', update)
+  toggleEl.addEventListener('change', update)
+  update()
+</script>

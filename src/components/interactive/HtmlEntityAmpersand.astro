@@ -1,0 +1,64 @@
+---
+/**
+ * HtmlEntityAmpersand — demonstrates the HTML parser's ampersand rule: an "&"
+ * only starts an entity when it is followed by a valid entity name (or numeric
+ * reference) and a semicolon. Uses the real browser parser via innerHTML.
+ */
+---
+
+<div class="my-10 rounded-2xl border border-gray-200 bg-gray-50/60 p-4 sm:p-5 dark:border-gray-800 dark:bg-gray-900/40">
+  <div class="mb-1 flex flex-wrap items-center gap-x-3 gap-y-2">
+    <span class="text-sm font-semibold text-gray-900 dark:text-white">When does &amp; actually become an entity?</span>
+  </div>
+  <p class="mb-4 text-xs text-gray-500 dark:text-gray-400">The browser only decodes an ampersand that starts a valid entity. Type a string or try a preset, then compare what you wrote with what the browser shows.</p>
+
+  <div class="mb-4 flex flex-wrap items-center gap-2">
+    <input id="ha-input" type="text" value="Tom &amp; Jerry <3" class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 w-56" />
+    <button class="ha-preset rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700" data-v="AT&amp;T">AT&amp;T</button>
+    <button class="ha-preset rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700" data-v="M&amp;Ms">M&amp;Ms</button>
+    <button class="ha-preset rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700" data-v="1 &lt; 2">1 &lt; 2</button>
+  </div>
+
+  <div class="grid gap-3 sm:grid-cols-2">
+    <div class="rounded-lg bg-white border border-gray-200 p-3 dark:bg-gray-950 dark:border-gray-800">
+      <div class="mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">What you typed (source)</div>
+      <div id="ha-src" class="font-mono text-[12px] break-all text-gray-900 dark:text-gray-100"></div>
+    </div>
+    <div class="rounded-lg bg-white border border-gray-200 p-3 dark:bg-gray-950 dark:border-gray-800">
+      <div class="mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">What the browser shows</div>
+      <div id="ha-dec" class="font-mono text-[12px] break-all text-gray-900 dark:text-gray-100"></div>
+    </div>
+  </div>
+
+  <div id="ha-explain" class="mt-4 text-[13px] leading-6 text-gray-600 dark:text-gray-400"></div>
+</div>
+
+<script>
+  const $ = (id) => document.getElementById(id)
+  const inputEl = $('ha-input')
+  const srcEl = $('ha-src')
+  const decEl = $('ha-dec')
+  const explainEl = $('ha-explain')
+
+  const ENT_RE = /&(?:(?:[a-zA-Z][a-zA-Z0-9]*);|#[0-9]+;|#x[0-9a-fA-F]+;)/g
+
+  function decode(s) { const d = document.createElement('div'); d.innerHTML = s; return d.textContent }
+
+  function update() {
+    const raw = inputEl.value
+    srcEl.textContent = raw
+    decEl.textContent = decode(raw)
+    const matches = raw.match(ENT_RE) || []
+    if (matches.length) {
+      explainEl.innerHTML = 'The browser recognized ' + matches.length + ' valid entit' + (matches.length === 1 ? 'y' : 'ies') + ': ' +
+        matches.map((m) => '<span class="font-mono text-blue-600 dark:text-blue-400">' + m + '</span>').join(', ') +
+        '. Every other <span class="font-mono">&amp;</span> was left as a literal ampersand because it did not start a known entity.'
+    } else {
+      explainEl.innerHTML = 'No valid entities found. Every <span class="font-mono">&amp;</span> stays literal because none of them starts a recognized entity name followed by <span class="font-mono">;</span>.'
+    }
+  }
+
+  inputEl.addEventListener('input', update)
+  document.querySelectorAll('.ha-preset').forEach((b) => b.addEventListener('click', () => { inputEl.value = b.dataset.v; update() }))
+  update()
+</script>

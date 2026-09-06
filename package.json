@@ -10,7 +10,9 @@
     "verify:aes": "node scripts/verify-aes.mjs",
     "e2e:aes-guide": "node scripts/e2e-aes-guide.mjs",
     "e2e:json-guide": "node scripts/e2e-json-guide.mjs",
-    "e2e:base64-guide": "node scripts/e2e-base64-guide.mjs"
+    "e2e:base64-guide": "node scripts/e2e-base64-guide.mjs",
+    "e2e:url-encoding-guide": "node scripts/e2e-url-encoding-guide.mjs",
+    "e2e:html-entities-guide": "node scripts/e2e-html-entities-guide.mjs"
   },
   "dependencies": {
     "astro": "^4.0.0"

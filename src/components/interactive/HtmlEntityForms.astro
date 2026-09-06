@@ -1,0 +1,63 @@
+---
+/**
+ * HtmlEntityForms — clickable grid showing the three ways to write one character
+ * as an HTML entity: a named reference (when one exists), a decimal numeric
+ * character reference, and a hexadecimal numeric character reference.
+ */
+---
+
+<div class="my-10 rounded-2xl border border-gray-200 bg-gray-50/60 p-4 sm:p-5 dark:border-gray-800 dark:bg-gray-900/40">
+  <div class="mb-1 flex flex-wrap items-center gap-x-3 gap-y-2">
+    <span class="text-sm font-semibold text-gray-900 dark:text-white">Three ways to write the same character</span>
+  </div>
+  <p class="mb-4 text-xs text-gray-500 dark:text-gray-400">Click a character to see its named entity (if any), decimal reference, and hex reference. Not every character has a named shortcut.</p>
+
+  <div id="hf-grid" class="grid grid-cols-6 sm:grid-cols-10 gap-1.5"></div>
+
+  <div id="hf-detail" class="mt-4 rounded-lg bg-white border border-gray-200 p-3 font-mono text-[12px] break-all min-h-[5rem] text-gray-800 dark:bg-gray-950 dark:border-gray-800 dark:text-gray-200"></div>
+</div>
+
+<script>
+  const $ = (id) => document.getElementById(id)
+  const gridEl = $('hf-grid')
+  const detailEl = $('hf-detail')
+
+  const NAMED = {
+    '&': 'amp', '<': 'lt', '>': 'gt', '"': 'quot', "'": 'apos', ' ': 'nbsp',
+    '©': 'copy', '®': 'reg', '™': 'trade', '→': 'rarr', '♥': 'hearts',
+    '€': 'euro', '£': 'pound', 'é': 'eacute', '×': 'times', '÷': 'divide',
+    '§': 'sect', '¶': 'para', '°': 'deg', '±': 'plusmn', '≠': 'ne',
+    '¢': 'cent', '¥': 'yen', '•': 'bull', '…': 'hellip',
+    '“': 'ldquo', '”': 'rdquo', '‘': 'lsquo', '’': 'rsquo',
+    '—': 'mdash', '–': 'ndash', '☺': 'smile', '★': 'starf',
+  }
+  const SAMPLES = Object.keys(NAMED).concat(['A', 'z', '0', '@', '/', 'π', '∑', 'α'])
+
+  function cp(c) { return c.codePointAt(0) }
+  function decRef(c) { return '&#' + cp(c) + ';' }
+  function hexRef(c) { return '&#x' + cp(c).toString(16).toUpperCase() + ';' }
+
+  const cells = []
+  for (const c of SAMPLES) {
+    const name = NAMED[c]
+    const cell = document.createElement('button')
+    cell.className = 'rounded-lg border px-1 py-2 text-center font-mono text-sm transition border-gray-300 bg-white text-gray-800 hover:border-blue-500 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-200 dark:hover:border-blue-600'
+    cell.textContent = c === ' ' ? '␣' : c
+    cell.addEventListener('click', () => {
+      cells.forEach((x) => x.classList.remove('ring-2', 'ring-blue-500'))
+      cell.classList.add('ring-2', 'ring-blue-500')
+      const namedLine = name
+        ? "<div><span class='text-gray-500'>named:</span> &amp;" + name + '; <span class="text-gray-400">→ renders as ' + c + "</span></div>"
+        : "<div><span class='text-gray-500'>named:</span> <span class='text-gray-400'>(no named shortcut — use a numeric reference)</span></div>"
+      detailEl.innerHTML =
+        "<div class='mb-2'>Character <span class='text-base'>" + (c === ' ' ? '␣' : c) + "</span> · U+" + cp(c).toString(16).toUpperCase().padStart(4, '0') + "</div>" +
+        namedLine +
+        "<div><span class='text-gray-500'>decimal:</span> " + decRef(c) + "</div>" +
+        "<div><span class='text-gray-500'>hex:</span> " + hexRef(c) + "</div>"
+    })
+    cells.push(cell)
+    gridEl.appendChild(cell)
+  }
+
+  detailEl.textContent = 'Click a character above to inspect its entity forms.'
+</script>

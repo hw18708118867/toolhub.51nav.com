@@ -1,0 +1,105 @@
+---
+/**
+ * UrlFormVsQueryDemo — compares percent-encoding in a URL/query (encodeURIComponent)
+ * against application/x-www-form-urlencoded (form data), where a space becomes "+"
+ * instead of "%20". Step through to see exactly where the two encodings diverge.
+ */
+---
+
+<div class="my-10 rounded-2xl border border-gray-200 bg-gray-50/60 p-4 sm:p-5 dark:border-gray-800 dark:bg-gray-900/40">
+  <div class="mb-1 flex flex-wrap items-center gap-x-3 gap-y-2">
+    <span class="text-sm font-semibold text-gray-900 dark:text-white">Space: %20 in a URL, but + in form data</span>
+  </div>
+  <p class="mb-4 text-xs text-gray-500 dark:text-gray-400">The same text is encoded two ways. Press play to step through each character and spot where the encodings differ.</p>
+
+  <div class="mb-4 flex flex-wrap items-center gap-2">
+    <input id="uf-input" type="text" value="hello world & bye" class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 w-56" />
+    <button id="uf-reset" class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">&#x27F2; Reset</button>
+    <button id="uf-prev" class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">&#8249; Prev</button>
+    <button id="uf-play" class="rounded-lg border border-blue-500 bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700">&#9654; Play</button>
+    <button id="uf-next" class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">Next &#8250;</button>
+  </div>
+
+  <div class="overflow-x-auto">
+    <table class="w-full text-[11px] sm:text-xs border-collapse">
+      <thead>
+        <tr class="text-left text-gray-500 dark:text-gray-400">
+          <th class="border-b border-gray-200 px-2 py-1.5 font-medium dark:border-gray-800">Char</th>
+          <th class="border-b border-gray-200 px-2 py-1.5 font-medium dark:border-gray-800">In a URL / query (encodeURIComponent)</th>
+          <th class="border-b border-gray-200 px-2 py-1.5 font-medium dark:border-gray-800">In form data (x-www-form-urlencoded)</th>
+        </tr>
+      </thead>
+      <tbody id="uf-body"></tbody>
+    </table>
+  </div>
+
+  <div id="uf-explain" class="mt-4 text-[13px] leading-6 text-gray-600 dark:text-gray-400"></div>
+</div>
+
+<script>
+  const $ = (id) => document.getElementById(id)
+  const inputEl = $('uf-input')
+  const bodyEl = $('uf-body')
+  const explainEl = $('uf-explain')
+  const playBtn = $('uf-play')
+
+  const UNRESERVED = new Set('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~'.split(''))
+  function hexOf(b) { return b.toString(16).padStart(2, '0').toUpperCase() }
+  function encQuery(c) {
+    if (UNRESERVED.has(c)) return c
+    return Array.from(new TextEncoder().encode(c)).map(b => '%' + hexOf(b)).join('')
+  }
+  function encForm(c) { return c === ' ' ? '+' : encQuery(c) }
+
+  let cps = [], idx = 0, timer = null
+
+  function buildRows() {
+    cps = Array.from(inputEl.value)
+    bodyEl.innerHTML = cps.map((c, k) => {
+      const q = encQuery(c), f = encForm(c)
+      const diff = q !== f
+      return '<tr data-i="' + k + '" class="border-b border-gray-100 dark:border-gray-800">' +
+        '<td class="px-2 py-1.5 font-mono">' + (c === ' ' ? '&#9219;' : c) + '</td>' +
+        '<td class="px-2 py-1.5 font-mono ' + (diff ? 'text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300') + '">' + q + '</td>' +
+        '<td class="px-2 py-1.5 font-mono ' + (diff ? 'text-purple-600 dark:text-purple-400' : 'text-gray-700 dark:text-gray-300') + '">' + f + '</td>' +
+        '</tr>'
+    }).join('')
+  }
+
+  function render() {
+    const rows = [...bodyEl.children]
+    rows.forEach((r, k) => {
+      r.classList.toggle('bg-blue-50', k === idx)
+      r.classList.toggle('dark:bg-blue-900/20', k === idx)
+    })
+    if (idx < 0 || !cps.length) { explainEl.textContent = ''; return }
+    const c = cps[idx]
+    const q = encQuery(c), f = encForm(c)
+    if (q === f) {
+      explainEl.innerHTML = "Character " + (c === ' ' ? 'space' : '"' + c + '"') + " encodes identically: <span class='font-mono'>" + q + "</span>."
+    } else if (c === ' ') {
+      explainEl.innerHTML = "Here the two diverge. A space is <span class='font-mono text-blue-600 dark:text-blue-400'>%20</span> inside a URL/query, but <span class='font-mono text-purple-600 dark:text-purple-400'>+</span> in form data."
+    } else {
+      explainEl.innerHTML = "Character " + (c === ' ' ? 'space' : '"' + c + '"') + " differs: <span class='font-mono text-blue-600 dark:text-blue-400'>" + q + "</span> in a URL vs <span class='font-mono text-purple-600 dark:text-purple-400'>" + f + "</span> in form data."
+    }
+  }
+
+  function play() {
+    if (timer) return
+    playBtn.textContent = '⏸ Pause'
+    timer = setInterval(() => { if (idx >= cps.length - 1) { pause(); return } idx++; render() }, 900)
+  }
+  function pause() { clearInterval(timer); timer = null; playBtn.textContent = '▶ Play' }
+
+  $('uf-reset').addEventListener('click', () => { pause(); idx = 0; render() })
+  $('uf-prev').addEventListener('click', () => { pause(); idx = Math.max(0, idx - 1); render() })
+  $('uf-next').addEventListener('click', () => { pause(); idx = Math.min(cps.length - 1, idx + 1); render() })
+  playBtn.addEventListener('click', () => (timer ? pause() : play()))
+  inputEl.addEventListener('input', () => { pause(); buildRows(); idx = 0; render() })
+  bodyEl.addEventListener('click', (e) => {
+    const tr = e.target.closest('tr'); if (!tr) return
+    pause(); idx = +tr.dataset.i; render()
+  })
+
+  buildRows(); render()
+</script>

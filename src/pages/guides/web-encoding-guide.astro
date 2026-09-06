@@ -84,6 +84,8 @@ element.innerHTML = encodeHtmlEntities(userComment);</code></pre>
 <h2>Putting It All Together</h2>
 <p>These three encoding schemes solve different problems with a shared purpose: making data safe for transport and display. The most common mistake is using the wrong encoding for the job. Don't Base64-encode a URL parameter. Don't URL-encode HTML content. Don't use HTML entities in a JSON string.</p>
 <p>Each encoding has a specific context. Using the right one makes your code more reliable and your debugging sessions shorter. Bookmark the <a href="/tools/base64-converter/">Base64 Converter</a>, <a href="/tools/url-encode/">URL Encoder</a>, and <a href="/tools/html-entities/">HTML Entities</a> encoder — you'll reach for them more often than you expect.</p>
+<p>For the entity mechanics — the named, decimal, and hex forms, the <code>&amp;</code> trap, and <code>&amp;nbsp;</code> — see our <a href="/guides/html-entities-guide/">HTML entities guide</a>.</p>
+<p>For the byte-level mechanics of percent-encoding — how <code>%20</code> and <code>%C3%A9</code> are produced, and why spaces become <code>+</code> in form data — see our <a href="/guides/url-encoding-guide/">URL encoding guide</a>.</p>
 
 <h2>Encoding in Authentication and Security Contexts</h2>
 <p>HTTP Basic Authentication uses Base64 to encode the credentials string "username:password" into a header: Authorization: Basic dXNlcjpwYXNz. This is encoding, not encryption — anyone who intercepts the request can decode it immediately. Basic Auth must always be sent over HTTPS. For modern API authentication, token-based methods like Bearer tokens and API keys have largely replaced Basic Auth because they don't expose the user's password on every request.</p>

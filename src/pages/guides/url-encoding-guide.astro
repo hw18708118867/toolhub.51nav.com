@@ -1,0 +1,207 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro'
+import UrlEncoderVisualizer from '../../components/interactive/UrlEncoderVisualizer.astro'
+import UrlReservedDemo from '../../components/interactive/UrlReservedDemo.astro'
+import UrlFormVsQueryDemo from '../../components/interactive/UrlFormVsQueryDemo.astro'
+import UrlUtf8Demo from '../../components/interactive/UrlUtf8Demo.astro'
+
+const relatedTools = [
+  { title: 'URL Encoder / Decoder', href: '/tools/url-encode/' },
+  { title: 'URL Parser', href: '/tools/url-parser/' },
+  { title: 'Query String Parser', href: '/tools/query-string-parser/' },
+  { title: 'UTF-8 Converter', href: '/tools/utf8-converter/' },
+  { title: 'HTML Entities', href: '/tools/html-entities/' },
+  { title: 'Base64 Encoder', href: '/tools/base64-converter/' },
+]
+---
+
+<GuideLayout
+  title="URL Encoding Explained: How Percent-Encoding Actually Works"
+  description="A plain-language guide to URL encoding (percent-encoding): why it exists, how bytes become %XX, how spaces turn into %20 or +, and how UTF-8 handles non-ASCII text."
+  relatedTools={relatedTools}
+  datePublished="2026-09-06"
+  dateModified="2026-09-06"
+>
+  <p>
+    When you paste a search query into a browser, the address bar often fills with things like
+    <code>%20</code>, <code>%C3%A9</code>, or <code>q%3Dhello</code>. That is URL encoding, also called
+    percent-encoding. This guide explains what those codes mean, why they appear, and how the encoding is
+    computed step by step. The diagrams below run the real algorithm in your browser, so you can type your
+    own text and watch it get encoded.
+  </p>
+
+  <h2>What URL encoding actually is</h2>
+  <p>
+    URL encoding is a way to put characters into a URL that the URL syntax does not allow as-is. A URL is
+    defined over a limited set of bytes. Anything outside that set, and a handful of characters that have
+    special meaning inside a URL, must be rewritten so the URL stays valid and unambiguous.
+  </p>
+  <p>
+    The rewrite is simple to describe: take the byte, convert it to two uppercase hexadecimal digits, and put
+    a percent sign in front. The space byte <code>0x20</code> becomes <code>%20</code>. The letter
+    <code>A</code> (byte <code>0x41</code>) would become <code>%41</code>, but because <code>A</code> is
+    already allowed, it stays <code>A</code>.
+  </p>
+  <p>
+    One detail trips people up: URL encoding is <strong>not</strong> encryption and <strong>not</strong>
+    compression. The original text is fully recoverable, and the result is usually longer than the input. It
+    is a transport format, not a way to hide data.
+  </p>
+
+  <h2>Why URLs need encoding</h2>
+  <p>
+    A URL has structure. Characters such as <code>?</code>, <code>&amp;</code>, <code>=</code>,
+    <code>/</code>, and <code>#</code> separate the path, query, and fragment. If the data you want to send
+    contains one of those characters, the parser cannot tell whether it is part of your data or part of the
+    URL structure. Encoding removes that ambiguity by turning the structural characters into inert
+    <code>%XX</code> sequences.
+  </p>
+  <p>
+    Encoding is also needed for characters that are not even legal in a URL at all, such as spaces, control
+    characters, and most non-ASCII text. A raw space breaks the URL at the space, and a raw accented letter
+    is not a valid byte in the ASCII URL grammar.
+  </p>
+
+  <h2>The core rule: encode the bytes, not the characters</h2>
+  <p>
+    The single most useful thing to understand is that URL encoding operates on <strong>bytes</strong>. The
+    text is first turned into a sequence of bytes using a character encoding (almost always UTF-8), and then
+    each byte that is not allowed becomes <code>%XX</code>. This matters most for non-English text, as the
+    next sections show. For plain ASCII, the byte and the character are the same thing, so the difference is
+    invisible.
+  </p>
+
+  <h2>Reserved versus unreserved characters</h2>
+  <p>
+    The set of characters that stay untouched is small and fixed by RFC 3986. It is called the unreserved
+    set: the uppercase and lowercase letters <code>A</code>–<code>Z</code>, the digits
+    <code>0</code>–<code>9</code>, and four symbols: hyphen <code>-</code>, period <code>.</code>,
+    underscore <code>_</code>, and tilde <code>~</code>. Everything else printable, plus every control
+    character, gets percent-encoded.
+  </p>
+  <p>
+    Click around the grid to see which characters survive and which turn into codes:</p>
+  <UrlReservedDemo />
+
+  <h2>Walk through a full encoding</h2>
+  <p>
+    Type a string below and press play. The diagram encodes one character at a time, shows the UTF-8 byte or
+    bytes for that character, and builds up the final percent-encoded string. Try <code>hello world</code>,
+    then try something with punctuation.
+  </p>
+  <UrlEncoderVisualizer />
+
+  <h2>Spaces: %20 in a URL, + in form data</h2>
+  <p>
+    Spaces are the most common source of confusion because there are <strong>two</strong> conventions. Inside
+    a URL path or query string, a space is encoded as <code>%20</code>. But in
+    <code>application/x-www-form-urlencoded</code> data, which is what a browser sends when a form is
+    submitted with the default encoding, a space becomes a literal plus sign <code>+</code>.
+  </p>
+  <p>
+    Both forms are valid in their own context. The bug appears when they are mixed: a server that decodes
+    form data expects <code>+</code> to mean space, while a server decoding a query string expects
+    <code>%20</code>. If you send <code>+</code> into a query-string decoder, it may stay as a plus, and if
+    you send <code>%20</code> into a form decoder, it works but looks unusual.
+  </p>
+  <p>Step through the same text encoded both ways to see exactly where they diverge:</p>
+  <UrlFormVsQueryDemo />
+
+  <h2>Non-ASCII text and UTF-8</h2>
+  <p>
+    URL encoding knows nothing about characters such as <code>é</code>, <code>中文</code>, or emoji. It only
+    knows bytes. So before encoding, the text is converted to UTF-8. An ASCII character like
+    <code>c</code> is one byte (<code>0x63</code>) and becomes one code (<code>%63</code>). The letter
+    <code>é</code> is two UTF-8 bytes (<code>0xC3 0xA9</code>) and becomes two codes
+    (<code>%C3%A9</code>). A Chinese character is three bytes, so it becomes three codes.
+  </p>
+  <p>
+    This is why a short non-English word can produce a long encoded string, and why the encoding is
+    reproducible only if both sides agree on UTF-8. If the sender used a different legacy encoding, the bytes
+    would differ and the receiver would decode garbage.
+  </p>
+  <UrlUtf8Demo />
+
+  <h2>URL encoding versus HTML entities and Base64</h2>
+  <p>
+    Three encodings get mixed up because they all turn "weird" text into "safe" text.
+  </p>
+  <ul>
+    <li>
+      <strong>URL encoding</strong> targets URL syntax. It produces <code>%XX</code> and is meant for URLs
+      and form fields.
+    </li>
+    <li>
+      <strong>HTML entities</strong> target HTML markup. They produce <code>&amp;amp;</code> or
+      <code>&amp;#233;</code> so a character shows up correctly inside an HTML document. The same character
+      can look very different in the two systems. Our <a href="/guides/html-entities-guide/">HTML entities
+      guide</a> explains the <code>&amp;lt;</code> and <code>&amp;amp;</code> rules in depth.
+    </li>
+    <li>
+      <strong>Base64</strong> targets binary data. It produces a blob of letters, digits, <code>+</code>,
+      <code>/</code>, and <code>=</code> that is safe to drop into text, including a URL, but it is meant for
+      arbitrary bytes, not for fixing URL syntax. Our <a href="/guides/base64-guide/">Base64 guide</a>
+      covers it in depth.
+    </li>
+  </ul>
+  <p>
+    A common pattern is to Base64-encode binary data and then URL-encode the Base64 result so it can sit in a
+    query parameter. The two encodings stack; they are not alternatives to each other.
+  </p>
+
+  <h2>When you actually need it</h2>
+  <p>
+    You rarely call a URL encoder by hand. The platform does it for you:
+  </p>
+  <ul>
+    <li>
+      In JavaScript, <code>encodeURIComponent()</code> encodes a query value, and <code>encodeURI()</code>
+      encodes a whole URL while leaving the structural characters alone. They are not interchangeable.
+    </li>
+    <li>
+      In a browser, setting <code>form.enctype</code> to the default
+      <code>application/x-www-form-urlencoded</code> makes the browser encode fields for you.
+    </li>
+    <li>
+      On the server, every framework exposes a function to read query strings and form bodies back into
+      normal strings.
+    </li>
+  </ul>
+  <p>
+    You still need to understand it when the automatic encoding is missing, when you build URLs by string
+    concatenation, or when data round-trips through more than one system. The usual failure is a value that
+    contained <code>&amp;</code> or <code>=</code> and was never encoded, so the receiver split it into extra
+    parameters.
+  </p>
+
+  <h2>Common mistakes</h2>
+  <ul>
+    <li>
+      <strong>Encoding the whole URL with <code>encodeURIComponent</code></strong> destroys the
+      <code>?</code>, <code>&amp;</code>, and <code>=</code> that structure it. Encode the values, then
+      assemble the URL.
+    </li>
+    <li>
+      <strong>Doubling the encoding</strong>. Encoding an already-encoded string turns <code>%20</code> into
+      <code>%2520</code>, which decodes to a literal <code>%20</code> instead of a space.
+    </li>
+    <li>
+      <strong>Mixing space conventions</strong>. Sending <code>+</code> where <code>%20</code> is expected
+      leaves a plus in the data.
+    </li>
+    <li>
+      <strong>Forgetting the character encoding</strong>. The same text encodes differently under UTF-8
+      versus a legacy encoding, so agree on UTF-8 on both ends.
+    </li>
+  </ul>
+
+  <h2>Recommended reading</h2>
+  <p>
+    You can put this into practice with the <a href="/tools/url-encode/">URL Encoder / Decoder</a>, or see how
+    a full address breaks apart with the <a href="/tools/url-parser/">URL Parser</a>. For the surrounding
+    concepts, read our <a href="/guides/web-encoding-guide/">web encoding guide</a>,
+    <a href="/guides/url-structure-guide/">URL structure guide</a>, and
+    <a href="/guides/query-string-parsing-guide/">query string parsing guide</a>. The
+    <a href="/guides/base64-guide/">Base64 guide</a> covers the sibling encoding used for binary data.
+  </p>
+</GuideLayout>
