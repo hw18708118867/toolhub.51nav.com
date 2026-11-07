@@ -20,6 +20,14 @@ slug explicitly to the discovery list. Never rely on a third-party sitemap
 integration; this project's custom endpoint owns `/sitemap.xml` and a conflicting
 `@astrojs/sitemap` integration will be silently overwritten by it.
 
+**The sitemap has no `<lastmod>` on purpose.** Stamping every URL with the build
+date makes the field untrustworthy: Google ignores it, and it can trigger
+needless re-crawls of the whole site. Do not add it back unless it reflects each
+page's real modification time.
+```bash
+grep -c "<lastmod>" dist/sitemap.xml              # must be 0
+```
+
 ## 2. robots.txt points at the sitemap
 
 `public/robots.txt` must contain:
@@ -30,21 +38,25 @@ Sitemap: https://toolhub.51nav.com/sitemap.xml
 ```
 The `Sitemap:` line must use the real domain from `astro.config.mjs`'s `site`.
 Do NOT put `{{ site.url }}` placeholders in `robots.txt` — Astro does not expand
-them, so they ship as literal broken text.
+them, so they ship as literal broken text. The root-level `robots.txt` is a
+reference copy and is not deployed; `public/robots.txt` is authoritative.
 
 ## 3. Canonical + meta robots
 
-`BaseLayout` already emits a correct `<link rel="canonical">` (built from
-`Astro.site`) and an explicit
+`BaseLayout` emits `<link rel="canonical">` (built from `Astro.site`) and
 `<meta name="robots" content="index, follow, max-image-preview:large">`. As long
-as the guide uses `GuideLayout`/`BaseLayout`, this is covered. Do not add
-`noindex` anywhere.
+as the guide uses `GuideLayout`/`BaseLayout`, this is covered. `BaseLayout` also
+accepts a `robots` override — only `404.astro` uses it (`noindex, follow`).
+Do not add `noindex` to a real content page. `astro.config.mjs` sets
+`trailingSlash: 'always'` so `/guides/foo` and `/guides/foo/` do not become two
+indexable URLs.
 
 ## 4. Article structured data (JSON-LD)
 
-`GuideLayout` emits `Article` + `BreadcrumbList` JSON-LD. The `Article` block now
-includes `author`, `publisher`, `datePublished`, `dateModified`, and `image`, which
-Google requires for an Article rich result. **You must pass the dates:**
+`GuideLayout` emits `Article` + `BreadcrumbList` JSON-LD. The `Article` block
+includes `author`, `publisher`, `datePublished`, `dateModified`, and `image`,
+which Google requires for an Article rich result. **Both dates are required
+props** — there is no fallback date, so omitting them fails the build:
 ```astro
 <GuideLayout
   ...
@@ -52,13 +64,21 @@ Google requires for an Article rich result. **You must pass the dates:**
   dateModified="2026-09-05"
 >
 ```
-Use the real publish date and the last edit date (ISO `YYYY-MM-DD`). If you omit
-them, the layout falls back to a default but the date will be wrong/stale.
+Use the real publish date and the last edit date (ISO `YYYY-MM-DD`). For an
+existing file, `git log --diff-filter=A --format=%cs -- <file>` gives the
+publish date and `git log -1 --format=%cs -- <file>` the last edit. Never reuse
+one date for every guide: a site full of identical timestamps is a low-trust
+signal and can get the dates ignored.
 
-Validate the emitted JSON-LD after build:
+`GuideLayout` also tells `BaseLayout` to emit `og:type=article` plus
+`article:published_time` / `article:modified_time`. Tool and other pages stay
+`og:type=website`.
+
+Validate the emitted markup after build:
 ```bash
-grep -o '"datePublished":"[0-9-]*"' dist/guides/<slug>/index.html   # present
-grep -o '"@type":"Article"'        dist/guides/<slug>/index.html   # present
+grep -o '"datePublished":"[0-9-]*"' dist/guides/<slug>/index.html       # present
+grep -o '"@type":"Article"' dist/guides/<slug>/index.html               # present
+grep -o 'og:type" content="article"' dist/guides/<slug>/index.html      # present
 ```
 
 ## 5. One <h1>, real heading hierarchy
@@ -68,18 +88,36 @@ with stable `id`s. Do not introduce a second `<h1>` in prose or components. The
 interactive components use `<span>` for their titles, so they stay out of the
 outline — keep it that way.
 
+When counting `<h1>` in built HTML, strip `<script>` and `<style>` blocks first.
+Tool pages embed `<h1>` inside JavaScript example strings, and a raw
+`grep -o "<h1" file | wc -l` reports false duplicates.
+
 ## 6. Unique, descriptive <title> and meta description
 
 Pass a `title` (kept under ~60 chars for the search snippet) and a `description`
 (~150 chars) to `GuideLayout`. They feed `<title>`, the meta description, and the
-OG/Twitter cards. Two guides must not share a title.
+OG/Twitter cards. Two guides must not share a title. Never leave a page on
+`BaseLayout`'s default description — that is how `/tools/` once duplicated the
+homepage's meta description.
 
 ## 7. Internal links (crawl path)
 
-The guide must be reachable without the sitemap: it appears in
-`src/pages/guides/index.astro` and the related tool pages link back to it. This
-is the bidirectional-linking rule from the main workflow; it also satisfies
-Google's crawl discovery.
+The guide must be reachable without the sitemap:
+
+- Add it to `src/pages/guides/index.astro`. A guide missing from the hub is an
+  **orphan** that only the sitemap can discover, and gets the lowest crawl
+  priority. Check that the hub links every built guide.
+- Link it from the related tool pages (`relatedArticles` slot) and from sibling
+  guides; `GuideLayout`'s `relatedTools` provides the outbound links.
+- `Footer.astro` carries site-wide links to key guides; the homepage has a
+  featured-guides section. Add a new flagship guide there if it deserves the
+  extra crawl priority.
+
+Verification:
+```bash
+# every built guide directory should appear as a link in the hub
+grep -o 'href="/guides/[^"]*"' dist/guides/index.html | sort -u | wc -l
+```
 
 ## 8. Mobile-friendly & fast
 
@@ -91,13 +129,18 @@ The E2E regression asserts no horizontal overflow at 375px — keep it green.
 
 A guide should be substantial (the AES/JSON/Base64 guides are 8k+ words with
 diagrams). Thin pages get indexed but rank poorly; aim for depth and real
-examples.
+examples. Requests to have 100+ templated pages indexed at once rarely work —
+concentrate authority on a smaller set of genuinely differentiated pages.
 
 ## Quick pre-ship command
 ```bash
 npm run build
-grep -c "/guides/<slug>/" dist/sitemap.xml
+grep -c "/guides/<slug>/" dist/sitemap.xml      # >= 1
+grep -c "<lastmod>" dist/sitemap.xml            # 0
 grep -o '"datePublished"' dist/guides/<slug>/index.html
 cat dist/robots.txt
 ```
-All three must look right before you consider the guide shipped.
+All must look right before you consider the guide shipped. Technical SEO only
+gets a page *eligible* for indexing; if Search Console reports "Crawled —
+currently not indexed", the problem is content quality and authority, not a
+missing tag.

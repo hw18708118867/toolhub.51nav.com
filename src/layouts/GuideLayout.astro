@@ -15,11 +15,11 @@ interface Props {
   description: string
   breadcrumb?: string
   relatedTools?: RelatedLink[]
-  datePublished?: string
-  dateModified?: string
+  datePublished: string
+  dateModified: string
 }
 
-const { title, description, breadcrumb = 'Guide', relatedTools = [], datePublished = '2026-09-05', dateModified = '2026-09-05' } = Astro.props
+const { title, description, breadcrumb = 'Guide', relatedTools = [], datePublished, dateModified } = Astro.props
 
 const siteUrl = 'https://toolhub.51nav.com'
 const canonicalPath = Astro.url.pathname
@@ -50,7 +50,7 @@ const breadcrumbLd = {
 }
 ---
 
-<BaseLayout {title} {description}>
+<BaseLayout {title} {description} ogType="article" publishedTime={datePublished} modifiedTime={dateModified}>
   <Header />
   <main class="flex-1">
     <article class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">

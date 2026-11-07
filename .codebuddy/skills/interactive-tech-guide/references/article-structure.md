@@ -13,8 +13,17 @@ interface Props {
   description: string
   breadcrumb?: string          // shown in the breadcrumb + breadcrumb LD-JSON
   relatedTools?: RelatedLink[] // { href, title, desc, type?: 'tool' | 'guide' }
+  datePublished: string        // REQUIRED, ISO YYYY-MM-DD, real publish date
+  dateModified: string         // REQUIRED, ISO YYYY-MM-DD, last edit date
 }
 ```
+
+`datePublished` and `dateModified` are **required** — there is no fallback. They
+feed the `Article` JSON-LD, `og:type=article`, and the article timestamps. Use
+real dates: `git log --diff-filter=A --format=%cs -- <file>` for the publish
+date and `git log -1 --format=%cs -- <file>` for the last edit. Do not reuse a
+single date across guides; a site full of identical timestamps is a low-trust
+signal.
 
 The layout exposes two named slots: `title` and `intro` (the header), and the
 default slot is the article body.
@@ -40,7 +49,8 @@ const part2 = `
   <pre><code class="language-js">const x = 1 &lt; 2  // &lt; must be escaped!</code></pre>
 `
 ---
-<GuideLayout title="..." description="..." breadcrumb="AES" relatedTools={[...]}>
+<GuideLayout title="..." description="..." breadcrumb="AES" relatedTools={[...]}
+  datePublished="2026-09-03" dateModified="2026-09-05">
   <Fragment slot="title">AES Encryption Explained</Fragment>
   <Fragment slot="intro">A plain-language tour...</Fragment>
 

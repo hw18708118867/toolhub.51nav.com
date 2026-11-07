@@ -5,13 +5,24 @@ import { tools } from '../data/tools'
 interface Props {
   title?: string
   description?: string
+  ogType?: string
+  publishedTime?: string
+  modifiedTime?: string
+  robots?: string
 }
 
 const toolCount = tools.length
 const defaultTitle = `DevTools Hub — ${toolCount}+ Free Online Developer Tools`
 const defaultDesc = `Free online developer tools. JSON formatter, Base64 converter, UUID generator, and ${toolCount}+ more. All processing happens locally in your browser — no data collection.`
 
-const { title = defaultTitle, description = defaultDesc } = Astro.props
+const {
+  title = defaultTitle,
+  description = defaultDesc,
+  ogType = 'website',
+  publishedTime,
+  modifiedTime,
+  robots = 'index, follow, max-image-preview:large',
+} = Astro.props
 
 // Read from environment variables (GitHub Actions secrets / .env file)
 // Set PUBLIC_GA4_ID and PUBLIC_GSC_CODE in your repository's CI variables
@@ -28,11 +39,13 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site).href
     <meta name="description" content={description} />
     <title>{title}</title>
     <link rel="canonical" href={canonicalURL} />
-    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta name="robots" content={robots} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonicalURL} />
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={ogType} />
+    {publishedTime && <meta property="article:published_time" content={publishedTime} />}
+    {modifiedTime && <meta property="article:modified_time" content={modifiedTime} />}
     <meta property="og:image" content="https://toolhub.51nav.com/og-image.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />

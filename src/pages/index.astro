@@ -203,6 +203,60 @@ const toolsByCategory = Object.entries(categories).map(([key, cat]) => ({
       </div>
     </section>
 
+    <!-- Developer Guides Section -->
+    <section id="developer-guides" class="py-16 sm:py-20">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+          <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-4 dark:text-white">Developer Guides</h2>
+          <p class="text-lg text-gray-500 max-w-2xl mx-auto dark:text-gray-400">In-depth explanations of the formats and algorithms behind the tools</p>
+        </div>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <a href="/guides/json-structure-guide/" class="group">
+            <div class="bg-white border border-gray-200 rounded-2xl p-6 h-full hover:border-blue-500 hover:shadow-lg transition-all dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600">
+              <h3 class="text-lg font-semibold text-gray-900 mb-2 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400">JSON Explained</h3>
+              <p class="text-sm text-gray-500 leading-relaxed dark:text-gray-400">Syntax, value types, how a parser reads JSON, escaping, and number traps.</p>
+            </div>
+          </a>
+          <a href="/guides/url-encoding-guide/" class="group">
+            <div class="bg-white border border-gray-200 rounded-2xl p-6 h-full hover:border-blue-500 hover:shadow-lg transition-all dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600">
+              <h3 class="text-lg font-semibold text-gray-900 mb-2 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400">URL Encoding</h3>
+              <p class="text-sm text-gray-500 leading-relaxed dark:text-gray-400">Why %20 and %C3%A9 appear, how bytes become entities, and UTF-8 handling.</p>
+            </div>
+          </a>
+          <a href="/guides/html-entities-guide/" class="group">
+            <div class="bg-white border border-gray-200 rounded-2xl p-6 h-full hover:border-blue-500 hover:shadow-lg transition-all dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600">
+              <h3 class="text-lg font-semibold text-gray-900 mb-2 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400">HTML Entities</h3>
+              <p class="text-sm text-gray-500 leading-relaxed dark:text-gray-400">Named, decimal and hex forms, the ampersand trap, and non-breaking spaces.</p>
+            </div>
+          </a>
+          <a href="/guides/base64-guide/" class="group">
+            <div class="bg-white border border-gray-200 rounded-2xl p-6 h-full hover:border-blue-500 hover:shadow-lg transition-all dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600">
+              <h3 class="text-lg font-semibold text-gray-900 mb-2 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400">Base64 Explained</h3>
+              <p class="text-sm text-gray-500 leading-relaxed dark:text-gray-400">How 3 bytes become 4 characters, padding, and why it is not encryption.</p>
+            </div>
+          </a>
+          <a href="/guides/aes-encryption-guide/" class="group">
+            <div class="bg-white border border-gray-200 rounded-2xl p-6 h-full hover:border-blue-500 hover:shadow-lg transition-all dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600">
+              <h3 class="text-lg font-semibold text-gray-900 mb-2 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400">AES Encryption</h3>
+              <p class="text-sm text-gray-500 leading-relaxed dark:text-gray-400">Block cipher modes, IV reuse, padding oracles, PBKDF2, and AEAD.</p>
+            </div>
+          </a>
+          <a href="/guides/web-encoding-guide/" class="group">
+            <div class="bg-white border border-gray-200 rounded-2xl p-6 h-full hover:border-blue-500 hover:shadow-lg transition-all dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600">
+              <h3 class="text-lg font-semibold text-gray-900 mb-2 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400">Web Encoding</h3>
+              <p class="text-sm text-gray-500 leading-relaxed dark:text-gray-400">Base64, URL encoding and HTML entities, and when to use each one.</p>
+            </div>
+          </a>
+        </div>
+        <div class="text-center mt-10">
+          <a href="/guides/" class="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors">
+            Browse all guides
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </a>
+        </div>
+      </div>
+    </section>
+
     <!-- Why Choose Us Section -->
     <section class="py-16 sm:py-20">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

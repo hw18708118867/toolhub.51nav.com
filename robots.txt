@@ -1,6 +1,7 @@
-# robots.txt for DevTools Hub
-
+# Reference copy only — Astro deploys public/robots.txt, not this file.
+# Keep public/robots.txt authoritative. Never use {{ site.url }} placeholders:
+# Astro does not expand them and they ship as literal broken text.
 User-agent: *
 Allow: /
 
-Sitemap: {{ site.url }}/sitemap.xml
+Sitemap: https://toolhub.51nav.com/sitemap.xml

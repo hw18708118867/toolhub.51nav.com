@@ -1,160 +1,84 @@
 # Deployment Guide
 
-This guide will walk you through deploying DevTools Hub to GitHub Pages.
+DevTools Hub is a static Astro site. `npm run build` writes the production site
+to `dist/`; GitHub Actions deploys that folder to GitHub Pages.
 
-## Quick Start
-
-### 1. Prepare the Repository
-
-Create a new git repository and commit your code:
+## Local development
 
 ```bash
-git init
-git add .
-git commit -m "Initial commit"
+npm ci
+npm run dev        # http://localhost:4321
+npm run build      # -> dist/
+npm run preview    # serve the built dist/ locally
 ```
 
-### 2. Create GitHub Repository
+The build is static (`output: 'static'` in `astro.config.mjs`). `site` is
+`https://toolhub.51nav.com`, which is also what canonical tags, OG tags,
+`sitemap.xml` and `public/robots.txt` use. Keep them in sync if the domain
+changes. `trailingSlash: 'always'` keeps one canonical URL form.
 
-Go to [GitHub](https://github.com/new) and create a new repository.
+## Automatic deployment
 
-Then push your code:
+`.github/workflows/deploy.yml` runs on every push to `main` (and via
+`workflow_dispatch`). It installs dependencies, runs `npm run build`, uploads
+`dist/` as a Pages artifact and deploys it. There is no Jekyll step and no
+`_config.yml`; do not follow Jekyll or branch-deploy instructions.
 
-```bash
-git remote add origin https://github.com/your-username/your-repo.git
-git branch -M main
-git push -u origin main
-```
+### Custom domain
 
-### 3. Enable GitHub Pages
+`public/CNAME` contains `toolhub.51nav.com` and is copied into `dist/` on every
+build. Point DNS at GitHub Pages:
 
-1. Go to your repository on GitHub
-2. Click **Settings** → **Pages**
-3. Under "Source", select:
-   - **Deploy from a branch**
-   - Branch: `main` (or `master`)
-   - Folder: `/ (root)`
-4. Click **Save**
+- `CNAME toolhub -> <username>.github.io`
+- In repo Settings → Pages, set the custom domain to `toolhub.51nav.com` and
+  enable **Enforce HTTPS**.
 
-Your site will be live at: `https://your-username.github.io/your-repo/`
+### Analytics and Search Console variables
 
-## Custom Domain Setup
-
-### Step 1: Update _config.yml
-
-Change the `url` and `baseurl` settings:
-
-```yaml
-# For custom domain
-url: "https://devtoolshub.com"
-baseurl: ""
-
-# OR for project page
-url: "https://your-username.github.io"
-baseurl: "/your-repo"
-```
-
-### Step 2: Create CNAME File
-
-Create a file named `CNAME` in the root:
-
-```
-devtoolshub.com
-```
-
-### Step 3: Configure DNS
-
-With your domain registrar, set up these records:
-
-**Option A: Root domain (e.g., devtoolshub.com)**
-```
-A @ 185.199.108.153
-A @ 185.199.109.153
-A @ 185.199.110.153
-A @ 185.199.111.153
-```
-
-**Option B: www subdomain (e.g., www.devtoolshub.com)**
-```
-CNAME www your-username.github.io
-```
-
-Wait for DNS propagation (can take up to 24 hours).
-
-### Step 4: Enable HTTPS
-
-In GitHub Pages settings, check **Enforce HTTPS** (may need to wait for DNS to propagate first).
-
-## Google AdSense
-
-### 1. Apply for AdSense
-
-1. Go to [Google AdSense](https://www.google.com/adsense/)
-2. Sign up and submit your site for review
-
-### 2. Get Your Client ID
-
-Once approved, find your client ID (looks like `ca-pub-1234567890123456`)
-
-### 3. Update _config.yml
-
-```yaml
-adsense_client: ca-pub-1234567890123456
-```
-
-### 4. Uncomment AdSense Code
-
-In the template files (e.g., `_includes/ad-top.html`, `_includes/ad-sidebar.html`), uncomment the AdSense code and replace with your client ID and ad slot IDs.
+`src/layouts/BaseLayout.astro` reads `PUBLIC_GA4_ID` and `PUBLIC_GSC_CODE`.
+Set them under repo **Settings → Secrets and variables → Actions → Variables**
+(the workflow passes them as `vars.*` at build time). `.env.example` lists the
+names for local development. Without real values, the built pages contain
+placeholder IDs.
 
 ## Google Search Console
 
-### 1. Add Your Site
+1. Add the `https://toolhub.51nav.com` property. DNS TXT verification is the
+   most robust option; HTML-tag verification also works when
+   `PUBLIC_GSC_CODE` is a real code.
+2. Submit `https://toolhub.51nav.com/sitemap.xml` under **Sitemaps**.
+3. Use **URL Inspection → Request Indexing** for the homepage and new guides.
+4. Read **Indexing → Pages** to tell "Crawled – currently not indexed" (a
+   content/authority problem) from "Discovered – currently not crawled" (a
+   crawl-budget problem). They need different fixes.
 
-1. Go to [Google Search Console](https://search.google.com/search-console/)
-2. Add your site URL
-3. Verify ownership (via DNS record, HTML file, or Google Analytics)
+## Sitemap and robots
 
-### 2. Submit Sitemap
+- `src/pages/sitemap.xml.ts` is a custom endpoint that owns `/sitemap.xml`.
+  It auto-discovers every `src/pages/guides/*.astro` via `import.meta.glob`,
+  so a new guide is picked up with no edit. **Never install `@astrojs/sitemap`**
+  — it conflicts with this endpoint.
+- The sitemap deliberately has **no `<lastmod>`**. A build date applied to all
+  URLs makes the field untrustworthy, so Google ignores it, and it can waste
+  crawl budget. Only add it back if it reflects each page's real modification
+  time.
+- The deployed robots file is `public/robots.txt`. The root-level `robots.txt`
+  is **not** copied by Astro; it exists only as a reference copy. Never put
+  `{{ site.url }}` in a robots file — Astro does not expand it.
 
-1. In Search Console, go to **Sitemaps**
-2. Add: `https://your-domain.com/sitemap.xml`
+## Adding a guide
 
-### 3. Request Indexing
-
-1. Go to **URL inspection tool**
-2. Enter your homepage URL
-3. Click **Request Indexing**
-
-## Performance Tips
-
-1. Keep images small and compressed
-2. Minify CSS/JS (Jekyll can do this automatically)
-3. Use CDN for external libraries
-4. Monitor with PageSpeed Insights
+Follow the `interactive-tech-guide` skill. In short: pass
+`datePublished`/`dateModified` to `GuideLayout` (both required), list the guide
+in `src/pages/guides/index.astro` (otherwise it is an orphan reachable only via
+the sitemap), and link it to and from the related tool pages.
 
 ## Troubleshooting
 
-### Site not updating?
-
-- Wait a few minutes for GitHub Pages to build
-- Try a hard refresh (Ctrl+Shift+R)
-- Check the "Deployments" tab for build errors
-
-### Links not working?
-
-- Double-check `baseurl` in `_config.yml`
-- Use absolute paths with `{{ '/page/' | relative_url }}`
-
-### Custom domain not working?
-
-- Verify your CNAME file is in the repository
-- Check DNS propagation with `dig` or `nslookup`
-- Make sure you're using HTTPS
-
-## Next Steps After Deployment
-
-1. **Monitor Traffic**: Set up Google Analytics
-2. **Add Content**: Write blog posts about using the tools
-3. **Promote**: Share on Reddit, Hacker News, Twitter, etc.
-4. **Iterate**: Monitor feedback and add new tools
-5. **Optimize**: Track rankings and improve SEO
+| Symptom | Check |
+|---|---|
+| Site not updating | Actions run log; confirm `npm run build` succeeded and the deploy job ran |
+| Guide missing from sitemap | It must be a flat `src/pages/guides/*.astro` file; rebuild and grep `dist/sitemap.xml` |
+| Canonical / OG URL wrong | `site` in `astro.config.mjs` |
+| 404 on deep links | GitHub Pages needs `public/CNAME` and the custom domain configured |
+| Local build exits 1 | Some local VSCode extensions intercept Astro's cleanup of `dist/pages/**/*.astro.mjs`; the pages are still generated. CI is unaffected. |
