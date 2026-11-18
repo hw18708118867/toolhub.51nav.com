@@ -30,7 +30,9 @@
   <div id="bu-timeline" class="mt-4 flex flex-wrap gap-1.5"></div>
 </div>
 
-<script>
+<script>// COMPONENT_GUARD: skip when this component is not on the page
+if (document.getElementById("bu-card")) {
+
   const B64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
 
   function encodeUrlSafe(bytes) {
@@ -117,4 +119,5 @@
 
   buildTimeline()
   render()
-</script>
+
+}</script>

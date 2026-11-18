@@ -40,7 +40,9 @@
   </div>
 </div>
 
-<script>
+<script>// COMPONENT_GUARD: skip when this component is not on the page
+if (document.getElementById("ivA")) {
+
   const $ = (id: string) => document.getElementById(id)! as HTMLElement
   const enc = new TextEncoder()
   const dec = new TextDecoder()
@@ -110,4 +112,5 @@
 
   ;['ivA', 'ivB'].forEach(id => $(id).addEventListener('input', run))
   run()
-</script>
+
+}</script>

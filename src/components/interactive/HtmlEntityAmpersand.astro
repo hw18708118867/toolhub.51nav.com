@@ -33,7 +33,9 @@
   <div id="ha-explain" class="mt-4 text-[13px] leading-6 text-gray-600 dark:text-gray-400"></div>
 </div>
 
-<script>
+<script>// COMPONENT_GUARD: skip when this component is not on the page
+if (document.getElementById("ha-input")) {
+
   const $ = (id) => document.getElementById(id)
   const inputEl = $('ha-input')
   const srcEl = $('ha-src')
@@ -61,4 +63,5 @@
   inputEl.addEventListener('input', update)
   document.querySelectorAll('.ha-preset').forEach((b) => b.addEventListener('click', () => { inputEl.value = b.dataset.v; update() }))
   update()
-</script>
+
+}</script>

@@ -40,7 +40,9 @@
   <div id="jp-timeline" class="mt-4 flex flex-wrap gap-1.5"></div>
 </div>
 
-<script>
+<script>// COMPONENT_GUARD: skip when this component is not on the page
+if (document.getElementById("jp-source")) {
+
   // --- A real recursive-descent JSON parser that records steps ---------------
   function buildSteps(text) {
     const steps = []
@@ -262,4 +264,5 @@
 
   buildTimeline()
   render()
-</script>
+
+}</script>

@@ -29,7 +29,9 @@
   <div id="bn-timeline" class="mt-4 flex flex-wrap gap-1.5"></div>
 </div>
 
-<script>
+<script>// COMPONENT_GUARD: skip when this component is not on the page
+if (document.getElementById("bn-card")) {
+
   const SECRET = 'password123'
   const encoded = btoa(SECRET)
   const decoded = atob(encoded)
@@ -86,4 +88,5 @@
 
   buildTimeline()
   render()
-</script>
+
+}</script>

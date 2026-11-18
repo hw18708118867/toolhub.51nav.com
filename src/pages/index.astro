@@ -4,7 +4,11 @@ import Header from '../components/Header.astro'
 import Footer from '../components/Footer.astro'
 import ToolCard from '../components/ToolCard.astro'
 import AnimatedIcon from '../components/AnimatedIcon.astro'
+import HeroDemo from '../components/HeroDemo.astro'
+import RecentTools from '../components/RecentTools.astro'
 import { popularTools, tools, categories } from '../data/tools'
+
+const guideCount = Object.keys(import.meta.glob('./guides/*.astro')).filter(p => !p.endsWith('index.astro')).length
 
 // Group tools by category
 const toolsByCategory = Object.entries(categories).map(([key, cat]) => ({
@@ -17,56 +21,42 @@ const toolsByCategory = Object.entries(categories).map(([key, cat]) => ({
 <BaseLayout title={`DevTools Hub — ${tools.length}+ Free Online Developer Tools`}>
   <Header />
   <main class="flex-1">
-    <!-- Hero Section (with integrated stats) -->
-    <section class="bg-gradient-to-br from-blue-50 via-gray-50 to-white dark:from-blue-900 dark:via-gray-900 dark:to-gray-950 py-16 sm:py-24">
+    <!-- Hero: show the product working, don't just describe it -->
+    <section class="bg-gradient-to-br from-blue-50 via-gray-50 to-white dark:from-blue-950 dark:via-gray-900 dark:to-gray-950 py-12 sm:py-16 lg:py-20">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center">
-          <div class="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 border border-blue-200 rounded-full mb-6 dark:bg-blue-600/20 dark:border-blue-500/30">
-            <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M13 2 L3 14 H12 L11 22 L21 10 H12 L13 2Z"/>
-            </svg>
-            <span class="text-blue-700 text-sm font-medium dark:text-blue-300">{tools.length}+ Free Developer Tools</span>
-          </div>
-          <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight dark:text-white">
-            Make your work
-            <span class="text-blue-600 dark:text-blue-400">easier</span>
-          </h1>
-          <p class="text-xl text-gray-500 max-w-2xl mx-auto mb-10 dark:text-gray-400">
-            Fast, private, and easy-to-use tools for developers. All tools run locally in your browser. No data is sent anywhere.
-          </p>
-          <div class="flex flex-wrap justify-center gap-4 mb-14">
-            <a href="/tools/" class="inline-flex items-center gap-2 px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-blue-500/30">
-              Browse Tools
-              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M5 12h14M12 5l7 7-7 7"/>
-              </svg>
-            </a>
-            <a href="#tool-categories" class="inline-flex items-center gap-2 px-8 py-4 bg-white hover:bg-gray-50 text-gray-700 font-semibold rounded-xl border border-gray-200 transition-all duration-200 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white dark:border-gray-700">
-              Explore Categories
-            </a>
-          </div>
-
-          <!-- Stats Row -->
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto">
-            <div class="bg-white border border-gray-200 rounded-xl p-4 dark:bg-gray-900/50 dark:border-gray-800">
-              <div class="text-3xl font-bold text-blue-600 mb-1 dark:text-blue-400">{tools.length}</div>
-              <div class="text-sm text-gray-400 dark:text-gray-500">Free Tools</div>
+        <div class="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+          <div>
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-100 border border-blue-200 rounded-full mb-5 dark:bg-blue-600/20 dark:border-blue-500/30">
+              <span class="w-2 h-2 rounded-full bg-blue-600 dark:bg-blue-400"></span>
+              <span class="text-blue-700 text-xs font-semibold dark:text-blue-300">{tools.length} tools · {guideCount} guides · 0 sign-ups</span>
             </div>
-            <div class="bg-white border border-gray-200 rounded-xl p-4 dark:bg-gray-900/50 dark:border-gray-800">
-              <div class="text-3xl font-bold text-green-600 mb-1 dark:text-green-400">100%</div>
-              <div class="text-sm text-gray-400 dark:text-gray-500">Private</div>
+            <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-5 leading-[1.1] dark:text-white">
+              Developer tools<br class="hidden sm:block" /> that just <span class="text-blue-600 dark:text-blue-400">work</span>.
+            </h1>
+            <p class="text-lg sm:text-xl text-gray-500 max-w-xl mb-8 dark:text-gray-400">
+              Encode, decode, format, convert, debug. {tools.length} tools and {guideCount} in-depth guides — all running in your browser, nothing uploaded.
+            </p>
+            <div class="flex flex-wrap gap-3 mb-8">
+              <a href="/tools/" class="inline-flex items-center gap-2 px-7 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-blue-500/30">
+                Browse all tools
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </a>
+              <a href="/guides/" class="inline-flex items-center gap-2 px-7 py-3.5 bg-white hover:bg-gray-50 text-gray-700 font-semibold rounded-xl border border-gray-200 transition-all duration-200 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white dark:border-gray-700">
+                Read the guides
+              </a>
             </div>
-            <div class="bg-white border border-gray-200 rounded-xl p-4 dark:bg-gray-900/50 dark:border-gray-800">
-              <div class="text-3xl font-bold text-yellow-600 mb-1 dark:text-yellow-400">0</div>
-              <div class="text-sm text-gray-400 dark:text-gray-500">Sign Ups</div>
-            </div>
-            <div class="bg-white border border-gray-200 rounded-xl p-4 dark:bg-gray-900/50 dark:border-gray-800">
-              <div class="text-3xl font-bold text-purple-600 mb-1 dark:text-purple-400">∞</div>
-              <div class="text-sm text-gray-400 dark:text-gray-500">No Limits</div>
+            <div class="flex flex-wrap gap-x-5 gap-y-2 text-xs text-gray-500 dark:text-gray-500">
+              <span>100% local</span><span>·</span><span>No sign-up</span><span>·</span><span>No limits</span>
             </div>
           </div>
+          <HeroDemo />
         </div>
       </div>
+    </section>
+
+    <!-- Recent tools (appears after a visitor has used one) -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10">
+      <RecentTools />
     </section>
 
     <!-- Popular Tools Section -->
@@ -210,7 +200,7 @@ const toolsByCategory = Object.entries(categories).map(([key, cat]) => ({
           <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-4 dark:text-white">Developer Guides</h2>
           <p class="text-lg text-gray-500 max-w-2xl mx-auto dark:text-gray-400">In-depth explanations of the formats and algorithms behind the tools</p>
         </div>
-        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <a href="/guides/json-structure-guide/" class="group">
             <div class="bg-white border border-gray-200 rounded-2xl p-6 h-full hover:border-blue-500 hover:shadow-lg transition-all dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600">
               <h3 class="text-lg font-semibold text-gray-900 mb-2 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400">JSON Explained</h3>
@@ -245,6 +235,18 @@ const toolsByCategory = Object.entries(categories).map(([key, cat]) => ({
             <div class="bg-white border border-gray-200 rounded-2xl p-6 h-full hover:border-blue-500 hover:shadow-lg transition-all dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600">
               <h3 class="text-lg font-semibold text-gray-900 mb-2 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400">Web Encoding</h3>
               <p class="text-sm text-gray-500 leading-relaxed dark:text-gray-400">Base64, URL encoding and HTML entities, and when to use each one.</p>
+            </div>
+          </a>
+          <a href="/guides/json-debugging-guide/" class="group">
+            <div class="bg-white border border-gray-200 rounded-2xl p-6 h-full hover:border-blue-500 hover:shadow-lg transition-all dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600">
+              <h3 class="text-lg font-semibold text-gray-900 mb-2 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400">JSON Debugging</h3>
+              <p class="text-sm text-gray-500 leading-relaxed dark:text-gray-400">Find and fix parse errors, formatting issues, and JWT debugging pitfalls.</p>
+            </div>
+          </a>
+          <a href="/guides/text-processing-guide/" class="group">
+            <div class="bg-white border border-gray-200 rounded-2xl p-6 h-full hover:border-blue-500 hover:shadow-lg transition-all dark:bg-gray-900 dark:border-gray-800 dark:hover:border-blue-600">
+              <h3 class="text-lg font-semibold text-gray-900 mb-2 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400">Text Processing</h3>
+              <p class="text-sm text-gray-500 leading-relaxed dark:text-gray-400">Regex, case conversion, deduplication, and word counting workflows.</p>
             </div>
           </a>
         </div>
@@ -292,45 +294,6 @@ const toolsByCategory = Object.entries(categories).map(([key, cat]) => ({
             <h3 class="text-xl font-semibold text-gray-900 mb-3 dark:text-white">Always Free</h3>
             <p class="text-gray-400 dark:text-gray-500">No sign ups. No paywalls. No limits. Just tools that work for developers.</p>
           </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Developer Guides Section -->
-    <section class="bg-gray-50 border-y border-gray-200 py-16 sm:py-20 dark:bg-gray-900 dark:border-gray-800">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-12">
-          <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-4 dark:text-white">Developer Guides</h2>
-          <p class="text-lg text-gray-500 max-w-2xl mx-auto dark:text-gray-400">In-depth tutorials to help you get the most out of our tools</p>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <a href="/guides/json-debugging-guide/" class="group">
-            <div class="bg-white border border-gray-200 rounded-2xl p-8 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 h-full dark:bg-gray-950 dark:border-gray-800 dark:hover:border-blue-600">
-              <div class="w-14 h-14 bg-blue-50 rounded-xl flex items-center justify-center mb-5 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all dark:bg-blue-600/20 dark:text-blue-400">
-                <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-              </div>
-              <h3 class="text-lg font-semibold text-gray-900 mb-2 dark:text-white">JSON Data Debugging Guide</h3>
-              <p class="text-gray-500 text-sm dark:text-gray-400">A systematic approach to finding and fixing JSON errors. Covers validation, formatting, JWT debugging, and real-world API workflows.</p>
-            </div>
-          </a>
-          <a href="/guides/web-encoding-guide/" class="group">
-            <div class="bg-white border border-gray-200 rounded-2xl p-8 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 h-full dark:bg-gray-950 dark:border-gray-800 dark:hover:border-blue-600">
-              <div class="w-14 h-14 bg-green-50 rounded-xl flex items-center justify-center mb-5 text-green-600 group-hover:bg-green-600 group-hover:text-white transition-all dark:bg-green-600/20 dark:text-green-400">
-                <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-              </div>
-              <h3 class="text-lg font-semibold text-gray-900 mb-2 dark:text-white">Web Encoding Explained</h3>
-              <p class="text-gray-500 text-sm dark:text-gray-400">Base64, URL encoding, and HTML entities — when to use each, common mistakes, and practical code examples.</p>
-            </div>
-          </a>
-          <a href="/guides/text-processing-guide/" class="group">
-            <div class="bg-white border border-gray-200 rounded-2xl p-8 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 h-full dark:bg-gray-950 dark:border-gray-800 dark:hover:border-blue-600">
-              <div class="w-14 h-14 bg-purple-50 rounded-xl flex items-center justify-center mb-5 text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition-all dark:bg-purple-600/20 dark:text-purple-400">
-                <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-              </div>
-              <h3 class="text-lg font-semibold text-gray-900 mb-2 dark:text-white">Text Processing for Developers</h3>
-              <p class="text-gray-500 text-sm dark:text-gray-400">Regex patterns, case conversion, deduplication, and word counting — practical workflows for everyday text tasks.</p>
-            </div>
-          </a>
         </div>
       </div>
     </section>

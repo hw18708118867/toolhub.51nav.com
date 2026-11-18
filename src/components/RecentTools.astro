@@ -1,0 +1,38 @@
+---
+/** Small client-rendered strip of recently used tools. Hidden until history exists. */
+import { tools } from '../data/tools'
+
+const nameById = Object.fromEntries(tools.map((t) => [t.id, t.name]))
+---
+
+<div id="recent-tools" class="hidden mb-10 rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+  <div class="flex items-center justify-between gap-3 mb-3">
+    <h2 class="text-sm font-semibold text-gray-900 dark:text-white">Recent tools</h2>
+    <button id="recent-tools-clear" class="text-xs text-gray-400 hover:text-gray-600 transition-colors dark:hover:text-gray-300">Clear</button>
+  </div>
+  <div id="recent-tools-list" class="flex flex-wrap gap-2"></div>
+</div>
+
+<script define:vars={{ nameById }}>
+  const root = document.getElementById('recent-tools')
+  const list = document.getElementById('recent-tools-list')
+  const clear = document.getElementById('recent-tools-clear')
+
+  function render() {
+    let ids = []
+    try { ids = JSON.parse(localStorage.getItem('dt-recent') || '[]') } catch (_) { /* storage disabled */ }
+    ids = (Array.isArray(ids) ? ids : []).filter(id => nameById[id]).slice(0, 5)
+    if (!ids.length || !root || !list) { root?.classList.add('hidden'); return }
+    root.classList.remove('hidden')
+    list.innerHTML = ids.map(id =>
+      '<a href="/tools/' + id + '/" data-ga="recent_tool_click" class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-medium text-gray-700 hover:border-blue-500 hover:text-blue-600 transition-colors dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-blue-600">' +
+      '<span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>' + nameById[id] + '</a>'
+    ).join('')
+  }
+
+  render()
+  clear?.addEventListener('click', () => {
+    try { localStorage.removeItem('dt-recent') } catch (_) { /* storage disabled */ }
+    render()
+  })
+</script>

@@ -38,7 +38,9 @@
   <div id="je-timeline" class="mt-4 flex flex-wrap gap-1.5"></div>
 </div>
 
-<script>
+<script>// COMPONENT_GUARD: skip when this component is not on the page
+if (document.getElementById("je-input")) {
+
   // Mirror JSON string escaping for a single character.
   function escapeChar(ch) {
     switch (ch) {
@@ -131,4 +133,5 @@
 
   buildTimeline()
   render()
-</script>
+
+}</script>

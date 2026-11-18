@@ -31,7 +31,9 @@
   <div id="uu-explain" class="mt-4 text-[13px] leading-6 text-gray-600 dark:text-gray-400"></div>
 </div>
 
-<script>
+<script>// COMPONENT_GUARD: skip when this component is not on the page
+if (document.getElementById("uu-input")) {
+
   const $ = (id) => document.getElementById(id)
   const inputEl = $('uu-input')
   const rowsEl = $('uu-rows')
@@ -108,4 +110,5 @@
   rowsEl.addEventListener('click', (e) => { const d = e.target.closest('[data-i]'); if (!d) return; pause(); idx = +d.dataset.i; render() })
 
   recompute()
-</script>
+
+}</script>

@@ -16,9 +16,11 @@ interface Props {
   steps?: { name: string; text: string }[]
   /** FAQ items for structured data */
   faq?: { question: string; answer: string }[]
+  /** Sample input preloaded on first paint so the tool shows value immediately */
+  quickStart?: string
 }
 
-const { tool, description, steps = [], faq = [] } = Astro.props
+const { tool, description, steps = [], faq = [], quickStart } = Astro.props
 
 // Auto-generate related tools: same category, excluding current tool, max 4
 const relatedTools = tools
@@ -174,4 +176,26 @@ const faqLd = faq.length > 0 ? {
   <script type="application/ld+json" set:html={JSON.stringify(appLd)}></script>
   <script type="application/ld+json" set:html={JSON.stringify(breadcrumbLd)}></script>
   {faqLd && <script type="application/ld+json" set:html={JSON.stringify(faqLd)}></script>}
+
+  <script define:vars={{ quickStart, currentToolId: tool.id }}>
+    try {
+      const raw = JSON.parse(localStorage.getItem('dt-recent') || '[]')
+      const next = [currentToolId, ...raw.filter(x => x !== currentToolId)].slice(0, 8)
+      localStorage.setItem('dt-recent', JSON.stringify(next))
+    } catch (_) { /* storage disabled */ }
+
+    if (quickStart) {
+      setTimeout(() => {
+        const field = document.querySelector('textarea') || document.querySelector('input[type="text"]')
+        if (field && !field.value) {
+          field.value = quickStart
+          field.dispatchEvent(new Event('input', { bubbles: true }))
+          field.dispatchEvent(new Event('change', { bubbles: true }))
+          const primary = document.querySelector('.btn-primary')
+          if (primary) primary.click()
+          document.dispatchEvent(new CustomEvent('ga-event', { detail: { name: 'tool_quickstart', tool: document.title } }))
+        }
+      }, 400)
+    }
+  </script>
 </BaseLayout>

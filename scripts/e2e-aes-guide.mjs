@@ -7,9 +7,11 @@
  */
 import { launch, reporter } from './_browser.mjs'
 
-// Port 4399 is used deliberately: an `astro dev` server on 4321 would win the
-// bind and silently serve the dev build, whose toolbar pollutes console errors.
-const URL = process.env.URL || 'http://localhost:4399/guides/aes-encryption-guide/'
+// A dedicated port is used deliberately: an `astro dev` server on 4321 would
+// win the bind and silently serve the dev build, whose toolbar pollutes console
+// errors. PORT makes this script usable alongside the other guide E2E runs.
+const PORT = process.env.PORT || 4399
+const URL = process.env.URL || `http://localhost:${PORT}/guides/aes-encryption-guide/`
 
 const { t, state } = reporter()
 

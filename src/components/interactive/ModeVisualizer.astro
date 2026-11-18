@@ -51,6 +51,8 @@
 
 <script>
   import { keyExpansion, ecbEncrypt, cbcEncrypt, ctrCrypt, bytesToHex } from '../../lib/aes'
+// COMPONENT_GUARD: skip when this component is not on the page
+if (document.getElementById("mvPlain")) {
 
   const $ = (id: string) => document.getElementById(id)! as HTMLElement
 
@@ -248,4 +250,5 @@
   $('mvReset').addEventListener('click', () => { pause(); active = -1; render() })
 
   await setMode('ECB')
-</script>
+
+}</script>

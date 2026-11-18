@@ -96,6 +96,8 @@
   import {
     keyExpansion, traceEncryption, gmul, SBOX, sboxSteps,
   } from '../../lib/aes'
+// COMPONENT_GUARD: skip when this component is not on the page
+if (document.getElementById("aes-round-viz")) {
 
   const root = document.getElementById('aes-round-viz')!
   const $ = (id: string) => document.getElementById(id)! as HTMLElement
@@ -370,4 +372,5 @@
     })
   }, { threshold: 0.35 })
   io.observe(root)
-</script>
+
+}</script>

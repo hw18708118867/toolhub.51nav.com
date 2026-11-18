@@ -51,6 +51,8 @@
 
 <script>
   import { keyExpansion, ecbEncrypt, cbcEncrypt, bytesToHex } from '../../lib/aes'
+// COMPONENT_GUARD: skip when this component is not on the page
+if (document.getElementById("pgStats")) {
 
   const W = 128
   const H = 64
@@ -183,4 +185,5 @@
     })
   }, { threshold: 0.2 })
   io.observe(document.getElementById('pgPlain')!)
-</script>
+
+}</script>

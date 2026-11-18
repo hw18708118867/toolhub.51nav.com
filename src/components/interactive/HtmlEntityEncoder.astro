@@ -45,7 +45,9 @@
   <div id="he-timeline" class="mt-4 flex flex-wrap gap-1.5"></div>
 </div>
 
-<script>
+<script>// COMPONENT_GUARD: skip when this component is not on the page
+if (document.getElementById("he-input")) {
+
   const $ = (id) => document.getElementById(id)
   const inputEl = $('he-input')
   const charsEl = $('he-chars')
@@ -143,4 +145,5 @@
 
   new IntersectionObserver((es, ob) => { es.forEach((e) => { if (e.isIntersecting) { recompute(); ob.disconnect() } }) }, { threshold: 0.3 }).observe(charsEl)
   recompute()
-</script>
+
+}</script>

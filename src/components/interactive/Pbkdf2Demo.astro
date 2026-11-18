@@ -34,7 +34,9 @@
   </div>
 </div>
 
-<script>
+<script>// COMPONENT_GUARD: skip when this component is not on the page
+if (document.getElementById("pbRun")) {
+
   const $ = (id: string) => document.getElementById(id)! as HTMLElement
   const enc = new TextEncoder()
 
@@ -126,4 +128,5 @@
     </div>`).join('')
 
   $('pbRun').addEventListener('click', run)
-</script>
+
+}</script>

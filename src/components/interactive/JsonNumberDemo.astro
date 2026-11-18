@@ -30,7 +30,9 @@
   <div id="jn-timeline" class="mt-4 flex flex-wrap gap-1.5"></div>
 </div>
 
-<script>
+<script>// COMPONENT_GUARD: skip when this component is not on the page
+if (document.getElementById("jn-card")) {
+
   const a = JSON.parse('0.1'), b = JSON.parse('0.2'), c = JSON.parse('0.3')
   const sum = a + b
   const MAX_SAFE = Number.MAX_SAFE_INTEGER
@@ -136,4 +138,5 @@
 
   buildTimeline()
   render()
-</script>
+
+}</script>

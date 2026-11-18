@@ -48,6 +48,16 @@ const breadcrumbLd = {
     { '@type': 'ListItem', position: 3, name: breadcrumb },
   ],
 }
+
+const allGuideSlugs = Object.keys(import.meta.glob('../pages/guides/*.astro'))
+  .filter((p) => !p.endsWith('index.astro'))
+  .map((p) => p.split('/').pop()!.replace(/\.astro$/, ''))
+  .sort()
+const currentSlug = Astro.url.pathname.match(/\/guides\/([^/]+)\/?$/)?.[1] ?? ''
+const pos = allGuideSlugs.indexOf(currentSlug)
+const prevSlug = pos > 0 ? allGuideSlugs[pos - 1] : null
+const nextSlug = pos >= 0 && pos < allGuideSlugs.length - 1 ? allGuideSlugs[pos + 1] : null
+const slugLabel = (s: string) => s.split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
 ---
 
 <BaseLayout {title} {description} ogType="article" publishedTime={datePublished} modifiedTime={dateModified}>
@@ -65,16 +75,22 @@ const breadcrumbLd = {
 
       <!-- Article Header -->
       <header class="mb-12">
-        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6 leading-tight dark:text-white">
+        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-5 leading-tight dark:text-white">
           <slot name="title" />
         </h1>
         <p class="text-lg sm:text-xl text-gray-500 leading-relaxed max-w-3xl dark:text-gray-400">
           <slot name="intro" />
         </p>
+        <div class="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-gray-400 dark:text-gray-500">
+          <span id="demo-badge"></span>
+          <span>Published {datePublished}</span>
+          <span>·</span>
+          <span>Updated {dateModified}</span>
+        </div>
       </header>
 
       <!-- ===== 3-Column Layout ===== -->
-      <div class="lg:grid lg:grid-cols-[220px_1fr] xl:grid-cols-[220px_1fr_260px] gap-10">
+      <div class="lg:grid lg:grid-cols-[200px_1fr] xl:grid-cols-[200px_1fr_230px] gap-8 xl:gap-10">
 
         <!-- LEFT: Table of Contents -->
         <aside class="hidden lg:block">
@@ -129,6 +145,23 @@ const breadcrumbLd = {
           </div>
         </div>
       )}
+
+      {(prevSlug || nextSlug) && (
+        <nav class="mt-14 pt-8 border-t border-gray-200 flex flex-wrap justify-between gap-6 dark:border-gray-800" aria-label="Guide navigation">
+          {prevSlug ? (
+            <a href={`/guides/${prevSlug}/`} class="group min-w-0">
+              <span class="text-xs text-gray-400">&#8592; Previous guide</span>
+              <span class="block text-sm font-semibold text-gray-700 group-hover:text-blue-600 dark:text-gray-300 dark:group-hover:text-blue-400">{slugLabel(prevSlug)}</span>
+            </a>
+          ) : <span />}
+          {nextSlug && (
+            <a href={`/guides/${nextSlug}/`} class="group min-w-0 text-right">
+              <span class="text-xs text-gray-400">Next guide &#8594;</span>
+              <span class="block text-sm font-semibold text-gray-700 group-hover:text-blue-600 dark:text-gray-300 dark:group-hover:text-blue-400">{slugLabel(nextSlug)}</span>
+            </a>
+          )}
+        </nav>
+      )}
     </article>
   </main>
   <Footer />
@@ -147,13 +180,27 @@ const breadcrumbLd = {
       const headings = content.querySelectorAll('h2, h3');
       if (headings.length === 0) { toc.innerHTML = '<span class="text-gray-400 text-xs">No sections</span>'; return; }
 
+      // Surface the biggest differentiator: guides with playable, real-code demos.
+      const demos = content.querySelectorAll('.my-10');
+      const badge = document.getElementById('demo-badge');
+      if (demos.length && badge) {
+        badge.innerHTML = '<span data-ga="guide_demo_badge" class="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1 font-medium text-blue-700 dark:bg-blue-500/10 dark:text-blue-300"><span class="text-blue-500">&#9654;</span> ' + demos.length + ' interactive demo' + (demos.length === 1 ? '' : 's') + '</span>';
+      }
+      // Assign stable ids first so the demo-to-heading lookup below can match.
+      headings.forEach((h, i) => { if (!h.id) h.id = 'section-' + i })
+      const demoHeadings = new Set();
+      demos.forEach((d) => {
+        let prev = d.previousElementSibling;
+        while (prev && !/^H[23]$/.test(prev.tagName)) prev = prev.previousElementSibling;
+        if (prev && prev.id) demoHeadings.add(prev.id);
+      });
+
       let html = '';
       headings.forEach((h, i) => {
-        // Add an ID to the heading if it doesn't have one
-        if (!h.id) h.id = 'section-' + i;
         const isH3 = h.tagName === 'H3';
         const text = h.textContent || '';
-        html += `<a href="#${h.id}" class="block py-1 pl-3 ${isH3 ? 'ml-3 text-xs' : 'text-sm font-medium'} text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors border-l-2 -ml-[2px] ${isH3 ? 'border-transparent hover:border-blue-400' : 'border-transparent hover:border-blue-500'}">${text}</a>`;
+        const mark = demoHeadings.has(h.id) ? '<span class="text-blue-500 mr-1">&#9654;</span>' : '';
+        html += `<a href="#${h.id}" class="block py-1 pl-3 ${isH3 ? 'ml-3 text-xs' : 'text-sm font-medium'} text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors border-l-2 -ml-[2px] ${isH3 ? 'border-transparent hover:border-blue-400' : 'border-transparent hover:border-blue-500'}">${mark}${text}</a>`;
       });
       toc.innerHTML = html;
 

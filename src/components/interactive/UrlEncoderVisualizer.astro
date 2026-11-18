@@ -45,7 +45,9 @@
   <div id="ue-timeline" class="mt-4 flex flex-wrap gap-1.5"></div>
 </div>
 
-<script>
+<script>// COMPONENT_GUARD: skip when this component is not on the page
+if (document.getElementById("ue-input")) {
+
   const $ = (id) => document.getElementById(id)
   const inputEl = $('ue-input')
   const charsEl = $('ue-chars')
@@ -156,4 +158,5 @@
   }, { threshold: 0.3 }).observe(charsEl)
 
   recompute()
-</script>
+
+}</script>

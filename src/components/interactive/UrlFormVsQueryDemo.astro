@@ -36,7 +36,9 @@
   <div id="uf-explain" class="mt-4 text-[13px] leading-6 text-gray-600 dark:text-gray-400"></div>
 </div>
 
-<script>
+<script>// COMPONENT_GUARD: skip when this component is not on the page
+if (document.getElementById("uf-input")) {
+
   const $ = (id) => document.getElementById(id)
   const inputEl = $('uf-input')
   const bodyEl = $('uf-body')
@@ -102,4 +104,5 @@
   })
 
   buildRows(); render()
-</script>
+
+}</script>

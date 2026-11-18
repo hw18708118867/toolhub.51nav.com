@@ -46,7 +46,9 @@
   <div id="tmVerdict" class="mt-4"></div>
 </div>
 
-<script>
+<script>// COMPONENT_GUARD: skip when this component is not on the page
+if (document.getElementById("tmGcm")) {
+
   const $ = (id: string) => document.getElementById(id)! as HTMLElement
   const enc = new TextEncoder()
   const dec = new TextDecoder()
@@ -164,4 +166,5 @@
   $('tmReset').addEventListener('click', () => { flipped = false; render() })
 
   render()
-</script>
+
+}</script>

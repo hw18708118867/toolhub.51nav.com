@@ -36,7 +36,9 @@
   <div id="hn-explain" class="mt-4 text-[13px] leading-6 text-gray-600 dark:text-gray-400"></div>
 </div>
 
-<script>
+<script>// COMPONENT_GUARD: skip when this component is not on the page
+if (document.getElementById("hn-width")) {
+
   const $ = (id) => document.getElementById(id)
   const widthEl = $('hn-width')
   const toggleEl = $('hn-toggle')
@@ -64,4 +66,5 @@
   widthEl.addEventListener('input', update)
   toggleEl.addEventListener('change', update)
   update()
-</script>
+
+}</script>

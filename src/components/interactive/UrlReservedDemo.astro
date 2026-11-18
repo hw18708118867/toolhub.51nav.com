@@ -21,7 +21,9 @@
   <div id="ur-detail" class="mt-4 rounded-lg bg-white border border-gray-200 p-3 font-mono text-[12px] break-all min-h-[2.5rem] text-gray-800 dark:bg-gray-950 dark:border-gray-800 dark:text-gray-200"></div>
 </div>
 
-<script>
+<script>// COMPONENT_GUARD: skip when this component is not on the page
+if (document.getElementById("ur-grid")) {
+
   const $ = (id) => document.getElementById(id)
   const gridEl = $('ur-grid')
   const detailEl = $('ur-detail')
@@ -59,4 +61,5 @@
   }
 
   detailEl.textContent = 'Click a character above to inspect it.'
-</script>
+
+}</script>

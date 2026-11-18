@@ -17,7 +17,9 @@
   <div id="hf-detail" class="mt-4 rounded-lg bg-white border border-gray-200 p-3 font-mono text-[12px] break-all min-h-[5rem] text-gray-800 dark:bg-gray-950 dark:border-gray-800 dark:text-gray-200"></div>
 </div>
 
-<script>
+<script>// COMPONENT_GUARD: skip when this component is not on the page
+if (document.getElementById("hf-grid")) {
+
   const $ = (id) => document.getElementById(id)
   const gridEl = $('hf-grid')
   const detailEl = $('hf-detail')
@@ -60,4 +62,5 @@
   }
 
   detailEl.textContent = 'Click a character above to inspect its entity forms.'
-</script>
+
+}</script>
