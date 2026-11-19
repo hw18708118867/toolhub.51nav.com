@@ -116,7 +116,7 @@ const after = 'SGVsbG8sIFdvcmxkISDwn5GL'
       try { inputLabel.textContent = 'Base64'; outputLabel.textContent = 'Text'; b64Output.textContent = decodeURIComponent(escape(atob(b64Input.value))); showStatus('Decoded successfully!', 'success') } catch { showStatus('Invalid Base64', 'error') }
     })
     clearBtn.addEventListener('click', () => { b64Input.value = ''; b64Output.textContent = '' })
-    sampleBtn.addEventListener('click', () => { b64Input.value = 'Hello, World! 👋'; b64Output.textContent = ''; inputLabel.textContent = 'Text'; outputLabel.textContent = 'Base64' })
+    sampleBtn.addEventListener('click', () => { b64Input.value = 'Hello, World! 👋'; inputLabel.textContent = 'Text'; outputLabel.textContent = 'Base64'; encodeBtn.click() })
     copyInputBtn.addEventListener('click', async () => { const success = await copyToClipboard(b64Input.value); showStatus(success ? 'Copied!' : 'Failed to copy', success ? 'success' : 'error') })
     copyOutputBtn.addEventListener('click', async () => { const success = await copyToClipboard(b64Output.textContent || ''); showStatus(success ? 'Copied!' : 'Failed to copy', success ? 'success' : 'error') })
   </script>

@@ -85,6 +85,6 @@ const after = 'Hello%20World%20%26%20Welcome%20to%20DevTools%20Hub!'
     encodeBtn.addEventListener('click', () => { urlOutput.textContent = encodeURIComponent(urlInput.value) })
     decodeBtn.addEventListener('click', () => { try { urlOutput.textContent = decodeURIComponent(urlInput.value) } catch { urlOutput.textContent = 'Invalid URL encoding' } })
     clearBtn.addEventListener('click', () => { urlInput.value = ''; urlOutput.textContent = '' })
-    sampleBtn.addEventListener('click', () => { urlInput.value = 'Hello World & Welcome to DevTools Hub!'; urlOutput.textContent = '' })
+    sampleBtn.addEventListener('click', () => { urlInput.value = 'Hello World & Welcome to DevTools Hub!'; encodeBtn.click() })
   </script>
 </ToolLayout>

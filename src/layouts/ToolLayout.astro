@@ -109,10 +109,12 @@ const faqLd = faq.length > 0 ? {
       <!-- ==================== USAGE STEPS ==================== -->
       {steps.length > 0 && (
         <section class="mb-10">
-          <h2 class="text-2xl font-bold text-gray-900 mb-6 dark:text-white">
-            How to Use {tool.name}
-          </h2>
-          <div class="space-y-4">
+          <details class="group rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+            <summary class="flex items-center justify-between px-6 py-5 cursor-pointer list-none hover:bg-gray-50 transition-colors rounded-2xl dark:hover:bg-gray-800">
+              <h2 class="text-xl font-bold text-gray-900 dark:text-white">How to Use {tool.name}</h2>
+              <svg class="w-5 h-5 text-gray-400 group-open:rotate-180 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+            </summary>
+            <div class="px-6 pb-6 space-y-4">
             {steps.map((step, i) => (
               <div class="flex gap-4">
                 <div class="flex-shrink-0 w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 font-bold text-sm dark:bg-blue-600/20 dark:text-blue-400">
@@ -124,7 +126,8 @@ const faqLd = faq.length > 0 ? {
                 </div>
               </div>
             ))}
-          </div>
+            </div>
+          </details>
         </section>
       )}
 

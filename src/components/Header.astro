@@ -1,6 +1,7 @@
 ---
 import AnimatedLogo from './AnimatedLogo.astro'
 import { tools, categories } from '../data/tools'
+import { allGuides } from '../data/guides'
 
 // Group tools by category for search results
 const allTools = tools.map(t => ({
@@ -10,7 +11,10 @@ const allTools = tools.map(t => ({
 
 // Pre-serialize search data for inline script injection
 const searchToolsJson = JSON.stringify(allTools.map(t => ({
-  id: t.id, name: t.name, description: t.description, category: t.categoryName
+  type: 'tool', id: t.id, name: t.name, description: t.description, category: t.categoryName
+})))
+const searchGuidesJson = JSON.stringify(allGuides.map(g => ({
+  type: 'guide', href: g.href, name: g.title.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&nbsp;/g, ' '), description: g.desc
 })))
 ---
 
@@ -102,9 +106,10 @@ const searchToolsJson = JSON.stringify(allTools.map(t => ({
 </header>
 
 <!-- Search script -->
-<script define:vars={{ searchToolsJson }}>
-  // Tool data injected from server — auto-generated from tools.ts
+<script define:vars={{ searchToolsJson, searchGuidesJson }}>
+  // Tool + guide data injected from server — auto-generated from data files
   const searchTools = JSON.parse(searchToolsJson);
+  const searchGuides = JSON.parse(searchGuidesJson);
 
   const searchInput = document.getElementById('headerSearchInput')
   const searchResults = document.getElementById('headerSearchResults')
@@ -123,25 +128,35 @@ const searchToolsJson = JSON.stringify(allTools.map(t => ({
     searchResults.classList.remove('scale-100')
   }
 
+  function resultRow(item) {
+    const isGuide = item.type === 'guide'
+    const href = isGuide ? item.href : `/tools/${item.id}/`
+    const tag = isGuide ? 'Guide' : (item.category || 'Tool')
+    const tagClass = isGuide ? 'text-blue-500' : 'text-green-500'
+    return `<a href="${href}" data-ga="search_result_${item.type}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-100 transition-colors dark:hover:bg-gray-800">
+      <span class="text-sm font-medium text-gray-900 dark:text-white">${item.name}</span>
+      <span class="text-xs text-gray-400 truncate hidden sm:inline">${item.description}</span>
+      <span class="ml-auto text-[10px] ${tagClass} uppercase tracking-wider flex-shrink-0">${tag}</span>
+    </a>`
+  }
+
   function renderResults(query) {
     const q = query.toLowerCase().trim()
-    let items = searchTools
+    let tools = searchTools, guides = searchGuides
     if (q) {
-      items = searchTools.filter(t => t.name.toLowerCase().includes(q) || t.description.toLowerCase().includes(q) || t.category.toLowerCase().includes(q))
+      tools = searchTools.filter(t => t.name.toLowerCase().includes(q) || t.description.toLowerCase().includes(q) || t.category.toLowerCase().includes(q))
+      guides = searchGuides.filter(g => g.name.toLowerCase().includes(q) || g.description.toLowerCase().includes(q))
     } else {
-      items = searchTools.slice(0, 6)
+      tools = searchTools.slice(0, 5)
+      guides = searchGuides.slice(0, 3)
     }
+    // Interleave but keep tools first — the search is used mostly during tool work.
+    const items = [...tools.slice(0, 6), ...guides.slice(0, 4)]
     if (items.length === 0) {
       searchList.innerHTML = ''
       searchEmpty.classList.remove('hidden')
     } else {
-      searchList.innerHTML = items.slice(0, 8).map(t =>
-        `<a href="/tools/${t.id}/" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-100 transition-colors dark:hover:bg-gray-800">
-          <span class="text-sm font-medium text-gray-900 dark:text-white">${t.name}</span>
-          <span class="text-xs text-gray-400 truncate hidden sm:inline">${t.description}</span>
-          <span class="ml-auto text-[10px] text-gray-400 uppercase tracking-wider flex-shrink-0 hidden sm:inline">${t.category}</span>
-        </a>`
-      ).join('')
+      searchList.innerHTML = items.map(resultRow).join('')
       searchEmpty.classList.add('hidden')
     }
   }
